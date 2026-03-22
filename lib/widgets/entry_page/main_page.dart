@@ -7,22 +7,20 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
+        clipBehavior: Clip.antiAlias,
         title: Text("Bastions"),
-        actionsPadding: EdgeInsets.all(16),
         actions: _appBarActions(context),
         backgroundColor: Theme.of(context).primaryColorLight,
       ),
-
     );
   }
 }
 
 List<Widget> _appBarActions(BuildContext context) {
-  return MainNavigation.values.map((buttonItem) => Padding(
-    padding: const EdgeInsets.only(right: 64.0),
+  return MainNavigation.values.map((buttonItem) => FittedBox(
+    clipBehavior: Clip.antiAlias,
     child: InkWell(
       onTap: switch (buttonItem) {
         MainNavigation.about => () {
@@ -36,7 +34,10 @@ List<Widget> _appBarActions(BuildContext context) {
         MainNavigation.myBastion => () {},
         MainNavigation.hirelings => () {},
       },
-      child: Text(buttonItem.title),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Text(buttonItem.title),
+      ),
     ),
   )).toList();
 }
