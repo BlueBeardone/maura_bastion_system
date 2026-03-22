@@ -24,30 +24,39 @@ class AboutPage extends StatelessWidget {
   List<Widget> _aboutPageContents(BuildContext context) {
     List<Widget> widgets = [];
 
-    widgets.add(Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 16,
-      children: [
-        _card(
-          context: context, 
-          title: "Bastions", 
-          message: "Bastions is a base that you can build that offers temporary buffs and a place for your character to call home.", 
-          color: Colors.amberAccent
-        ),
-        _card(
-          context: context, 
-          title: "Starting your Bastion", 
-          message: "Once you reach level 6 you may bigin to build a Bastion. To start a Bastion you need to buld a Basic Facility.", 
-          color: Colors.limeAccent
-        ),
-      ],
+    widgets.add(SingleChildScrollView(
+      clipBehavior: Clip.antiAlias,
+      physics: ScrollPhysics(),
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 16,
+        children: [
+          _card(
+            context: context, 
+            title: "Bastions", 
+            message: "Bastions is a base that you can build that offers temporary buffs and a place for your character to call home.", 
+            color: Colors.amberAccent
+          ),
+          _card(
+            context: context, 
+            title: "Starting your Bastion", 
+            message: "Once you reach level 6 you may bigin to build a Bastion. To start a Bastion you need to buld a Basic Facility.", 
+            color: Colors.limeAccent
+          ),
+        ],
+      ),
     ));
 
     widgets.add(
-      SizedBox(
-        height: 150,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
+      SingleChildScrollView(
+        controller: ScrollController(),
+        physics: ScrollPhysics(),
+        clipBehavior: Clip.antiAlias,
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
             _card(
               context: context, 
