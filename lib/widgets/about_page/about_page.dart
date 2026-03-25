@@ -7,11 +7,12 @@ class AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("About Bastions"),
+        title: Text("About Bastions", style: Theme.of(context).textTheme.titleLarge),
         centerTitle: true,
-        backgroundColor: Theme.of(context).primaryColorLight,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         leading: BackButton(),
       ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: _aboutPageContents(context),
     );
   }

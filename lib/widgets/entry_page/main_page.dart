@@ -13,9 +13,10 @@ class MainPage extends StatelessWidget {
         title: Text("Bastions", style: Theme.of(context).textTheme.titleLarge,),
         centerTitle: false,
         actions: _appBarActions(context),
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     );
   }
 }

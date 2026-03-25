@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bastions of Maura',
-      theme: mainTheme,
+      theme: MainThemeTheme,
       home: MainPage(),
     );
   }
