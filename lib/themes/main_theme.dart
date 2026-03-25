@@ -128,8 +128,9 @@ final ThemeData MainThemeTheme = ThemeData(
   appBarTheme: const AppBarTheme(
     backgroundColor: Color.fromARGB(255, 255, 204, 127),
     foregroundColor: Color.fromARGB(255, 58, 18, 18),
-    elevation: 0,
+    elevation: 4,
     centerTitle: true,
+    shadowColor: Color.fromARGB(255, 109, 66, 2),
     titleTextStyle: TextStyle(fontFamily: 'Cinzel', fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFFE6B422), letterSpacing: 1.2),
     iconTheme: IconThemeData(color: Color(0xFFE6B422)),
     actionsIconTheme: IconThemeData(color: Color(0xFFE6B422)),
