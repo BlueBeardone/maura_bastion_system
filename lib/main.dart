@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maura_bastion_system/themes/main_theme.dart';
 import 'package:maura_bastion_system/widgets/entry_page/main_page.dart';
 
 void main() {
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bastions of Maura',
-      theme: Theme.of(context),
+      theme: mainTheme,
       home: MainPage(),
     );
   }

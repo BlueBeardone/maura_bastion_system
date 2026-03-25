@@ -10,10 +10,12 @@ class MainPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         clipBehavior: Clip.antiAlias,
-        title: Text("Bastions"),
+        title: Text("Bastions", style: Theme.of(context).textTheme.titleLarge,),
+        centerTitle: false,
         actions: _appBarActions(context),
-        backgroundColor: Theme.of(context).primaryColorLight,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
+      backgroundColor: Theme.of(context).colorScheme.primary,
     );
   }
 }
@@ -36,7 +38,7 @@ List<Widget> _appBarActions(BuildContext context) {
       },
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Text(buttonItem.title),
+        child: Text(buttonItem.title, style: Theme.of(context).textTheme.titleMedium,),
       ),
     ),
   )).toList();
