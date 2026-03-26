@@ -74,12 +74,10 @@ final ThemeData MainThemeTheme = ThemeData(
     secondary: Color(0xFFE6B422),
     tertiary: Color(0xFF6A4E2E),
     surface: Color(0xFF2C2418),
-    background: Color(0xFF1F1A12),
     error: Color(0xFFCF6679),
     onPrimary: Color(0xFF1F1A12),
     onSecondary: Color(0xFF1F1A12),
     onSurface: Color(0xFFE9E2C7),
-    onBackground: Color(0xFFE9E2C7),
     onError: Color(0xFF1F1A12),
   ),
 
@@ -91,8 +89,6 @@ final ThemeData MainThemeTheme = ThemeData(
   canvasColor: const Color(0xFF1F1A12),
   scaffoldBackgroundColor: const Color.fromARGB(255, 241, 233, 210),
   cardColor: const Color(0xFF2C2418),
-  dialogBackgroundColor: const Color(0xFF2C2418),
-  indicatorColor: const Color(0xFFE6B422),
   disabledColor: const Color(0xFF6B5A44),
   highlightColor: const Color(0xFFE6B422).withOpacity(0.12),
   focusColor: const Color(0xFFE6B422).withOpacity(0.24),
@@ -111,16 +107,16 @@ final ThemeData MainThemeTheme = ThemeData(
     titleLarge: TextStyle(fontFamily: 'Cinzel', fontSize: 32, fontWeight: FontWeight.w600, color: Color.fromARGB(255, 104, 18, 18)),
     titleMedium: TextStyle(fontFamily: 'Roboto', fontSize: 14, fontWeight: FontWeight.w500, color: Color.fromARGB(255, 104, 18, 18)),
     titleSmall: TextStyle(fontFamily: 'Roboto', fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFFD4CCB0)),
-    bodyLarge: TextStyle(fontFamily: 'Roboto', fontSize: 16, color: Color(0xFFE9E2C7)),
-    bodyMedium: TextStyle(fontFamily: 'Roboto', fontSize: 14, color: Color(0xFFD4CCB0)),
-    bodySmall: TextStyle(fontFamily: 'Roboto', fontSize: 12, color: Color(0xFFB8AA8A)),
+    bodyLarge: TextStyle(fontFamily: 'Roboto', fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+    bodyMedium: TextStyle(fontFamily: 'Roboto', fontSize: 14, color: Color.fromARGB(255, 0, 0, 0)),
+    bodySmall: TextStyle(fontFamily: 'Roboto', fontSize: 12, color: Color.fromARGB(255, 0, 0, 0)),
     labelLarge: TextStyle(fontFamily: 'Cinzel', fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFFE6B422)),
     labelMedium: TextStyle(fontFamily: 'Roboto', fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFFE9E2C7)),
     labelSmall: TextStyle(fontFamily: 'Roboto', fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFFD4CCB0)),
   ),
   primaryTextTheme: const TextTheme(
-    bodyLarge: TextStyle(fontFamily: 'Roboto', fontSize: 16, color: Color(0xFFE9E2C7)),
-    bodyMedium: TextStyle(fontFamily: 'Roboto', fontSize: 14, color: Color(0xFFD4CCB0)),
+    bodyLarge: TextStyle(fontFamily: 'Roboto', fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+    bodyMedium: TextStyle(fontFamily: 'Roboto', fontSize: 14, color: Color.fromARGB(255, 0, 0, 0)),
     // ... similarly copy from main textTheme for consistency
   ),
 
@@ -159,14 +155,14 @@ final ThemeData MainThemeTheme = ThemeData(
   navigationBarTheme: NavigationBarThemeData(
     backgroundColor: const Color(0xFF2C2418),
     indicatorColor: const Color(0xFFE6B422).withOpacity(0.2),
-    labelTextStyle: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    labelTextStyle: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const TextStyle(fontFamily: 'Cinzel', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFE6B422));
       }
       return const TextStyle(fontFamily: 'Roboto', fontSize: 12, color: Color(0xFFD4CCB0));
     }),
-    iconTheme: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    iconTheme: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const IconThemeData(color: Color(0xFFE6B422), size: 24);
       }
       return const IconThemeData(color: Color(0xFFD4CCB0), size: 24);
@@ -297,34 +293,34 @@ final ThemeData MainThemeTheme = ThemeData(
 
   // --- Checkbox, Radio, Switch ---
   checkboxTheme: CheckboxThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) return const Color(0xFFE6B422);
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422);
       return const Color(0xFF4A3724);
     }),
-    checkColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) return const Color(0xFF1F1A12);
+    checkColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return const Color(0xFF1F1A12);
       return const Color(0xFFE9E2C7);
     }),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     side: const BorderSide(color: Color(0xFFE6B422), width: 1.5),
   ),
   radioTheme: RadioThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) return const Color(0xFFE6B422);
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422);
       return const Color(0xFF4A3724);
     }),
     visualDensity: VisualDensity.compact,
   ),
   switchTheme: SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) return const Color(0xFFE6B422);
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422);
       return const Color(0xFF4A3724);
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) return const Color(0xFFE6B422).withOpacity(0.5);
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422).withOpacity(0.5);
       return const Color(0xFF4A3724);
     }),
-    overlayColor: MaterialStateProperty.resolveWith((states) => const Color(0xFFE6B422).withOpacity(0.12)),
+    overlayColor: WidgetStateProperty.resolveWith((states) => const Color(0xFFE6B422).withOpacity(0.12)),
   ),
 
   // --- Slider ---
@@ -349,9 +345,9 @@ final ThemeData MainThemeTheme = ThemeData(
 
   // --- Scrollbar ---
   scrollbarTheme: ScrollbarThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) => const Color(0xFFE6B422)),
-    trackColor: MaterialStateProperty.resolveWith((states) => const Color(0xFF4A3724)),
-    thickness: MaterialStateProperty.all(8),
+    thumbColor: WidgetStateProperty.resolveWith((states) => const Color(0xFFE6B422)),
+    trackColor: WidgetStateProperty.resolveWith((states) => const Color(0xFF4A3724)),
+    thickness: WidgetStateProperty.all(8),
     radius: const Radius.circular(4),
   ),
 

@@ -79,7 +79,7 @@ class AboutPage extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Title(color: Colors.black, child: Text(title, style: Theme.of(context).textTheme.titleLarge,)),
-          Text(message),
+          Text(message, style: Theme.of(context).textTheme.bodyLarge,),
         ],
       ),
     );
