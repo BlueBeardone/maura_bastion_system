@@ -27,28 +27,28 @@ class AboutPage extends StatelessWidget {
         _card(
           context: context, 
           title: "Bastions", 
-          message: "Bastions is a base that you can build that offers temporary buffs and a place for your character to call home.", 
+          message: "Bastions is a base that you can build that offers temporary benefits and a place for your character to call home.", 
           color: Colors.amberAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
           title: "Starting your Bastion", 
-          message: "Once you reach level 6 you may bigin to build a Bastion. To start a Bastion you need to buld a Basic Facility.", 
+          message: "Once you reach level 6 you may begin to build a Bastion. To start a Bastion you need to build a Basic Facility.", 
           color: Colors.limeAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
           title: "Basic Facilities", 
-          message: "Basic Facilities are facilities that allow you to build certain Special facilities and gives a small buff.", 
+          message: "Basic Facilities are facilities that allow you to build certain Special facilities and gives a small benefit.", 
           color: Colors.greenAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
           title: "Special Facilities", 
-          message: "Special Facilities are facilities that gives very good buffs that are strong", 
+          message: "Special Facilities are facilities that gives very good benefits that are strong", 
           color: Colors.tealAccent,
         ),
         SizedBox(height: 8,),
@@ -62,7 +62,7 @@ class AboutPage extends StatelessWidget {
         _card(
           context: context, 
           title: "Bastion Turn", 
-          message: "A Bastion turn is a turn where specific features from certain facilites activate. Only a dm can allow you to make a Bastion Turn", 
+          message: "A Bastion turn is a turn where specific features from certain facilities activate. Only a dm can allow you to make a Bastion Turn", 
           color: Colors.redAccent
         ),
         SizedBox(height: 8,),
