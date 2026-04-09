@@ -64,7 +64,7 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
 }
 
 // === Main ThemeData ===
-final ThemeData MainThemeTheme = ThemeData(
+final ThemeData mainThemeTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
 
@@ -90,9 +90,9 @@ final ThemeData MainThemeTheme = ThemeData(
   scaffoldBackgroundColor: const Color.fromARGB(255, 241, 233, 210),
   cardColor: const Color(0xFF2C2418),
   disabledColor: const Color(0xFF6B5A44),
-  highlightColor: const Color(0xFFE6B422).withOpacity(0.12),
-  focusColor: const Color(0xFFE6B422).withOpacity(0.24),
-  hoverColor: const Color(0xFFE6B422).withOpacity(0.08),
+  highlightColor: const Color(0xFFE6B422).withValues(alpha: 0.12),
+  focusColor: const Color(0xFFE6B422).withValues(alpha:0.24),
+  hoverColor: const Color.fromARGB(255, 150, 114, 6).withValues(alpha:0.08),
   splashFactory: InkRipple.splashFactory,
 
   // --- Typography ---
@@ -154,7 +154,7 @@ final ThemeData MainThemeTheme = ThemeData(
   // --- NavigationBar (M3) ---
   navigationBarTheme: NavigationBarThemeData(
     backgroundColor: const Color(0xFF2C2418),
-    indicatorColor: const Color(0xFFE6B422).withOpacity(0.2),
+    indicatorColor: const Color(0xFFE6B422).withValues(alpha:0.2),
     labelTextStyle: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) {
         return const TextStyle(fontFamily: 'Cinzel', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFE6B422));
@@ -317,10 +317,10 @@ final ThemeData MainThemeTheme = ThemeData(
       return const Color(0xFF4A3724);
     }),
     trackColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422).withOpacity(0.5);
+      if (states.contains(WidgetState.selected)) return const Color(0xFFE6B422).withValues(alpha:0.5);
       return const Color(0xFF4A3724);
     }),
-    overlayColor: WidgetStateProperty.resolveWith((states) => const Color(0xFFE6B422).withOpacity(0.12)),
+    overlayColor: WidgetStateProperty.resolveWith((states) => const Color(0xFFE6B422).withValues(alpha:0.12)),
   ),
 
   // --- Slider ---
@@ -328,7 +328,7 @@ final ThemeData MainThemeTheme = ThemeData(
     activeTrackColor: const Color(0xFFE6B422),
     inactiveTrackColor: const Color(0xFF4A3724),
     thumbColor: const Color(0xFFE6B422),
-    overlayColor: const Color(0xFFE6B422).withOpacity(0.2),
+    overlayColor: const Color(0xFFE6B422).withValues(alpha:0.2),
     trackHeight: 4,
     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
     overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
@@ -408,7 +408,7 @@ final ThemeData MainThemeTheme = ThemeData(
   // --- TextSelection ---
   textSelectionTheme: TextSelectionThemeData(
     cursorColor: const Color(0xFFE6B422),
-    selectionColor: const Color(0xFFE6B422).withOpacity(0.4),
+    selectionColor: const Color(0xFFE6B422).withValues(alpha:0.4),
     selectionHandleColor: const Color(0xFFE6B422),
   ),
 

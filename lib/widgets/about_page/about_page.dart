@@ -71,14 +71,15 @@ class AboutPage extends StatelessWidget {
   }
 
   Widget _card({required BuildContext context, required String title, required String message, required Color color}) {
-    return Container(
+    return Card(
       color: color,
-      padding: EdgeInsetsGeometry.all(8),
-      width: 250,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Title(color: Colors.black, child: Text(title, style: Theme.of(context).textTheme.titleLarge,)),
+          Title(
+            color: Colors.black, 
+            child: Text(title, style: Theme.of(context).textTheme.titleLarge,)
+          ),
           Text(message, style: Theme.of(context).textTheme.bodyLarge,),
         ],
       ),

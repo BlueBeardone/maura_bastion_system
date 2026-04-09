@@ -1,7 +1,6 @@
 enum MainNavigation {
   myBastion,
-  basic,
-  special,
+  facility,
   hirelings,
   about,
 }
@@ -10,8 +9,7 @@ extension MainNavigationExtension on MainNavigation {
   String get title {
     switch (this) {
       case MainNavigation.about: return "About";
-      case MainNavigation.basic: return "Basic Facilities";
-      case MainNavigation.special: return "Special Facilities";
+      case MainNavigation.facility: return "Facilities";
       case MainNavigation.myBastion: return "My Bastion";
       case MainNavigation.hirelings: return "Hirelings";
     }
