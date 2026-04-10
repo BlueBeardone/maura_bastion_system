@@ -37,7 +37,7 @@ class NewsArticle extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(8.0), // Optional: keep text padding consistent
+                padding: const EdgeInsets.all(12.0), // Optional: keep text padding consistent
                 child: Text.rich(
                   TextSpan(
                     children: [
