@@ -50,7 +50,7 @@ Mystery Bard: Yes! I want to thank everyone for their support. I wouldn`t be whe
 And that concludes our interview. We hope this has helped you get to know the Mystery Bard a little better though she will no doubt remain an enigma. If you find yourself in Maura this coming week, we highly recommend visiting the Spring Fest Festival. Be quick, though tickets for her concert are already running out.
       ''',
       author: 'Nanox',
-      imageUrl: null, // placeholder will be shown
+      imageUrl: 'https://cdn.discordapp.com/attachments/1165772702972395640/1491786432572952839/image.png?ex=69daf021&is=69d99ea1&hm=559b32cd6d70dc020c439b3f17345ea46219df672fcda212d9dbda1a0dbba16c&', 
     ),
     otherArticles: [
       NewspaperArticle(
@@ -72,7 +72,7 @@ Either way, the pass is now open, and the name of Maura rings louder than ever.
 Three cheers for the good people of Maura!
 """,
         author: 'Anonymous',
-        imageUrl: null,
+        imageUrl: 'https://cdn.discordapp.com/attachments/1165772702972395640/1490321118387765368/OIP.png?ex=69db8a33&is=69da38b3&hm=a302df404f94f19d90f5257eb6f4381140b2abc06463208f32971d5eb53e2cc1&',
       ),
       NewspaperArticle(
         title: "MERCHANT ASSOCIATION'S PRIVATE MILITARY ANNIHILATED BY UNKNOWN GUARDIAN",
@@ -85,7 +85,7 @@ The disaster unfolded late yesterday evening as the association`s convoy escorte
 Survivors tell of complete and utter defeat. With not much of casualty nor scratch on the enemy force. There is talks that the merchant association will have to bend the knee and accept Maura's help in taking out this enemy.
 """,
         author: 'Anonymous',
-        imageUrl: null,
+        imageUrl: 'https://cdn.discordapp.com/attachments/1165772702972395640/1489365218466336940/OIP.png?ex=69db5bb3&is=69da0a33&hm=f2aae1011c57cb973620a2dafb76a1288040e22dbeb3df110d62fec8ecf105e5&',
       ),
       NewspaperArticle(
         title: "Unique Magical cave system collapses - hundreds of croak's found dead in the rubble - one of a kind Fish species eradicated.",
@@ -104,7 +104,7 @@ To bow down to gods is weakness
 To bow down to nature is to forgive yourself
 """,
         author: 'Cupcake',
-        imageUrl: null,
+        imageUrl: 'https://cdn.discordapp.com/attachments/1165772702972395640/1489040324876828692/d992fa4a25dafb588ce7a1e4d62867ac.png?ex=69db7e9e&is=69da2d1e&hm=9fe6b4cff02c6a4af7122a36abc85744b7c8622d083d734b2580040964333c30&',
       ),
     ],
   );

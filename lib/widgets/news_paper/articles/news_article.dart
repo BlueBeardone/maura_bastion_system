@@ -32,7 +32,7 @@ class NewsArticle extends StatelessWidget {
             child: Text('By ${article.author}'),
           ),
           const SizedBox(height: 8),
-          _buildImagePlaceholder(article.imageUrl, height: 120),
+          _buildImagePlaceholder(context, article.imageUrl, height: 360),
           const SizedBox(height: 8),
           Expanded(
             child: SingleChildScrollView(
@@ -53,20 +53,23 @@ class NewsArticle extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePlaceholder(String? imageUrl, {double height = 180}) {
+  Widget _buildImagePlaceholder(BuildContext context, String? imageUrl, {double height = 360}) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
         height: height,
         width: double.infinity,
-        color: Colors.grey[300],
+        color: imageUrl != null? Theme.of(context).appBarTheme.backgroundColor : Colors.grey[300],
         child: Center(
-          child: Column(
+          child: imageUrl != null? Image.network(imageUrl)
+           : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.photo_camera, size: 40, color: Colors.grey),
               const SizedBox(height: 8),
-              const Text('VINTAGE PHOTOGRAPH'),
+              Text(
+                'Image',
+              ),
             ],
           ),
         ),

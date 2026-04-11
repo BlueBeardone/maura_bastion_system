@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maura_bastion_system/enums/main_navigation_enum.dart';
-import 'package:maura_bastion_system/test_data/news_paper/fake_news_paper_data.dart';
 import 'package:maura_bastion_system/widgets/about_page/about_page.dart';
+import 'package:maura_bastion_system/widgets/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/news_paper/news_paper.dart';
 
 class MainPage extends StatelessWidget {
@@ -19,7 +19,7 @@ class MainPage extends StatelessWidget {
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
-      body: NewspaperLayout(data: getFakeNewspaperData(),),
+      body: NewspaperLayout(),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     );
   }
@@ -37,8 +37,18 @@ List<Widget> _appBarActions(BuildContext context) {
             MaterialPageRoute(builder: (context) => AboutPage()),
           );
         },
+        MainNavigation.myBastion => () {
+          Navigator.push(
+            context, 
+            MaterialPageRoute(builder: (context) => MyErrorWidget(
+              message: """
+HELLO 0000000000000000000000000000000000000000000000000000000000000000000000000
+
+""",
+            )),
+          );
+        },
         MainNavigation.facility => () {},
-        MainNavigation.myBastion => () {},
         MainNavigation.hirelings => () {},
       },
       child: Padding(

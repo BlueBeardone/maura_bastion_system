@@ -127,9 +127,9 @@ final ThemeData mainThemeTheme = ThemeData(
     elevation: 4,
     centerTitle: true,
     shadowColor: Color.fromARGB(255, 109, 66, 2),
-    titleTextStyle: TextStyle(fontFamily: 'Cinzel', fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFFE6B422), letterSpacing: 1.2),
-    iconTheme: IconThemeData(color: Color(0xFFE6B422)),
-    actionsIconTheme: IconThemeData(color: Color(0xFFE6B422)),
+    titleTextStyle: TextStyle(fontFamily: 'Cinzel', fontWeight: FontWeight.bold, fontSize: 22, color: Color.fromARGB(255, 104, 18, 18), letterSpacing: 1.2),
+    iconTheme: IconThemeData(color: Color.fromARGB(255, 104, 18, 18)),
+    actionsIconTheme: IconThemeData(color: Color.fromARGB(255, 104, 18, 18)),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(8))),
   ),
 
@@ -208,7 +208,7 @@ final ThemeData mainThemeTheme = ThemeData(
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      foregroundColor: const Color(0xFFE6B422),
+      foregroundColor: const Color.fromARGB(255, 104, 18, 18),
       side: const BorderSide(color: Color(0xFFE6B422), width: 1.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -217,14 +217,14 @@ final ThemeData mainThemeTheme = ThemeData(
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      foregroundColor: const Color(0xFFE6B422),
+      foregroundColor: const Color.fromARGB(255, 104, 18, 18),
       textStyle: const TextStyle(fontFamily: 'Cinzel', fontSize: 14, fontWeight: FontWeight.w500),
     ),
   ),
 
   // --- FloatingActionButton ---
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
-    backgroundColor: Color(0xFFE6B422),
+    backgroundColor: Color.fromARGB(255, 104, 18, 18),
     foregroundColor: Color(0xFF1F1A12),
     elevation: 4,
     shape: CircleBorder(),
