@@ -1,7 +1,7 @@
-import 'package:maura_bastion_system/enums/facility_rank.dart';
-import 'package:maura_bastion_system/enums/facility_size.dart';
-import 'package:maura_bastion_system/models/bastion/prerequisite.dart';
-import 'package:maura_bastion_system/models/bastion/table.dart';
+import 'package:maura_bastion_system/data/enums/facility_rank.dart';
+import 'package:maura_bastion_system/data/enums/facility_size.dart';
+import 'package:maura_bastion_system/data/models/bastion/prerequisite.dart';
+import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
 class Facility {
   final String name;

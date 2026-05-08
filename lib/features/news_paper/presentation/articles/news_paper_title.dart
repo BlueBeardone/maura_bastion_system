@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:maura_bastion_system/models/news_paper/news_paper_data.dart';
+import 'package:maura_bastion_system/data/models/news_paper/news_paper_data.dart';
 
 class NewsPaperTitle extends StatelessWidget {
 

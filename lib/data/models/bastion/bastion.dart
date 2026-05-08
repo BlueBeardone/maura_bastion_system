@@ -1,4 +1,4 @@
-import 'package:maura_bastion_system/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/data/models/bastion/facility.dart';
 
 class Bastion {
   final String name;

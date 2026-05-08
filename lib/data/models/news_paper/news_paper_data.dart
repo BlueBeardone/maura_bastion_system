@@ -1,4 +1,4 @@
-import 'package:maura_bastion_system/models/news_paper/news_paper_article.dart';
+import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 
 class NewspaperData {
   final String newspaperName;

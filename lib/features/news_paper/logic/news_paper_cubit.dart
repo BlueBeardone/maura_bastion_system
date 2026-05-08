@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:maura_bastion_system/models/news_paper/news_paper_data.dart';
-import 'package:maura_bastion_system/test_data/news_paper/fake_news_paper_data.dart';
-import 'package:maura_bastion_system/cubits/news_paper/news_paper_state.dart';
+import 'package:maura_bastion_system/data/models/news_paper/news_paper_data.dart';
+import 'package:maura_bastion_system/data/test_data/news_paper/fake_news_paper_data.dart';
+import 'package:maura_bastion_system/features/news_paper/logic/news_paper_state.dart';
 
 class NewsPaperCubit extends Cubit<NewsPaperMainState> {
   NewsPaperCubit() : super(InitNewsPaperState());
