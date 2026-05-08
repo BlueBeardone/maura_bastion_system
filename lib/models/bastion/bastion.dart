@@ -5,5 +5,4 @@ class Bastion {
   final String description;
   final String? imgUrl;
   final List<Facility> facilities;
-
 }

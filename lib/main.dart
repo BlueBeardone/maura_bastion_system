@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maura_bastion_system/themes/main_theme.dart';
-import 'package:maura_bastion_system/widgets/entry_page/main_page.dart';
+import 'package:maura_bastion_system/features/main_menu/main_page.dart';
 
 void main() {
   runApp(const MyApp());

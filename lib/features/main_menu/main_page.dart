@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maura_bastion_system/enums/main_navigation_enum.dart';
-import 'package:maura_bastion_system/widgets/about_page/about_page.dart';
-import 'package:maura_bastion_system/widgets/error/error_widget.dart';
+import 'package:maura_bastion_system/features/about_page/about_page.dart';
+import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/news_paper/news_paper.dart';
 
 class MainPage extends StatelessWidget {

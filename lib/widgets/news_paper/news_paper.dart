@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/cubits/news_paper/news_paper_cubit.dart';
 import 'package:maura_bastion_system/cubits/news_paper/news_paper_state.dart';
 import 'package:maura_bastion_system/models/news_paper/news_paper_article.dart';
-import 'package:maura_bastion_system/widgets/error/error_widget.dart';
+import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/news_paper/articles/main_news_article.dart';
 import 'package:maura_bastion_system/widgets/news_paper/articles/news_article.dart';
 import 'package:maura_bastion_system/widgets/news_paper/articles/news_paper_title.dart';
