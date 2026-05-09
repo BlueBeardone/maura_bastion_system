@@ -11,4 +11,10 @@ class FacilityTable {
         .toList(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'table': table,
+    };
+  }
 }

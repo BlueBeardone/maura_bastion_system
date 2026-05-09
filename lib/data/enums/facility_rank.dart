@@ -3,7 +3,18 @@ enum FacilityRank {
   A,
   B,
   C,
-  D
+  D;
+
+  static FacilityRank fromString(String rank) {
+    switch (rank) {
+      case "s": return FacilityRank.S;
+      case "a": return FacilityRank.A;
+      case "b": return FacilityRank.B;
+      case "c": return FacilityRank.C;
+      case "d": return FacilityRank.D;
+      default: throw ArgumentError("Invalid rank: $rank");
+    }
+  }
 }
 
 extension MainNavigationExtension on FacilityRank {

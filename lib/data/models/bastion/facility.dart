@@ -1,52 +1,39 @@
 import 'package:maura_bastion_system/data/enums/facility_rank.dart';
-import 'package:maura_bastion_system/data/enums/facility_size.dart';
-import 'package:maura_bastion_system/data/models/bastion/prerequisite.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
 class Facility {
   final String name;
   final FacilityRank rank;
-  final Prerequisite? prerequisite;
-  final FacilitySize space;
   final int hirelingAmount;
   final String description;
-  final List<String> boonNames;
-  final List<String> boonDescriptions;
   final FacilityTable? table;
 
   Facility({
     required this.name,
     required this.rank, 
-    this.prerequisite, 
-    required this.space, 
     required this.hirelingAmount, 
-    required this.description, 
-    required this.boonNames, 
-    required this.boonDescriptions, 
+    required this.description,
     this.table
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
 
     return Facility(
-      name: json['name'], 
-      rank: json['rank'],
-      space: json['space'], 
-      hirelingAmount: json['hirelingAmount'], 
-      description: json['description'], 
-      boonNames: json['boonNames'], 
-      boonDescriptions: json['boonDescriptions'],
-      prerequisite: json['prerequisite'],
-      table: json['table'],
+      name: json['name'] as String, 
+      rank: FacilityRank.fromString((json['rank'] as String).toLowerCase().trim()),
+      hirelingAmount: json['hirelingAmount'] as int, 
+      description: json['description'] as String,
+      table: json['table'] == null ? null : FacilityTable.fromJson(json['table'] as Map<String, dynamic>),
     );
   }
 
-  // // Method to convert a User to JSON
-  // Map<String, dynamic> toJson() {
-  //   return {
-  //     'id': id,
-  //     'name': name,
-  //     'email': email,
-  //   };
-  // }
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'rank': rank.title.toLowerCase(),
+      'hirelingAmount': hirelingAmount,
+      'description': description,
+      'table': table?.toJson(),
+    };
+  }
 }
