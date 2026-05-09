@@ -1,12 +1,14 @@
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 
 class Bastion {
+  final String id;
   final String name;
   final String description;
   final String? imgUrl;
   final List<Facility> facilities;
 
   Bastion({
+    required this.id,
     required this.name,
     required this.description,
     this.imgUrl,
@@ -15,6 +17,7 @@ class Bastion {
 
   factory Bastion.fromJson(Map<String, dynamic> json) {
     return Bastion(
+      id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
       imgUrl: json['imgUrl'] as String?,
@@ -26,6 +29,7 @@ class Bastion {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'description': description,
       'imgUrl': imgUrl,
