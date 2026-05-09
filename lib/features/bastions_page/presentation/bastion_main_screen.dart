@@ -5,7 +5,6 @@ import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionMainScreen extends StatelessWidget {
-
   const BastionMainScreen({super.key});
 
   @override
@@ -24,13 +23,14 @@ class BastionMainScreen extends StatelessWidget {
           return MyErrorWidget(
             message: state.message,
             icon: Icons.error_outline,
+            onRetry: () => BastionCubit().loadBastions(),
           );
         }
 
         if (state is BastionLoadingState) {
           return Center(child: CircularProgressIndicator());
-        } 
-        
+        }
+
         if (state is BastionLoadedState) {
           return ListView.builder(
             itemCount: state.bastions.length,
