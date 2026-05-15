@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
@@ -32,20 +33,39 @@ class BastionMainScreen extends StatelessWidget {
         }
 
         if (state is BastionLoadedState) {
-          return ListView.builder(
-            itemCount: state.bastions.length,
-            itemBuilder: (context, index) {
-              final bastion = state.bastions[index];
-              return ListTile(
-                title: Text(bastion.name),
-                subtitle: Text(bastion.description),
-              );
-            },
-          );
+          return _buildBastionsView(context, state.bastions);
         } 
 
         return Center(child: Text('Unknown state'));
       },
     );
+  }
+
+  Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
+
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 1.5), 
+      itemBuilder: (context, index) {
+        final bastion = bastions[index];
+        return GridTile(
+          header: Text(bastion.name),
+          footer: Text(bastion.description),
+          child: bastion.imgUrl != null 
+            ? Image.network(bastion.imgUrl!, fit: BoxFit.cover)
+            : Container(color: Colors.grey),
+        );
+      },
+    );
+
+    // return ListView.builder(
+    //   itemCount: bastions.length,
+    //   itemBuilder: (context, index) {
+    //     final bastion = bastions[index];
+    //     return ListTile(
+    //       title: Text(bastion.name),
+    //       subtitle: Text(bastion.description),
+    //     );
+    //   },
+    // );
   }
 }
