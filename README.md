@@ -1,12 +1,15 @@
-# maura_bastion_system
+# Maura Bastion System
 
-A new Flutter project.
+A Flutter application for bastion management and news aggregation.
 
-## Getting Started
+## Prerequisites
+
+- Flutter SDK 3.0+
+- Docker and Docker Compose (for containerized deployment)
 
 ## Docker Deployment
 
-To run the web app using Docker:
+To run the web app use Docker:
 
 1. Ensure Docker and Docker Compose are installed.
 2. Run `docker compose up -d` to build and start the app.
