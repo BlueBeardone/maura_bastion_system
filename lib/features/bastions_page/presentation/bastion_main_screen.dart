@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
+import 'package:maura_bastion_system/themes/main_theme.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
@@ -47,12 +48,13 @@ class BastionMainScreen extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 1.5), 
       itemBuilder: (context, index) {
         final bastion = bastions[index];
+        final themeColors = Theme.of(context).extension<MainThemeColors>();
         return GridTile(
-          header: Text(bastion.name),
+          header: Text(bastion.name, style: Theme.of(context).textTheme.titleMedium),
           footer: Text(bastion.description),
           child: bastion.imgUrl != null 
             ? Image.network(bastion.imgUrl!, fit: BoxFit.cover)
-            : Container(color: Colors.grey),
+            : Container(color: themeColors?.noImageBastion ?? Theme.of(context).disabledColor),
         );
       },
     );
