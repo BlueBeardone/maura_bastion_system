@@ -7,6 +7,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
   final Color constructionBrown; // for construction turns / wood
   final Color rankColor;       // for facility ranks (D, C, B, A, S)
   final Color costRed;         // for negative costs or warnings
+  final Color disabledBastion; // for disabled bastion cards
+  final Color noImageBastion;  // for bastions missing an image
 
   const MainThemeColors({
     required this.gpGold,
@@ -14,6 +16,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
     required this.constructionBrown,
     required this.rankColor,
     required this.costRed,
+    required this.disabledBastion,
+    required this.noImageBastion,
   });
 
   static const MainThemeColors light = MainThemeColors(
@@ -22,6 +26,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
     constructionBrown: Color(0xFF8B5A2B),
     rankColor: Color(0xFFB87333),
     costRed: Color(0xFFE57373),
+    disabledBastion: Color(0xFF7A6A52),
+    noImageBastion: Color(0xFF3F3428),
   );
 
   static const MainThemeColors dark = MainThemeColors(
@@ -30,6 +36,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
     constructionBrown: Color(0xFF8B5A2B),
     rankColor: Color(0xFFB87333),
     costRed: Color(0xFFE57373),
+    disabledBastion: Color(0xFF7A6A52),
+    noImageBastion: Color(0xFF3F3428),
   );
 
   @override
@@ -39,6 +47,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
     Color? constructionBrown,
     Color? rankColor,
     Color? costRed,
+    Color? disabledBastion,
+    Color? noImageBastion,
   }) {
     return MainThemeColors(
       gpGold: gpGold ?? this.gpGold,
@@ -46,6 +56,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
       constructionBrown: constructionBrown ?? this.constructionBrown,
       rankColor: rankColor ?? this.rankColor,
       costRed: costRed ?? this.costRed,
+      disabledBastion: disabledBastion ?? this.disabledBastion,
+      noImageBastion: noImageBastion ?? this.noImageBastion,
     );
   }
 
@@ -59,6 +71,8 @@ class MainThemeColors extends ThemeExtension<MainThemeColors> {
       constructionBrown: Color.lerp(constructionBrown, other.constructionBrown, t)!,
       rankColor: Color.lerp(rankColor, other.rankColor, t)!,
       costRed: Color.lerp(costRed, other.costRed, t)!,
+      disabledBastion: Color.lerp(disabledBastion, other.disabledBastion, t)!,
+      noImageBastion: Color.lerp(noImageBastion, other.noImageBastion, t)!,
     );
   }
 }
@@ -446,4 +460,7 @@ final ThemeData mainThemeTheme = ThemeData(
 
   // --- MaterialState properties for unselected widgets (like InkWell) ---
   unselectedWidgetColor: const Color(0xFFD4CCB0),
+  extensions: const <ThemeExtension<dynamic>>[
+    MainThemeColors.dark,
+  ],
 );
