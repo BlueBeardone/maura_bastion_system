@@ -5,6 +5,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController passwordController = TextEditingController();
+    TextEditingController displayNameController = TextEditingController();
+
     return Scaffold(
       body: Center(
         child: Center(
@@ -28,6 +31,25 @@ class LoginPage extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineMedium
                 ),
                 SizedBox(height: 16),
+                TextField(
+                  autocorrect: false,
+                  controller: displayNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  autocorrect: false,
+                  obscureText: true,
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     // TODO:Handle login button press

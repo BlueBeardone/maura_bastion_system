@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
-import 'package:maura_bastion_system/themes/main_theme.dart';
+import 'package:maura_bastion_system/core/themes/main_theme.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
