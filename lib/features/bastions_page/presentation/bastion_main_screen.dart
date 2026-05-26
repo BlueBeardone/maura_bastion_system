@@ -43,9 +43,13 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
-
     return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 1.5), 
+      padding: EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ), 
       itemBuilder: (context, index) {
         final bastion = bastions[index];
         final themeColors = Theme.of(context).extension<MainThemeColors>();
@@ -58,16 +62,5 @@ class BastionMainScreen extends StatelessWidget {
         );
       },
     );
-
-    // return ListView.builder(
-    //   itemCount: bastions.length,
-    //   itemBuilder: (context, index) {
-    //     final bastion = bastions[index];
-    //     return ListTile(
-    //       title: Text(bastion.name),
-    //       subtitle: Text(bastion.description),
-    //     );
-    //   },
-    // );
   }
 }

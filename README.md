@@ -7,7 +7,7 @@ A Flutter application for bastion management and news aggregation.
 - Flutter SDK 3.0+
 - Docker and Docker Compose (for containerized deployment)
 
-## Docker Deployment
+## Docker
 
 To run the web app use Docker:
 
