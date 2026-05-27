@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
 import 'package:maura_bastion_system/features/about_page/about_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_main_screen.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
 class StandardScaffold extends StatelessWidget {
   final Widget body;
@@ -26,20 +28,20 @@ class StandardScaffold extends StatelessWidget {
   }
 
   List<Widget> _appBarActions(BuildContext context) {
-    return MainNavigation.values.map((buttonItem) => FittedBox(
+    List<Widget> items = MainNavigation.values.map((buttonItem) => FittedBox(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         hoverColor: Theme.of(context).hoverColor,
         onTap: switch (buttonItem) {
           MainNavigation.about => () {
             Navigator.push(
-              context, 
+              context,
               MaterialPageRoute(builder: (context) => AboutPage()),
             );
           },
           MainNavigation.myBastion => () {
             Navigator.push(
-              context, 
+              context,
               MaterialPageRoute(builder: (context) => BastionMainScreen()),
             );
           },
@@ -52,5 +54,17 @@ class StandardScaffold extends StatelessWidget {
         ),
       ),
     )).toList();
+
+    items.add(
+      IconButton(
+        onPressed: () {
+          context.read<AuthCubit>().logout();
+        },
+        icon: const Icon(Icons.logout),
+        tooltip: 'Logout',
+      ),
+    );
+
+    return items;
   }
 }
