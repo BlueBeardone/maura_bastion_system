@@ -43,22 +43,33 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
-    return GridView.builder(
-      padding: EdgeInsets.all(16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ), 
-      itemBuilder: (context, index) {
-        final bastion = bastions[index];
-        final themeColors = Theme.of(context).extension<MainThemeColors>();
-        return GridTile(
-          header: Text(bastion.name, style: Theme.of(context).textTheme.titleMedium),
-          footer: Text(bastion.description),
-          child: bastion.imgUrl != null 
-            ? Image.network(bastion.imgUrl!, fit: BoxFit.cover)
-            : Container(color: themeColors?.noImageBastion ?? Theme.of(context).disabledColor),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 900
+            ? 3
+            : constraints.maxWidth > 600
+                ? 2
+                : 1;
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemBuilder: (context, index) {
+            final bastion = bastions[index];
+            final themeColors = Theme.of(context).extension<MainThemeColors>();
+            return GridTile(
+              header: Text(bastion.name, style: Theme.of(context).textTheme.titleMedium),
+              footer: Text(bastion.description),
+              child: bastion.imgUrl != null
+                  ? Image.network(bastion.imgUrl!, fit: BoxFit.cover)
+                  : Container(color: themeColors?.noImageBastion ?? Theme.of(context).disabledColor),
+            );
+          },
+          itemCount: bastions.length,
         );
       },
     );
