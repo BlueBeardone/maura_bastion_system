@@ -429,8 +429,8 @@ final ThemeData mainThemeTheme = ThemeData(
   // --- PageTransitions (optional) ---
   pageTransitionsTheme: const PageTransitionsTheme(
     builders: {
-      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
