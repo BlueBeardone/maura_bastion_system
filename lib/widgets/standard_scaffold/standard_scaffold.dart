@@ -22,7 +22,7 @@ class StandardScaffold extends StatelessWidget {
             onPressed: () {
               context.read<AuthCubit>().logout();
             },
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Theme.of(context).textTheme.titleMedium?.color,),
             tooltip: 'Logout',
           ),
         ],

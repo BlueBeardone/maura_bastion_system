@@ -79,6 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextField(
                         autocorrect: false,
                         controller: _displayNameController,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.headlineMedium?.color),
                         decoration: const InputDecoration(
                           labelText: 'Username',
                           border: OutlineInputBorder(),
@@ -89,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                         autocorrect: false,
                         obscureText: true,
                         controller: _passwordController,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.headlineMedium?.color),
                         decoration: const InputDecoration(
                           labelText: 'Password',
                           border: OutlineInputBorder(),
@@ -105,12 +107,12 @@ class _LoginPageState extends State<LoginPage> {
                                     );
                               },
                         child: loading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: Theme.of(context).primaryColorLight,
                                 ),
                               )
                             : Text(
