@@ -63,7 +63,7 @@ class BastionMainScreen extends StatelessWidget {
               'Your Bastion',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 12),
@@ -73,7 +73,7 @@ class BastionMainScreen extends StatelessWidget {
               'Other Bastions',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 12),
@@ -84,7 +84,7 @@ class BastionMainScreen extends StatelessWidget {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.78,
+                childAspectRatio: 0.92,
               ),
               itemCount: otherBastions.length,
               itemBuilder: (context, index) {
@@ -107,6 +107,7 @@ class BastionMainScreen extends StatelessWidget {
         onTap: () {},
         borderRadius: BorderRadius.circular(20),
         child: Container(
+          height: isUserBastion ? 640 : null,
           decoration: BoxDecoration(
             color: isUserBastion
                 ? theme.colorScheme.primaryContainer.withValues(alpha: 0.88)
@@ -133,7 +134,7 @@ class BastionMainScreen extends StatelessWidget {
                 bastion.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,
                 ),
@@ -161,7 +162,7 @@ class BastionMainScreen extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                  color: theme.colorScheme.onSurface.withValues(alpha: isUserBastion ? 0.92 : 0.78),
                 ),
               ),
             ],
