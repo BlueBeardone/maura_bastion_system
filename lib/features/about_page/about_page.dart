@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maura_bastion_system/features/about_page/theme_reference_view.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -65,7 +66,21 @@ class AboutPage extends StatelessWidget {
           message: "A Bastion turn is a turn where specific features from certain facilities activate. Only a dm can allow you to make a Bastion Turn", 
           color: Colors.redAccent
         ),
-        SizedBox(height: 8,),
+        const SizedBox(height: 16,),
+        Card(
+          color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.12),
+          child: ListTile(
+            title: Text('Theme reference', style: Theme.of(context).textTheme.titleMedium),
+            subtitle: Text('Open a dedicated page showing all colors, text sizes, and theme components.', style: Theme.of(context).textTheme.bodyMedium),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ThemeReferenceView()),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8,),
       ],
     );
   }

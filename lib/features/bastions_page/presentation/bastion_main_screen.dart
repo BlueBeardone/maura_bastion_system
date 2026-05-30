@@ -43,9 +43,13 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
-    final userBastion = bastions.firstWhere(
-      (bastion) => bastion.id == userBastionId,
-    );
+    Bastion? userBastion;
+    for (final bastion in bastions) {
+      if (bastion.id == userBastionId) {
+        userBastion = bastion;
+        break;
+      }
+    }
     final otherBastions = bastions.where((bastion) => bastion.id != userBastionId).toList();
 
     return LayoutBuilder(
@@ -67,7 +71,9 @@ class BastionMainScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _buildBastionCard(context, userBastion, isUserBastion: true),
+            userBastion == null
+                ? _buildAddBastionCard(context)
+                : _buildBastionCard(context, userBastion, isUserBastion: true),
             const SizedBox(height: 24),
             Text(
               'Other Bastions',
@@ -97,6 +103,48 @@ class BastionMainScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildAddBastionCard(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: theme.colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          Icons.add,
+          color: theme.colorScheme.primary,
+          size: 34,
+        ),
+      ),
+    );
+  }
+
   Widget _buildBastionCard(BuildContext context, Bastion bastion, {bool isUserBastion = false}) {
     final theme = Theme.of(context);
     final themeColors = theme.extension<MainThemeColors>();
@@ -107,7 +155,7 @@ class BastionMainScreen extends StatelessWidget {
         onTap: () {},
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          height: isUserBastion ? 640 : null,
+          height: isUserBastion ? 400 : null,
           decoration: BoxDecoration(
             color: isUserBastion
                 ? theme.colorScheme.primaryContainer.withValues(alpha: 0.88)
@@ -136,12 +184,12 @@ class BastionMainScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
+                  color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
                 ),
               ),
               const SizedBox(height: 10),
               SizedBox(
-                height: 180,
+                height: isUserBastion ? 220 : 180,
                 width: double.infinity,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
@@ -162,7 +210,7 @@ class BastionMainScreen extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: isUserBastion ? 0.92 : 0.78),
+                  color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
                 ),
               ),
             ],
