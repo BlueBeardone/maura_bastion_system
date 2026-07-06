@@ -8,6 +8,13 @@ import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionMainScreen extends StatelessWidget {
+  static const Map<String, String> _owners = {
+    'bastion_2': 'Lord Gareth Thorne',
+    'bastion_3': 'Captain Mira Voss',
+    'bastion_4': 'Sage Elowen',
+    'bastion_5': 'Merchant Prince Aldrin',
+  };
+
   const BastionMainScreen({super.key});
 
   @override
@@ -148,6 +155,9 @@ class BastionMainScreen extends StatelessWidget {
   Widget _buildBastionCard(BuildContext context, Bastion bastion, {bool isUserBastion = false}) {
     final theme = Theme.of(context);
     final themeColors = theme.extension<MainThemeColors>();
+    final facilitiesCount = bastion.facilities.length;
+    final totalHirelings = (bastion.facilities).fold<int>(0, (sum, f) => sum + (f.hirelingAmount));
+    final ownerName = !isUserBastion ? _owners[bastion.id] : null;
 
     return Material(
       color: Colors.transparent,
@@ -187,6 +197,30 @@ class BastionMainScreen extends StatelessWidget {
                   color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
                 ),
               ),
+              if (ownerName != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 14,
+                      color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.85) : theme.colorScheme.onSurface.withValues(alpha: 0.64),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        ownerName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.85) : theme.colorScheme.onSurface.withValues(alpha: 0.64),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 10),
               SizedBox(
                 height: isUserBastion ? 220 : 180,
@@ -212,6 +246,50 @@ class BastionMainScreen extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
                 ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Semantics(
+                    label: 'Facilities: $facilitiesCount',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.meeting_room,
+                          size: 16,
+                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$facilitiesCount Facilities',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Semantics(
+                    label: 'Hirelings: $totalHirelings',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.group,
+                          size: 16,
+                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$totalHirelings Hirelings',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
