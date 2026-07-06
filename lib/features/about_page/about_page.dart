@@ -28,42 +28,41 @@ class AboutPage extends StatelessWidget {
         _card(
           context: context, 
           title: "Bastions", 
-          message: "Bastions is a base that you can build that offers temporary benefits and a place for your character to call home.", 
+          message: "A Bastions is a player-owned stronghold built over time. The design, from a wizard's tower to a rogue's casino, is entirely up to you. The construction of a Bastion becomes available to you after you've passed the D-Rank exam", 
           color: Colors.amberAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
           title: "Starting your Bastion", 
-          message: "Once you reach level 6 you may begin to build a Bastion. To start a Bastion you need to build a Basic Facility.", 
+          message: "You can start your own Bastion by building a D-Rank Facility, such as the Barracks, a Bedroom or a Parlor. The first D-rank Facility you build is free. Upon completion you have your Bastion.", 
           color: Colors.limeAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
-          title: "Basic Facilities", 
-          message: "Basic Facilities are facilities that allow you to build certain Special facilities and gives a small benefit.", 
+          title: "Construction Turns", 
+          message: "Every time you complete a quest (successful or not), you also get a construction turn. A dungeon counts as two construction turns. A construction turn does not take any of your workweek hours.", 
           color: Colors.greenAccent
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
-          title: "Special Facilities", 
-          message: "Special Facilities are facilities that gives very good benefits that are strong", 
-          color: Colors.tealAccent,
-        ),
-        SizedBox(height: 8,),
-        _card(
-          context: context, 
           title: "Hirelings", 
-          message: "Hirelings are people that make sure that your Bastion facilities work as certain facilities need hirelings.", 
+          message: "Hirelings are maids, butlers or workers for your Bastion as they work in certain facilities to keep those Facilities operating.", 
           color: Colors.cyanAccent,
         ),
         SizedBox(height: 8,),
         _card(
           context: context, 
-          title: "Bastion Turn", 
-          message: "A Bastion turn is a turn where specific features from certain facilities activate. Only a dm can allow you to make a Bastion Turn", 
+          title: "Individual Bastion Turn", 
+          message: "You can issue one Individual Bastion Turn order to each one of your facilities if applicable. You also roll on the Individual Bastion Events.", 
+          color: Colors.redAccent
+        ),
+        _card(
+          context: context, 
+          title: "Monthly Bastion Turn", 
+          message: "A Bastions server wide event that takes one irl month. You can Find the current Monthly Bastion Turn and it's effects in the Announcements channel.", 
           color: Colors.redAccent
         ),
         const SizedBox(height: 16,),
