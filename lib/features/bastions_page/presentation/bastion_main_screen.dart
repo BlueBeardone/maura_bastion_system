@@ -5,6 +5,7 @@ import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionMainScreen extends StatelessWidget {
@@ -162,7 +163,11 @@ class BastionMainScreen extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => BastionPage(bastion: bastion)),
+          );
+        },
         borderRadius: BorderRadius.circular(20),
         child: Container(
           height: isUserBastion ? 400 : null,

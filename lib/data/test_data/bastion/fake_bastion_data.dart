@@ -19,6 +19,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.A,
           hirelingAmount: 14,
           description: 'A reinforced workshop holding siege kits, patrol gear, and fortified supplies for the castle guard.',
+          imgUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80',
           table: FacilityTable(table: [
             ['Item', 'Level', 'Stock'],
             ['Longsword', 'A', '18'],
@@ -31,6 +32,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.B,
           hirelingAmount: 7,
           description: 'A quiet study chamber where strategists refine training, reports, and battle plans.',
+          imgUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
       ],
@@ -47,6 +49,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.B,
           hirelingAmount: 9,
           description: 'A raised tower with signal fires and scout cots to track movement across the frontier.',
+          imgUrl: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80',
           table: FacilityTable(table: [
             ['Signal', 'Range', 'Crew'],
             ['Flare', '1 day', '4'],
@@ -59,6 +62,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.C,
           hirelingAmount: 5,
           description: 'Provides trained mounts and field riders for quick response through dense woods.',
+          imgUrl: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
       ],
@@ -75,6 +79,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.B,
           hirelingAmount: 10,
           description: 'Crafts and repairs vessels for patrols, trade, and coastal defense.',
+          imgUrl: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80',
           table: FacilityTable(table: [
             ['Ship Type', 'Build Time', 'Crew'],
             ['Sloop', '3 days', '6'],
@@ -87,6 +92,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.C,
           hirelingAmount: 4,
           description: 'Stores signal bells and harbor watchers for incoming ships and nighttime patrols.',
+          imgUrl: 'https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
       ],
@@ -103,6 +109,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.A,
           hirelingAmount: 6,
           description: 'Tracks celestial patterns, weather changes, and long-range scouting reports.',
+          imgUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
         Facility(
@@ -111,6 +118,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.A,
           hirelingAmount: 8,
           description: 'Grows rare herbs and prepares magical salves for field medics and scouts.',
+          imgUrl: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80',
           table: FacilityTable(table: [
             ['Herb', 'Effect', 'Yield'],
             ['Silverleaf', 'Healing', '12'],
@@ -131,6 +139,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.B,
           hirelingAmount: 11,
           description: 'Turns ore into tools, armor, and construction materials for rapid repairs and expansion.',
+          imgUrl: 'https://images.unsplash.com/photo-1581093458791-9f2c3f0f5e5c?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
         Facility(
@@ -139,6 +148,7 @@ List<Bastion> getFakeBastions() {
           rank: Rank.C,
           hirelingAmount: 6,
           description: 'Trades supplies, provisions, and rare goods with the surrounding villages and caravans.',
+          imgUrl: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80',
           table: null,
         ),
       ],
