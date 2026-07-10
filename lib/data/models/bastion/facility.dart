@@ -7,26 +7,30 @@ class Facility {
   final Rank rank;
   final int hirelingAmount;
   final String description;
+  final String? imgUrl;
   final FacilityTable? table;
 
   Facility({
     required this.id,
     required this.name,
-    required this.rank, 
-    required this.hirelingAmount, 
+    required this.rank,
+    required this.hirelingAmount,
     required this.description,
-    this.table
+    this.imgUrl,
+    this.table,
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
-
     return Facility(
       id: json['id'] as String,
-      name: json['name'] as String, 
+      name: json['name'] as String,
       rank: Rank.fromString((json['rank'] as String).toLowerCase().trim()),
-      hirelingAmount: json['hirelingAmount'] as int, 
+      hirelingAmount: json['hirelingAmount'] as int,
       description: json['description'] as String,
-      table: json['table'] == null ? null : FacilityTable.fromJson(json['table'] as Map<String, dynamic>),
+      imgUrl: json['imgUrl'] as String?,
+      table: json['table'] == null
+          ? null
+          : FacilityTable.fromJson(json['table'] as Map<String, dynamic>),
     );
   }
 
@@ -37,6 +41,7 @@ class Facility {
       'rank': rank.title.toLowerCase(),
       'hirelingAmount': hirelingAmount,
       'description': description,
+      'imgUrl': imgUrl,
       'table': table?.toJson(),
     };
   }

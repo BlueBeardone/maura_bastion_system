@@ -4,7 +4,7 @@ WORKDIR /app
 COPY pubspec.* ./
 RUN flutter pub get
 COPY . .
-RUN flutter build web --release
+RUN flutter build web --release --pwa-strategy=none
 
 # Production stage
 FROM nginx:alpine
