@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
+import 'package:maura_bastion_system/data/test_data/user/fake_bastion_owners.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
-import 'package:maura_bastion_system/core/themes/theme_colors.dart';
-import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
+import 'package:maura_bastion_system/features/error/error_widget.dart';
+import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
+import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionMainScreen extends StatelessWidget {
-  static const Map<String, String> _owners = {
-    'bastion_2': 'Lord Gareth Thorne',
-    'bastion_3': 'Captain Mira Voss',
-    'bastion_4': 'Sage Elowen',
-    'bastion_5': 'Merchant Prince Aldrin',
-  };
-
   const BastionMainScreen({super.key});
 
   @override
@@ -73,21 +70,23 @@ class BastionMainScreen extends StatelessWidget {
           children: [
             Text(
               'Your Bastion',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: GoogleFonts.cinzel(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: MedievalColors.goldLeaf,
               ),
             ),
             const SizedBox(height: 12),
             userBastion == null
                 ? _buildAddBastionCard(context)
-                : _buildBastionCard(context, userBastion, isUserBastion: true),
+                : _BastionCard(bastion: userBastion, isUserBastion: true),
             const SizedBox(height: 24),
             Text(
               'Other Bastions',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: GoogleFonts.cinzel(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: MedievalColors.goldLeaf,
               ),
             ),
             const SizedBox(height: 12),
@@ -98,11 +97,15 @@ class BastionMainScreen extends StatelessWidget {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.92,
+                childAspectRatio: 0.68,
               ),
               itemCount: otherBastions.length,
               itemBuilder: (context, index) {
-                return _buildBastionCard(context, otherBastions[index]);
+                final ownerName = bastionOwners[otherBastions[index].id];
+                return _BastionCard(
+                  bastion: otherBastions[index],
+                  ownerName: ownerName,
+                );
               },
             ),
           ],
@@ -112,22 +115,24 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildAddBastionCard(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.35),
-          width: 1.5,
+        gradient: const RadialGradient(
+          center: Alignment.center,
+          radius: 0.9,
+          colors: [
+            MedievalColors.parchmentLight,
+            MedievalColors.parchmentDark,
+          ],
+          stops: [0.6, 1.0],
         ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withAlpha(50),
+            blurRadius: 6,
+            offset: const Offset(2, 3),
           ),
         ],
       ),
@@ -136,159 +141,206 @@ class BastionMainScreen extends StatelessWidget {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+          color: MedievalColors.vermillionDark.withAlpha(80),
           shape: BoxShape.circle,
           border: Border.all(
-            color: theme.colorScheme.primary,
+            color: MedievalColors.goldLeaf,
             width: 2,
           ),
         ),
         alignment: Alignment.center,
         child: Icon(
           Icons.add,
-          color: theme.colorScheme.primary,
+          color: MedievalColors.goldPale,
           size: 34,
         ),
       ),
     );
   }
+}
 
-  Widget _buildBastionCard(BuildContext context, Bastion bastion, {bool isUserBastion = false}) {
-    final theme = Theme.of(context);
-    final themeColors = theme.extension<MainThemeColors>();
-    final facilitiesCount = bastion.facilities.length;
-    final totalHirelings = (bastion.facilities).fold<int>(0, (sum, f) => sum + (f.hirelingAmount));
-    final ownerName = !isUserBastion ? _owners[bastion.id] : null;
+class _BastionCard extends StatefulWidget {
+  final Bastion bastion;
+  final bool isUserBastion;
+  final String? ownerName;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => BastionPage(bastion: bastion)),
-          );
-        },
+  const _BastionCard({
+    required this.bastion,
+    this.isUserBastion = false,
+    this.ownerName,
+  });
+
+  @override
+  State<_BastionCard> createState() => _BastionCardState();
+}
+
+class _BastionCardState extends State<_BastionCard> {
+  bool _isExpanded = false;
+  static const int _maxCollapsedLines = 2;
+
+  void _navigateToBastion() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => BastionPage(bastion: widget.bastion)),
+    );
+  }
+
+  void _toggleExpand() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  bool get _needsExpansion => widget.bastion.description.length > 120;
+
+  @override
+  Widget build(BuildContext context) {
+    final facilitiesCount = widget.bastion.facilities.length;
+    final totalHirelings = widget.bastion.facilities.fold<int>(0, (sum, f) => sum + f.hirelingAmount);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        gradient: const RadialGradient(
+          center: Alignment.center,
+          radius: 0.9,
+          colors: [
+            MedievalColors.parchmentLight,
+            MedievalColors.parchmentDark,
+          ],
+          stops: [0.6, 1.0],
+        ),
         borderRadius: BorderRadius.circular(20),
-        child: Container(
-          height: isUserBastion ? 400 : null,
-          decoration: BoxDecoration(
-            color: isUserBastion
-                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.88)
-                : theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isUserBastion ? theme.colorScheme.primary : Colors.transparent,
-              width: isUserBastion ? 2 : 0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        border: widget.isUserBastion
+            ? Border.all(color: MedievalColors.vermillionDark, width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(50),
+            blurRadius: 6,
+            offset: const Offset(2, 3),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                bastion.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                ),
-              ),
-              if (ownerName != null) ...[
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.person,
-                      size: 14,
-                      color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.85) : theme.colorScheme.onSurface.withValues(alpha: 0.64),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        ownerName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.85) : theme.colorScheme.onSurface.withValues(alpha: 0.64),
-                          fontStyle: FontStyle.italic,
-                        ),
+        ],
+      ),
+      child: CustomPaint(
+        painter: ParchmentBorderPainter(),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _navigateToBastion,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: _navigateToBastion,
+                    child: Text(
+                      widget.bastion.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.cinzel(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: MedievalColors.vermillion,
                       ),
                     ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 10),
-              SizedBox(
-                height: isUserBastion ? 220 : 180,
-                width: double.infinity,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: bastion.imgUrl != null
-                      ? Image.network(
-                          bastion.imgUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _bastionFallbackImage(themeColors, theme);
-                          },
-                        )
-                      : _bastionFallbackImage(themeColors, theme),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                bastion.description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Semantics(
-                    label: 'Facilities: $facilitiesCount',
-                    child: Row(
+                  ),
+                  if (widget.ownerName != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
                         Icon(
-                          Icons.meeting_room,
-                          size: 16,
-                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                          Icons.person,
+                          size: 13,
+                          color: MedievalColors.sepiaSecondary,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$facilitiesCount Facilities',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            widget.ownerName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.imFellEnglish(
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                              color: MedievalColors.sepiaSecondary,
+                            ),
                           ),
                         ),
                       ],
                     ),
+                  ],
+                  const SizedBox(height: 8),
+                  OrnamentalDivider(thickness: 1.5),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _navigateToBastion,
+                    child: _buildFramedImage(),
                   ),
-                  const SizedBox(width: 16),
-                  Semantics(
-                    label: 'Hirelings: $totalHirelings',
+                  const SizedBox(height: 8),
+                  OrnamentalDivider(thickness: 1.5),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _needsExpansion ? _toggleExpand : _navigateToBastion,
+                    child: Text(
+                      widget.bastion.description,
+                      style: GoogleFonts.imFellEnglish(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: MedievalColors.sepiaInk,
+                      ),
+                      maxLines: _isExpanded ? null : _maxCollapsedLines,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (_needsExpansion && !_isExpanded)
+                    GestureDetector(
+                      onTap: _toggleExpand,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Read more...',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: MedievalColors.goldLeaf,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: _navigateToBastion,
                     child: Row(
                       children: [
                         Icon(
-                          Icons.group,
-                          size: 16,
-                          color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                          Icons.meeting_room,
+                          size: 15,
+                          color: MedievalColors.sepiaSecondary,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$facilitiesCount Facilities',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.group,
+                          size: 15,
+                          color: MedievalColors.sepiaSecondary,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
                           '$totalHirelings Hirelings',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isUserBastion ? theme.colorScheme.onPrimary.withValues(alpha: 0.92) : theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
                           ),
                         ),
                       ],
@@ -296,21 +348,85 @@ class BastionMainScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _bastionFallbackImage(MainThemeColors? themeColors, ThemeData theme) {
+  Widget _buildFramedImage() {
+    if (widget.bastion.imgUrl != null) {
+      return Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: MedievalColors.goldPale, width: 1.5),
+        ),
+        child: Stack(
+          children: [
+            ClipRRect(
+              child: Image.network(
+                widget.bastion.imgUrl!,
+                height: 140,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _imagePlaceholder('Engraving Unavailable'),
+              ),
+            ),
+            Positioned(top: 2, left: 2, child: _nailDot()),
+            Positioned(top: 2, right: 2, child: _nailDot()),
+            Positioned(bottom: 2, left: 2, child: _nailDot()),
+            Positioned(bottom: 2, right: 2, child: _nailDot()),
+          ],
+        ),
+      );
+    }
+    return _imagePlaceholder('No Engraving');
+  }
+
+  Widget _imagePlaceholder(String label) {
     return Container(
-      color: themeColors?.noImageBastion ?? theme.disabledColor,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.castle,
-        color: theme.colorScheme.onPrimary,
-        size: 36,
+      height: 140,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+        color: MedievalColors.parchment.withAlpha(80),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.castle,
+            size: 32,
+            color: MedievalColors.sepiaMuted,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: GoogleFonts.imFellEnglish(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: MedievalColors.sepiaMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _nailDot() {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: MedievalColors.goldLeaf,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(50),
+            blurRadius: 1,
+            offset: const Offset(1, 1),
+          ),
+        ],
       ),
     );
   }
