@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
+import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionPage extends StatelessWidget {
@@ -15,8 +17,6 @@ class BastionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return StandardScaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -26,7 +26,11 @@ class BastionPage extends StatelessWidget {
             children: [
               Text(
                 bastion.name,
-                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: GoogleFonts.cinzel(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: MedievalColors.vermillion,
+                ),
               ),
               const SizedBox(height: 8),
               bastion.description.isNotEmpty
@@ -34,7 +38,11 @@ class BastionPage extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Text(
                         bastion.description,
-                        style: theme.textTheme.bodyMedium,
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 15,
+                          height: 1.4,
+                          color: MedievalColors.sepiaInk,
+                        ),
                       ),
                     )
                   : const SizedBox(height: 16),
@@ -42,7 +50,7 @@ class BastionPage extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: bastion.facilities.map((facility) {
-                  return _buildFacilityCard(context, facility, theme);
+                  return _buildFacilityCard(context, facility);
                 }).toList(),
               ),
             ],
@@ -52,16 +60,11 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFacilityCard(BuildContext context, Facility facility, ThemeData theme) {
-    final themeColors = theme.extension<MainThemeColors>();
-
+  Widget _buildFacilityCard(BuildContext context, Facility facility) {
     return SizedBox(
       width: _cardWidth,
       child: Material(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () {
@@ -69,60 +72,84 @@ class BastionPage extends StatelessWidget {
               MaterialPageRoute(builder: (_) => FacilityPage(facility: facility)),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  facility.name,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const RadialGradient(
+                center: Alignment.center,
+                radius: 0.9,
+                colors: [
+                  MedievalColors.parchmentLight,
+                  MedievalColors.parchmentDark,
+                ],
+                stops: [0.6, 1.0],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(50),
+                  blurRadius: 6,
+                  offset: const Offset(2, 3),
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    height: 100,
-                    width: double.infinity,
-                    child: facility.imgUrl != null
-                        ? Image.network(
-                            facility.imgUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stack) {
-                              return _facilityFallback(themeColors, theme);
-                            },
-                          )
-                        : _facilityFallback(themeColors, theme),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  facility.description,
-                  style: theme.textTheme.bodyMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
+              ],
+            ),
+            child: CustomPaint(
+              painter: ParchmentBorderPainter(),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Chip(
-                      label: Text('Rank: ${facility.rank.title}'),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
+                    Text(
+                      facility.name,
+                      style: GoogleFonts.cinzel(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: MedievalColors.vermillion,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Chip(
-                      label: Text('Hirelings: ${facility.hirelingAmount}'),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
+                    const SizedBox(height: 8),
+                    _buildFramedImage(facility),
+                    const SizedBox(height: 8),
+                    Text(
+                      facility.description,
+                      style: GoogleFonts.imFellEnglish(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: MedievalColors.sepiaInk,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(Icons.workspace_premium, size: 14, color: MedievalColors.sepiaSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Rank ${facility.rank.title}',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Icon(Icons.group, size: 14, color: MedievalColors.sepiaSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${facility.hirelingAmount}',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -130,14 +157,78 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _facilityFallback(MainThemeColors? themeColors, ThemeData theme) {
+  Widget _buildFramedImage(Facility facility) {
+    if (facility.imgUrl != null) {
+      return Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: MedievalColors.goldPale, width: 1.5),
+        ),
+        child: Stack(
+          children: [
+            Image.network(
+              facility.imgUrl!,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _imagePlaceholder('No Engraving'),
+            ),
+            _nailDot(Alignment.topLeft),
+            _nailDot(Alignment.topRight),
+            _nailDot(Alignment.bottomLeft),
+            _nailDot(Alignment.bottomRight),
+          ],
+        ),
+      );
+    }
+    return _imagePlaceholder('No Engraving');
+  }
+
+  Widget _imagePlaceholder(String label) {
     return Container(
-      color: themeColors?.noImageBastion ?? theme.disabledColor,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.home_work,
-        size: 36,
-        color: theme.colorScheme.onPrimary,
+      height: 100,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+        color: MedievalColors.parchment.withAlpha(80),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.home_work, size: 28, color: MedievalColors.sepiaMuted),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.imFellEnglish(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: MedievalColors.sepiaMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _nailDot(Alignment alignment) {
+    return Align(
+      alignment: alignment,
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: Container(
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(
+            color: MedievalColors.goldLeaf,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(50),
+                blurRadius: 1,
+                offset: const Offset(1, 1),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

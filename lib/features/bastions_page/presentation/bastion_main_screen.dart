@@ -98,7 +98,7 @@ class BastionMainScreen extends StatelessWidget {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.68,
+                childAspectRatio: 1.05,
               ),
               itemCount: otherBastions.length,
               itemBuilder: (context, index) {
@@ -418,7 +418,7 @@ class _BastionCardState extends State<_BastionCard> {
             ClipRRect(
               child: Image.network(
                 widget.bastion.imgUrl!,
-                height: 140,
+                height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _imagePlaceholder('Engraving Unavailable'),
@@ -437,7 +437,7 @@ class _BastionCardState extends State<_BastionCard> {
 
   Widget _imagePlaceholder(String label) {
     return Container(
-      height: 140,
+      height: 120,
       width: double.infinity,
       decoration: BoxDecoration(
         border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
