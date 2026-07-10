@@ -91,30 +91,51 @@ class BastionMainScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: otherBastions.map((bastion) {
-                User? owner;
-                for (final user in fakeUsers) {
-                  if (user.bastionId == bastion.id) {
-                    owner = user;
-                    break;
-                  }
-                }
-                final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
-                return SizedBox(
-                  width: cardWidth,
-                  child: _BastionCard(
-                    bastion: bastion,
-                    ownerName: owner?.displayName,
-                  ),
-                );
-              }).toList(),
-            ),
+            _buildOtherBastions(crossAxisCount, otherBastions),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildOtherBastions(int crossAxisCount, List<Bastion> otherBastions) {
+    final rows = <List<Bastion>>[];
+    for (int i = 0; i < otherBastions.length; i += crossAxisCount) {
+      rows.add(otherBastions.skip(i).take(crossAxisCount).toList());
+    }
+
+    return Column(
+      children: rows.map((row) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int i = 0; i < row.length; i++) ...[
+                if (i > 0) const SizedBox(width: 16),
+                Expanded(
+                  child: () {
+                    final bastion = row[i];
+                    User? owner;
+                    for (final user in fakeUsers) {
+                      if (user.bastionId == bastion.id) {
+                        owner = user;
+                        break;
+                      }
+                    }
+                    return _BastionCard(
+                      bastion: bastion,
+                      ownerName: owner?.displayName,
+                    );
+                  }(),
+                ),
+              ],
+              for (int i = row.length; i < crossAxisCount; i++)
+                const Expanded(child: SizedBox.shrink()),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
