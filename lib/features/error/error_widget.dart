@@ -27,7 +27,7 @@ class MyErrorWidget extends StatelessWidget {
               Icon(
                 icon ?? Icons.shield_outlined,
                 size: 124,
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 16),
               Container(
@@ -72,7 +72,7 @@ class MyErrorWidget extends StatelessWidget {
 
   BoxDecoration _scrollDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Theme.of(context).appBarTheme.backgroundColor,
+      color: Theme.of(context).cardColor,
       boxShadow: [
         BoxShadow(
           color: Theme.of(context).shadowColor,

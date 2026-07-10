@@ -14,7 +14,7 @@ class StandardScaffold extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         clipBehavior: Clip.antiAlias,
-        title: Text("Bastions", style: Theme.of(context).textTheme.titleLarge,),
+        title: const Text("Bastions"),
         centerTitle: false,
         actions: [
           AppBarNavigationMenu(navigationItems: MainNavigation.values),
@@ -22,7 +22,10 @@ class StandardScaffold extends StatelessWidget {
             onPressed: () {
               context.read<AuthCubit>().logout();
             },
-            icon: Icon(Icons.logout, color: Theme.of(context).textTheme.titleMedium?.color,),
+            icon: Icon(
+              Icons.logout,
+              color: Theme.of(context).appBarTheme.iconTheme?.color,
+            ),
             tooltip: 'Logout',
           ),
         ],

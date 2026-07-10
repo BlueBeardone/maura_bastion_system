@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bastions of Maura',
-      theme: mainThemeTheme,
+      theme: medievalTheme,
       home: BlocProvider<AuthCubit>.value(
         value: GetIt.I<AuthCubit>(),
         child: const AuthGate(),

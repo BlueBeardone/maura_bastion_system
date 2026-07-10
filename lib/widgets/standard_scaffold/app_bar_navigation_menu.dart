@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
+import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
 import 'package:maura_bastion_system/features/about_page/about_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_main_screen.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 
 class AppBarNavigationMenu extends StatelessWidget {
   final List<MainNavigation> navigationItems;
@@ -26,7 +28,9 @@ class AppBarNavigationMenu extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Text(
                   buttonItem.title,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
                 ),
               ),
             ),
@@ -71,6 +75,17 @@ class AppBarNavigationMenu extends StatelessWidget {
         );
         break;
       case MainNavigation.facility:
+        final bastions = getFakeBastions();
+        final userBastion = bastions.firstWhere(
+          (b) => b.id == userBastionId,
+          orElse: () => bastions.first,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BastionPage(bastion: userBastion),
+          ),
+        );
         break;
       case MainNavigation.hirelings:
         break;

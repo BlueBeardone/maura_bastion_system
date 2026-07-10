@@ -1,11 +1,76 @@
+# Bastion Main Screen Card Redesign — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Redesign bastion cards on the main screen with parchment-and-gold medieval theme, add expand/collapse for overflowing descriptions, replace hardcoded owner names with User model + fake test data.
+
+**Architecture:** Create a new `fake_bastion_owners.dart` in test data that exposes a `Map<String, String>` mapping bastion IDs to owner display names. Refactor `bastion_main_screen.dart` into a `StatefulWidget` card with parchment gradient, rough borders, gold accents, and `imFellEnglish`/`cinzel` fonts matching the newspaper. Tapping "Read more..." or the description toggles expansion; tapping elsewhere on the card navigates to `BastionPage`.
+
+**Tech Stack:** Flutter, Material 3, `google_fonts` (Cinzel, IMFellEnglish), existing `MedievalColors`, `ParchmentBorderPainter`, `OrnamentalDivider`
+
+## Global Constraints
+
+- Reuse existing theme: `MedievalColors`, `ParchmentBorderPainter`, `OrnamentalDivider`
+- Reuse existing `User` model as-is — no model changes
+- Fonts: `Cinzel` for headings, `IMFellEnglish` for body via `google_fonts`
+- No new dependencies
+- No cubit/state changes
+- No changes to `bastion_page.dart` or any other files
+
+---
+
+### Task 1: Create fake bastion owners in test data
+
+**Files:**
+- Create: `lib/data/test_data/user/fake_bastion_owners.dart`
+
+- [ ] **Step 1: Write the file**
+
+```dart
+const Map<String, String> bastionOwners = {
+  'bastion_2': 'Lord Gareth Thorne',
+  'bastion_3': 'Captain Mira Voss',
+  'bastion_4': 'Sage Elowen',
+  'bastion_5': 'Merchant Prince Aldrin',
+};
+```
+
+- [ ] **Step 2: Verify analysis**
+
+Run: `flutter analyze lib/data/test_data/user/fake_bastion_owners.dart`
+
+Expected: no errors
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add lib/data/test_data/user/fake_bastion_owners.dart
+git commit -m "feat: add fake bastion owners map to test data"
+```
+
+---
+
+### Task 2: Redesign bastion_main_screen with parchment theme, expand/collapse cards, and User model integration
+
+**Files:**
+- Modify: `lib/features/bastions_page/presentation/bastion_main_screen.dart`
+
+**Interfaces:**
+- Consumes: `Bastion` model, `BastionCubit`/`BastionState`, `StandardScaffold`, `MedievalColors`, `ParchmentBorderPainter`, `OrnamentalDivider`, `bastionOwners` map, `BastionPage`
+- Produces: navigates to `BastionPage` on card tap
+
+- [ ] **Step 1: Write the complete refactored bastion_main_screen.dart**
+
+Replace the entire file with:
+
+```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
-import 'package:maura_bastion_system/data/models/user/user.dart';
-import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
+import 'package:maura_bastion_system/data/test_data/user/fake_bastion_owners.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
@@ -91,51 +156,27 @@ class BastionMainScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _buildOtherBastions(crossAxisCount, otherBastions),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.68,
+              ),
+              itemCount: otherBastions.length,
+              itemBuilder: (context, index) {
+                final ownerName = bastionOwners[otherBastions[index].id];
+                return _BastionCard(
+                  bastion: otherBastions[index],
+                  ownerName: ownerName,
+                );
+              },
+            ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildOtherBastions(int crossAxisCount, List<Bastion> otherBastions) {
-    final rows = <List<Bastion>>[];
-    for (int i = 0; i < otherBastions.length; i += crossAxisCount) {
-      rows.add(otherBastions.skip(i).take(crossAxisCount).toList());
-    }
-
-    return Column(
-      children: rows.map((row) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < row.length; i++) ...[
-                if (i > 0) const SizedBox(width: 16),
-                Expanded(
-                  child: () {
-                    final bastion = row[i];
-                    User? owner;
-                    for (final user in fakeUsers) {
-                      if (user.bastionId == bastion.id) {
-                        owner = user;
-                        break;
-                      }
-                    }
-                    return _BastionCard(
-                      bastion: bastion,
-                      ownerName: owner?.displayName,
-                    );
-                  }(),
-                ),
-              ],
-              for (int i = row.length; i < crossAxisCount; i++)
-                const Expanded(child: SizedBox.shrink()),
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 
@@ -215,29 +256,16 @@ class _BastionCardState extends State<_BastionCard> {
     });
   }
 
-  bool _computeNeedsExpansion(double textWidth) {
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: widget.bastion.description,
-        style: GoogleFonts.imFellEnglish(
-          fontSize: 13,
-          height: 1.4,
-          color: MedievalColors.sepiaInk,
-        ),
-      ),
-      maxLines: _maxCollapsedLines,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(maxWidth: textWidth);
-    return textPainter.didExceedMaxLines;
-  }
+  bool get _needsExpansion => widget.bastion.description.length > 120;
 
   @override
   Widget build(BuildContext context) {
     final facilitiesCount = widget.bastion.facilities.length;
     final totalHirelings = widget.bastion.facilities.fold<int>(0, (sum, f) => sum + f.hirelingAmount);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
         gradient: const RadialGradient(
           center: Alignment.center,
@@ -264,16 +292,11 @@ class _BastionCardState extends State<_BastionCard> {
         painter: ParchmentBorderPainter(),
         child: Material(
           color: Colors.transparent,
-            child: InkWell(
-              onTap: _navigateToBastion,
-              borderRadius: BorderRadius.circular(20),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final textWidth = constraints.maxWidth - 20;
-                  final needsExpansion = _computeNeedsExpansion(textWidth);
-
-                  return Padding(
-                    padding: const EdgeInsets.all(10),
+          child: InkWell(
+            onTap: _navigateToBastion,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -285,7 +308,7 @@ class _BastionCardState extends State<_BastionCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.cinzel(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: MedievalColors.vermillion,
                       ),
@@ -316,111 +339,85 @@ class _BastionCardState extends State<_BastionCard> {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   OrnamentalDivider(thickness: 1.5),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   GestureDetector(
                     onTap: _navigateToBastion,
                     child: _buildFramedImage(),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   OrnamentalDivider(thickness: 1.5),
-                  const SizedBox(height: 6),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.topLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: needsExpansion ? _toggleExpand : _navigateToBastion,
-                          child: Text(
-                            widget.bastion.description,
-                            style: GoogleFonts.imFellEnglish(
-                              fontSize: 13,
-                              height: 1.4,
-                              color: MedievalColors.sepiaInk,
-                            ),
-                            maxLines: _isExpanded ? null : _maxCollapsedLines,
-                            overflow: _isExpanded ? null : TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (needsExpansion && !_isExpanded)
-                          GestureDetector(
-                            onTap: _toggleExpand,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                'Read more...',
-                                style: GoogleFonts.imFellEnglish(
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                  color: MedievalColors.goldLeaf,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _needsExpansion ? _toggleExpand : _navigateToBastion,
+                    child: Text(
+                      widget.bastion.description,
+                      style: GoogleFonts.imFellEnglish(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: MedievalColors.sepiaInk,
+                      ),
+                      maxLines: _isExpanded ? null : _maxCollapsedLines,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  if (_needsExpansion && !_isExpanded)
+                    GestureDetector(
+                      onTap: _toggleExpand,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Read more...',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: MedievalColors.goldLeaf,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 10),
                   GestureDetector(
                     onTap: _navigateToBastion,
                     child: Row(
                       children: [
-                        Semantics(
-                          label: 'Facilities: $facilitiesCount',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.meeting_room,
-                                size: 15,
-                                color: MedievalColors.sepiaSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$facilitiesCount Facilities',
-                                style: GoogleFonts.imFellEnglish(
-                                  fontSize: 12,
-                                  color: MedievalColors.sepiaSecondary,
-                                ),
-                              ),
-                            ],
+                        Icon(
+                          Icons.meeting_room,
+                          size: 15,
+                          color: MedievalColors.sepiaSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$facilitiesCount Facilities',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Semantics(
-                          label: 'Hirelings: $totalHirelings',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.group,
-                                size: 15,
-                                color: MedievalColors.sepiaSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$totalHirelings Hirelings',
-                                style: GoogleFonts.imFellEnglish(
-                                  fontSize: 12,
-                                  color: MedievalColors.sepiaSecondary,
-                                ),
-                              ),
-                            ],
+                        Icon(
+                          Icons.group,
+                          size: 15,
+                          color: MedievalColors.sepiaSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$totalHirelings Hirelings',
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 12,
+                            color: MedievalColors.sepiaSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ));
-            },
+              ),
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -435,7 +432,7 @@ class _BastionCardState extends State<_BastionCard> {
             ClipRRect(
               child: Image.network(
                 widget.bastion.imgUrl!,
-                height: 100,
+                height: 140,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _imagePlaceholder('Engraving Unavailable'),
@@ -454,7 +451,7 @@ class _BastionCardState extends State<_BastionCard> {
 
   Widget _imagePlaceholder(String label) {
     return Container(
-      height: 100,
+      height: 140,
       width: double.infinity,
       decoration: BoxDecoration(
         border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
@@ -465,14 +462,14 @@ class _BastionCardState extends State<_BastionCard> {
         children: [
           Icon(
             Icons.castle,
-            size: 28,
+            size: 32,
             color: MedievalColors.sepiaMuted,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 10,
+              fontSize: 11,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
@@ -500,3 +497,17 @@ class _BastionCardState extends State<_BastionCard> {
     );
   }
 }
+```
+
+- [ ] **Step 2: Verify analysis passes**
+
+Run: `flutter analyze lib/`
+
+Expected: no errors, no warnings
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add lib/features/bastions_page/presentation/bastion_main_screen.dart
+git commit -m "refactor: redesign bastion cards with parchment theme, expand/collapse, and user owner data"
+```
