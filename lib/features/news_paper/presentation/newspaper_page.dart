@@ -140,7 +140,7 @@ class NewspaperPage extends StatelessWidget {
             Icon(Icons.auto_awesome, size: 12, color: MedievalColors.goldLeaf),
             const SizedBox(width: 8),
             Text(
-              'Printed by Royal Decree in the City of Maura',
+              'Printed by The Guild in the City of Maura',
               textAlign: TextAlign.center,
               style: GoogleFonts.imFellEnglish(
                 fontSize: 11,
@@ -155,7 +155,7 @@ class NewspaperPage extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Maura Bastion Press \u2022 Est. 1423',
+          'Postal Press',
           textAlign: TextAlign.center,
           style: GoogleFonts.imFellEnglish(
             fontSize: 10,

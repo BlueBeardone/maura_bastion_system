@@ -16,9 +16,9 @@ class InitNewsPaperState extends NewsPaperMainState {
 }
 
 class DisplayNewsPaperState extends NewsPaperMainState {
-  final NewspaperData newspaperData;
+  final List<NewspaperData> newspapers;
 
-  const DisplayNewsPaperState({required this.newspaperData});
+  const DisplayNewsPaperState({required this.newspapers});
   
   @override
   List<Object?> get props => [];

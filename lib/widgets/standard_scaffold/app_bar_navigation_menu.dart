@@ -26,7 +26,9 @@ class AppBarNavigationMenu extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Text(
                   buttonItem.title,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
                 ),
               ),
             ),

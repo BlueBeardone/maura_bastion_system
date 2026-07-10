@@ -24,7 +24,7 @@ class NewsPaperTitle extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.shield, size: 20, color: MedievalColors.goldLeaf),
+              Icon(Icons.edit, size: 20, color: MedievalColors.goldLeaf),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -40,7 +40,7 @@ class NewsPaperTitle extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.shield, size: 20, color: MedievalColors.goldLeaf),
+              Icon(Icons.edit, size: 20, color: MedievalColors.goldLeaf),
             ],
           ),
           const SizedBox(height: 4),
