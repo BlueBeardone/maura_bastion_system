@@ -49,7 +49,7 @@ class MainNewsArticle extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Text(
-            '\u270d By ${article.author}',
+            'Written by ${article.author}',
             style: GoogleFonts.imFellEnglish(
               fontSize: 12,
               fontStyle: FontStyle.italic,

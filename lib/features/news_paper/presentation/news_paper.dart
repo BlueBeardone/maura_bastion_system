@@ -28,26 +28,23 @@ class NewspaperLayout extends StatelessWidget {
   }
 
   Widget _displayNewspapers(BuildContext context, DisplayNewsPaperState state) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final newspaperWidth = screenWidth > 1100
-        ? (screenWidth - 48) / 2
-        : screenWidth - 32;
-
     return Scaffold(
       backgroundColor: MedievalColors.leatherDark,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
-            children: state.newspapers.map((np) {
-              return SizedBox(
-                width: newspaperWidth,
-                child: NewspaperPage(newspaperData: np),
-              );
-            }).toList(),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: Column(
+                children: state.newspapers.map((np) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: NewspaperPage(newspaperData: np),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ),
       ),

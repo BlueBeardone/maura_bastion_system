@@ -99,8 +99,7 @@ class NewspaperPage extends StatelessWidget {
           children: rows.map((row) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: IntrinsicHeight(
-                child: Row(
+              child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (int i = 0; i < row.length; i++) ...[
@@ -123,7 +122,6 @@ class NewspaperPage extends StatelessWidget {
                       Expanded(child: const SizedBox.shrink()),
                   ],
                 ),
-              ),
             );
           }).toList(),
         );

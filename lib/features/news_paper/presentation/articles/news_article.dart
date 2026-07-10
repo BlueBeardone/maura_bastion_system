@@ -83,7 +83,7 @@ class _NewsArticleState extends State<NewsArticle> {
               Divider(color: MedievalColors.goldPale, thickness: 0.5, height: 1),
               const SizedBox(height: 4),
               Text(
-                '\u270d By ${widget.article.author}',
+                'Written by ${widget.article.author}',
                 style: GoogleFonts.imFellEnglish(
                   fontSize: 11,
                   fontStyle: FontStyle.italic,

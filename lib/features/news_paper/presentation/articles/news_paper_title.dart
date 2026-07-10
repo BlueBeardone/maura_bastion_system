@@ -54,23 +54,6 @@ class NewsPaperTitle extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                newspaperData.edition,
-                style: GoogleFonts.imFellEnglish(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: MedievalColors.sepiaSecondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '\u2726',
-                style: TextStyle(
-                  fontSize: 8,
-                  color: MedievalColors.goldPale,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
                 newspaperData.date,
                 style: GoogleFonts.imFellEnglish(
                   fontSize: 12,
