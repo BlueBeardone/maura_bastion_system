@@ -91,18 +91,10 @@ class BastionMainScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.05,
-              ),
-              itemCount: otherBastions.length,
-              itemBuilder: (context, index) {
-                final bastion = otherBastions[index];
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: otherBastions.map((bastion) {
                 User? owner;
                 for (final user in fakeUsers) {
                   if (user.bastionId == bastion.id) {
@@ -110,11 +102,15 @@ class BastionMainScreen extends StatelessWidget {
                     break;
                   }
                 }
-                return _BastionCard(
-                  bastion: bastion,
-                  ownerName: owner?.displayName,
+                final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+                return SizedBox(
+                  width: cardWidth,
+                  child: _BastionCard(
+                    bastion: bastion,
+                    ownerName: owner?.displayName,
+                  ),
                 );
-              },
+              }).toList(),
             ),
           ],
         );
@@ -268,7 +264,7 @@ class _BastionCardState extends State<_BastionCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.cinzel(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: MedievalColors.vermillion,
                       ),
@@ -299,16 +295,16 @@ class _BastionCardState extends State<_BastionCard> {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   OrnamentalDivider(thickness: 1.5),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   GestureDetector(
                     onTap: _navigateToBastion,
                     child: _buildFramedImage(),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   OrnamentalDivider(thickness: 1.5),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeInOut,
@@ -348,7 +344,7 @@ class _BastionCardState extends State<_BastionCard> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   GestureDetector(
                     onTap: _navigateToBastion,
                     child: Row(
@@ -418,7 +414,7 @@ class _BastionCardState extends State<_BastionCard> {
             ClipRRect(
               child: Image.network(
                 widget.bastion.imgUrl!,
-                height: 120,
+                height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _imagePlaceholder('Engraving Unavailable'),
@@ -437,7 +433,7 @@ class _BastionCardState extends State<_BastionCard> {
 
   Widget _imagePlaceholder(String label) {
     return Container(
-      height: 120,
+      height: 100,
       width: double.infinity,
       decoration: BoxDecoration(
         border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
@@ -448,14 +444,14 @@ class _BastionCardState extends State<_BastionCard> {
         children: [
           Icon(
             Icons.castle,
-            size: 32,
+            size: 28,
             color: MedievalColors.sepiaMuted,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             label,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 11,
+              fontSize: 10,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
