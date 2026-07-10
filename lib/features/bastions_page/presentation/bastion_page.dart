@@ -126,7 +126,7 @@ class BastionPage extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.workspace_premium, size: 14, color: MedievalColors.sepiaSecondary),
+                        Icon(Icons.meeting_room, size: 14, color: MedievalColors.sepiaSecondary),
                         const SizedBox(width: 4),
                         Text(
                           'Rank ${facility.rank.title}',
@@ -165,12 +165,14 @@ class BastionPage extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Image.network(
-              facility.imgUrl!,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _imagePlaceholder('No Engraving'),
+            ClipRRect(
+              child: Image.network(
+                facility.imgUrl!,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _imagePlaceholder('No Engraving'),
+              ),
             ),
             _nailDot(Alignment.topLeft),
             _nailDot(Alignment.topRight),
@@ -194,7 +196,7 @@ class BastionPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.home_work, size: 28, color: MedievalColors.sepiaMuted),
+          Icon(Icons.castle, size: 28, color: MedievalColors.sepiaMuted),
           const SizedBox(height: 4),
           Text(
             label,

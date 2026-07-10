@@ -135,7 +135,7 @@ class FacilityPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.home_work, size: 48, color: MedievalColors.sepiaMuted),
+          Icon(Icons.castle, size: 48, color: MedievalColors.sepiaMuted),
           const SizedBox(height: 8),
           Text(
             'No Engraving',
