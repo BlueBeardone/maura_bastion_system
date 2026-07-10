@@ -3,7 +3,6 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
-import 'package:maura_bastion_system/core/themes/main_theme.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionPage extends StatelessWidget {

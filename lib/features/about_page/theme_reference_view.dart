@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:maura_bastion_system/core/themes/main_theme.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 
 class ThemeReferenceView extends StatelessWidget {
