@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
-import 'package:maura_bastion_system/data/test_data/user/fake_bastion_owners.dart';
+import 'package:maura_bastion_system/data/models/user/user.dart';
+import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
@@ -101,10 +102,17 @@ class BastionMainScreen extends StatelessWidget {
               ),
               itemCount: otherBastions.length,
               itemBuilder: (context, index) {
-                final ownerName = bastionOwners[otherBastions[index].id];
+                final bastion = otherBastions[index];
+                User? owner;
+                for (final user in fakeUsers) {
+                  if (user.bastionId == bastion.id) {
+                    owner = user;
+                    break;
+                  }
+                }
                 return _BastionCard(
-                  bastion: otherBastions[index],
-                  ownerName: ownerName,
+                  bastion: bastion,
+                  ownerName: owner?.displayName,
                 );
               },
             ),
@@ -190,16 +198,29 @@ class _BastionCardState extends State<_BastionCard> {
     });
   }
 
-  bool get _needsExpansion => widget.bastion.description.length > 120;
+  bool _computeNeedsExpansion(double textWidth) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: widget.bastion.description,
+        style: GoogleFonts.imFellEnglish(
+          fontSize: 13,
+          height: 1.4,
+          color: MedievalColors.sepiaInk,
+        ),
+      ),
+      maxLines: _maxCollapsedLines,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(maxWidth: textWidth);
+    return textPainter.didExceedMaxLines;
+  }
 
   @override
   Widget build(BuildContext context) {
     final facilitiesCount = widget.bastion.facilities.length;
     final totalHirelings = widget.bastion.facilities.fold<int>(0, (sum, f) => sum + f.hirelingAmount);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
+    return Container(
       decoration: BoxDecoration(
         gradient: const RadialGradient(
           center: Alignment.center,
@@ -226,11 +247,16 @@ class _BastionCardState extends State<_BastionCard> {
         painter: ParchmentBorderPainter(),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: _navigateToBastion,
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
+            child: InkWell(
+              onTap: _navigateToBastion,
+              borderRadius: BorderRadius.circular(20),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final textWidth = constraints.maxWidth - 20;
+                  final needsExpansion = _computeNeedsExpansion(textWidth);
+
+                  return Padding(
+                    padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -283,75 +309,101 @@ class _BastionCardState extends State<_BastionCard> {
                   const SizedBox(height: 8),
                   OrnamentalDivider(thickness: 1.5),
                   const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _needsExpansion ? _toggleExpand : _navigateToBastion,
-                    child: Text(
-                      widget.bastion.description,
-                      style: GoogleFonts.imFellEnglish(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: MedievalColors.sepiaInk,
-                      ),
-                      maxLines: _isExpanded ? null : _maxCollapsedLines,
-                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (_needsExpansion && !_isExpanded)
-                    GestureDetector(
-                      onTap: _toggleExpand,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Read more...',
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 11,
-                            fontStyle: FontStyle.italic,
-                            color: MedievalColors.goldLeaf,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: needsExpansion ? _toggleExpand : _navigateToBastion,
+                          child: Text(
+                            widget.bastion.description,
+                            style: GoogleFonts.imFellEnglish(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: MedievalColors.sepiaInk,
+                            ),
+                            maxLines: _isExpanded ? null : _maxCollapsedLines,
+                            overflow: _isExpanded ? null : TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
+                        if (needsExpansion && !_isExpanded)
+                          GestureDetector(
+                            onTap: _toggleExpand,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                'Read more...',
+                                style: GoogleFonts.imFellEnglish(
+                                  fontSize: 11,
+                                  fontStyle: FontStyle.italic,
+                                  color: MedievalColors.goldLeaf,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: _navigateToBastion,
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.meeting_room,
-                          size: 15,
-                          color: MedievalColors.sepiaSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$facilitiesCount Facilities',
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 12,
-                            color: MedievalColors.sepiaSecondary,
+                        Semantics(
+                          label: 'Facilities: $facilitiesCount',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.meeting_room,
+                                size: 15,
+                                color: MedievalColors.sepiaSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$facilitiesCount Facilities',
+                                style: GoogleFonts.imFellEnglish(
+                                  fontSize: 12,
+                                  color: MedievalColors.sepiaSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(
-                          Icons.group,
-                          size: 15,
-                          color: MedievalColors.sepiaSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$totalHirelings Hirelings',
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 12,
-                            color: MedievalColors.sepiaSecondary,
+                        Semantics(
+                          label: 'Hirelings: $totalHirelings',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.group,
+                                size: 15,
+                                color: MedievalColors.sepiaSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$totalHirelings Hirelings',
+                                style: GoogleFonts.imFellEnglish(
+                                  fontSize: 12,
+                                  color: MedievalColors.sepiaSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-            ),
+              ));
+            },
           ),
         ),
       ),
+    ),
     );
   }
 
