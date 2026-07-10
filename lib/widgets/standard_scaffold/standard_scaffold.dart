@@ -15,7 +15,7 @@ class StandardScaffold extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         clipBehavior: Clip.antiAlias,
-        title: Text("Bastions", style: Theme.of(context).textTheme.titleLarge,),
+        title: const Text("Bastions"),
         centerTitle: false,
         actions: _appBarActions(context),
         actionsPadding: EdgeInsets.only(right: 50),
@@ -28,7 +28,7 @@ class StandardScaffold extends StatelessWidget {
   }
 
   List<Widget> _appBarActions(BuildContext context) {
-    List<Widget> items = MainNavigation.values.map((buttonItem) => FittedBox(
+    List<Widget> items = MainNavigation.values.map<Widget>((buttonItem) => FittedBox(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         hoverColor: Theme.of(context).hoverColor,
@@ -50,7 +50,7 @@ class StandardScaffold extends StatelessWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Text(buttonItem.title, style: Theme.of(context).textTheme.titleMedium,),
+          child: Text(buttonItem.title, style: Theme.of(context).textTheme.labelLarge,),
         ),
       ),
     )).toList();

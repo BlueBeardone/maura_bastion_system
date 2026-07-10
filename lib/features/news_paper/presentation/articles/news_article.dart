@@ -9,7 +9,7 @@ class NewsArticle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).appBarTheme.backgroundColor,
+      color: Theme.of(context).cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -17,19 +17,15 @@ class NewsArticle extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               article.title.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Times New Roman',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).textTheme.headlineSmall,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(height: 6),
           Padding(
-            padding: const EdgeInsets.all(8.0), // Fixed EdgeInsetsGeometry.all
-            child: Text('By ${article.author}'),
+            padding: const EdgeInsets.all(8.0),
+            child: Text('By ${article.author}', style: Theme.of(context).textTheme.bodySmall),
           ),
           const SizedBox(height: 8),
           _buildImagePlaceholder(context, article.imageUrl, height: 360),
@@ -41,7 +37,10 @@ class NewsArticle extends StatelessWidget {
                 child: Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(text: article.content),
+                      TextSpan(
+                        text: article.content,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ),
                 ),
@@ -59,7 +58,7 @@ class NewsArticle extends StatelessWidget {
       child: Container(
         height: height,
         width: double.infinity,
-        color: imageUrl != null? Theme.of(context).appBarTheme.backgroundColor : Colors.grey[300],
+        color: imageUrl != null? Theme.of(context).cardColor : Colors.grey[300],
         child: Center(
           child: imageUrl != null? Image.network(imageUrl)
            : Column(

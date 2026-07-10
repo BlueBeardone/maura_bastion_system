@@ -7,7 +7,7 @@ class AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("About Bastions", style: Theme.of(context).textTheme.titleLarge),
+        title: const Text("About Bastions"),
         centerTitle: true,
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         leading: BackButton(),

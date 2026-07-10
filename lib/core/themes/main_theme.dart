@@ -9,6 +9,11 @@ final ThemeData medievalTheme = ThemeData(
 
   colorScheme: MedievalColorScheme.light,
 
+  primaryColor: MedievalColors.goldLeaf,
+  primaryColorLight: MedievalColors.goldPale,
+  primaryColorDark: MedievalColors.leatherDark,
+  secondaryHeaderColor: MedievalColors.leatherLight,
+
   scaffoldBackgroundColor: MedievalColors.parchmentDark,
   canvasColor: MedievalColors.parchmentLight,
   cardColor: MedievalColors.parchmentLight,

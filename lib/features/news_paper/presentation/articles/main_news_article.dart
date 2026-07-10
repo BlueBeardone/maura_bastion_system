@@ -10,7 +10,7 @@ class MainNewsArticle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).appBarTheme.backgroundColor,
+      color: Theme.of(context).cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -18,12 +18,8 @@ class MainNewsArticle extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               article.title.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Times New Roman',
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                height: 1.2,
-              ),
+              style: Theme.of(context).textTheme.headlineLarge,
+              maxLines: 3,
             ),
           ),
           const SizedBox(height: 8),
@@ -31,18 +27,19 @@ class MainNewsArticle extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               'By ${article.author}',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
           const SizedBox(height: 12),
           _buildImagePlaceholder(context, article.imageUrl),
           const SizedBox(height: 12),
-          _buildArticleWithDropCap(article.content),
+          _buildArticleWithDropCap(context, article.content),
         ],
       ),
     );
   }
 
-  Widget _buildArticleWithDropCap(String text) {
+  Widget _buildArticleWithDropCap(BuildContext context, String text) {
     if (text.isEmpty) return const SizedBox.shrink();
 
     final firstChar = text.substring(0, 1);
@@ -55,15 +52,13 @@ class MainNewsArticle extends StatelessWidget {
           children: [
             TextSpan(
               text: firstChar,
-              style: const TextStyle(
-                fontFamily: 'Times New Roman',
-                fontSize: 56,
-                fontWeight: FontWeight.bold,
+              style: Theme.of(context).textTheme.displayLarge?.copyWith(
                 height: 1.0,
               ),
             ),
             TextSpan(
               text: restOfText,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
         ),
@@ -77,7 +72,7 @@ class MainNewsArticle extends StatelessWidget {
       child: Container(
         height: height,
         width: double.infinity,
-        color: imageUrl != null? Theme.of(context).appBarTheme.backgroundColor : Colors.grey[300],
+        color: imageUrl != null? Theme.of(context).cardColor : Colors.grey[300],
         child: Center(
           child: imageUrl != null? Image.network(imageUrl)
            : Column(
