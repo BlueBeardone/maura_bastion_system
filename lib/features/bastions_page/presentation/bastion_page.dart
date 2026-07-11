@@ -4,6 +4,7 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
@@ -53,6 +54,8 @@ class BastionPage extends StatelessWidget {
                   return _buildFacilityCard(context, facility);
                 }).toList(),
               ),
+              const SizedBox(height: 24),
+              _buildBastionHirelingsSection(context),
             ],
           ),
         ),
@@ -230,6 +233,144 @@ class BastionPage extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBastionHirelingsSection(BuildContext context) {
+    final allHirelings = <Facility, List<Hireling>>{};
+    for (final facility in bastion.facilities) {
+      if (facility.hirelings.isNotEmpty) {
+        allHirelings[facility] = facility.hirelings;
+      }
+    }
+
+    if (allHirelings.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const RadialGradient(
+          center: Alignment.center,
+          radius: 0.9,
+          colors: [
+            MedievalColors.parchmentLight,
+            MedievalColors.parchmentDark,
+          ],
+          stops: [0.6, 1.0],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(50),
+            blurRadius: 6,
+            offset: const Offset(2, 3),
+          ),
+        ],
+      ),
+      child: CustomPaint(
+        painter: ParchmentBorderPainter(),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hirelings of ${bastion.name}',
+                style: GoogleFonts.cinzel(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: MedievalColors.vermillion,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...allHirelings.entries.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.key.name,
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: MedievalColors.sepiaSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: entry.value.map((h) {
+                          return _buildBastionHirelingChip(context, h, entry.key);
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBastionHirelingChip(BuildContext context, Hireling hireling, Facility facility) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => FacilityPage(facility: facility)),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: MedievalColors.parchment,
+          border: Border.all(color: MedievalColors.goldPale.withAlpha(120)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+                color: MedievalColors.parchmentDark,
+              ),
+              child: Icon(Icons.person, size: 16, color: MedievalColors.sepiaMuted),
+            ),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hireling.name,
+                  style: GoogleFonts.cinzel(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: MedievalColors.vermillion,
+                  ),
+                ),
+                if (hireling.role != null)
+                  Text(
+                    hireling.role!,
+                    style: GoogleFonts.imFellEnglish(
+                      fontSize: 10,
+                      fontStyle: FontStyle.italic,
+                      color: MedievalColors.sepiaSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );

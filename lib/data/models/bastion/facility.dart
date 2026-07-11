@@ -1,23 +1,25 @@
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
+import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 
 class Facility {
   final String id;
   final String name;
   final Rank rank;
-  final int hirelingAmount;
+  int get hirelingAmount => hirelings.length;
   final String description;
   final String? imgUrl;
   final FacilityTable? table;
+  final List<Hireling> hirelings;
 
   Facility({
     required this.id,
     required this.name,
     required this.rank,
-    required this.hirelingAmount,
     required this.description,
     this.imgUrl,
     this.table,
+    this.hirelings = const [],
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
@@ -25,12 +27,14 @@ class Facility {
       id: json['id'] as String,
       name: json['name'] as String,
       rank: Rank.fromString((json['rank'] as String).toLowerCase().trim()),
-      hirelingAmount: json['hirelingAmount'] as int,
       description: json['description'] as String,
       imgUrl: json['imgUrl'] as String?,
       table: json['table'] == null
           ? null
           : FacilityTable.fromJson(json['table'] as Map<String, dynamic>),
+      hirelings: (json['hirelings'] as List<dynamic>? ?? [])
+          .map((h) => Hireling.fromJson(h as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -43,6 +47,7 @@ class Facility {
       'description': description,
       'imgUrl': imgUrl,
       'table': table?.toJson(),
+      'hirelings': hirelings.map((h) => h.toJson()).toList(),
     };
   }
 }
