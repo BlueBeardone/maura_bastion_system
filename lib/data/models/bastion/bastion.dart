@@ -1,4 +1,5 @@
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 
 class Bastion {
   final String id;
@@ -6,6 +7,7 @@ class Bastion {
   final String description;
   final String? imgUrl;
   final List<Facility> facilities;
+  final List<Defender> defenders;
 
   Bastion({
     required this.id,
@@ -13,6 +15,7 @@ class Bastion {
     required this.description,
     this.imgUrl,
     required this.facilities,
+    this.defenders = const [],
   });
 
   factory Bastion.fromJson(Map<String, dynamic> json) {
@@ -24,6 +27,9 @@ class Bastion {
       facilities: (json['facilities'] as List? ?? [])
           .map((facility) => Facility.fromJson(facility as Map<String, dynamic>))
           .toList(),
+      defenders: (json['defenders'] as List? ?? [])
+          .map((defender) => Defender.fromJson(defender as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -34,6 +40,7 @@ class Bastion {
       'description': description,
       'imgUrl': imgUrl,
       'facilities': facilities.map((facility) => facility.toJson()).toList(),
+      'defenders': defenders.map((defender) => defender.toJson()).toList(),
     };
   }
 }

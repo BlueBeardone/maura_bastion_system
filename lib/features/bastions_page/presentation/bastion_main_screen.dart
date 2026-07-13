@@ -236,6 +236,7 @@ class _BastionCardState extends State<_BastionCard> {
   Widget build(BuildContext context) {
     final facilitiesCount = widget.bastion.facilities.length;
     final totalHirelings = widget.bastion.facilities.fold<int>(0, (sum, f) => sum + f.hirelingAmount);
+    final totalDefenders = widget.bastion.defenders.length;
 
     return Container(
       decoration: BoxDecoration(
@@ -403,6 +404,27 @@ class _BastionCardState extends State<_BastionCard> {
                               const SizedBox(width: 4),
                               Text(
                                 '$totalHirelings Hirelings',
+                                style: GoogleFonts.imFellEnglish(
+                                  fontSize: 12,
+                                  color: MedievalColors.sepiaSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Semantics(
+                          label: 'Defenders: $totalDefenders',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.shield,
+                                size: 15,
+                                color: MedievalColors.sepiaSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$totalDefenders Defenders',
                                 style: GoogleFonts.imFellEnglish(
                                   fontSize: 12,
                                   color: MedievalColors.sepiaSecondary,

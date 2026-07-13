@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
@@ -23,7 +25,7 @@ class BastionPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 bastion.name,
@@ -55,7 +57,15 @@ class BastionPage extends StatelessWidget {
                 }).toList(),
               ),
               const SizedBox(height: 24),
-              _buildBastionHirelingsSection(context),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  _buildBastionHirelingsSection(context),
+                  if (bastion.defenders.isNotEmpty)
+                    _buildDefendersSection(context),
+                ],
+              ),
             ],
           ),
         ),
@@ -100,7 +110,7 @@ class BastionPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
@@ -182,7 +192,7 @@ class BastionPage extends StatelessWidget {
             _nailDot(Alignment.bottomLeft),
             _nailDot(Alignment.bottomRight),
           ],
-        ),
+),
       );
     }
     return _imagePlaceholder('No Engraving');
@@ -250,8 +260,10 @@ class BastionPage extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      decoration: BoxDecoration(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child: Container(
+        decoration: BoxDecoration(
         gradient: const RadialGradient(
           center: Alignment.center,
           radius: 0.9,
@@ -290,7 +302,7 @@ class BastionPage extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
                         entry.key.name,
@@ -315,6 +327,122 @@ class BastionPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      ),
+    );
+  }
+
+  Widget _buildDefendersSection(BuildContext context) {
+    final knights = bastion.defenders.where((d) => d.type == DefenderType.knight).length;
+    final bastionDefenders = bastion.defenders.where((d) => d.type == DefenderType.bastionDefender).length;
+    final beasts = bastion.defenders.where((d) => d.type == DefenderType.beast).length;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DefendersPage(
+              defenders: bastion.defenders,
+              bastionName: bastion.name,
+            ),
+          ),
+        );
+      },
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const RadialGradient(
+              center: Alignment.center,
+              radius: 0.9,
+              colors: [
+                MedievalColors.parchmentLight,
+                MedievalColors.parchmentDark,
+              ],
+              stops: [0.6, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(50),
+                blurRadius: 6,
+                offset: const Offset(2, 3),
+              ),
+            ],
+          ),
+          child: CustomPaint(
+            painter: ParchmentBorderPainter(),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+                          color: MedievalColors.parchmentDark,
+                        ),
+                        child: Icon(Icons.shield, size: 20, color: MedievalColors.sepiaMuted),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Defenders of ${bastion.name}',
+                          style: GoogleFonts.cinzel(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: MedievalColors.vermillion,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 16, color: MedievalColors.goldPale),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (knights > 0)
+                    _buildDefenderTypeRow(Icons.shield, 'Knights', knights),
+                  if (bastionDefenders > 0)
+                    _buildDefenderTypeRow(Icons.castle, 'Bastion Defenders', bastionDefenders),
+                  if (beasts > 0)
+                    _buildDefenderTypeRow(Icons.pets, 'Beasts', beasts),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefenderTypeRow(IconData icon, String label, int count) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+              color: MedievalColors.parchmentDark,
+            ),
+            child: Icon(icon, size: 16, color: MedievalColors.sepiaMuted),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$label: $count',
+            style: GoogleFonts.imFellEnglish(
+              fontSize: 13,
+              color: MedievalColors.sepiaSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
+import 'package:maura_bastion_system/data/enums/defender_type.dart';
+import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 
 const String userBastionId = 'bastion_1';
 
@@ -84,6 +86,40 @@ List<Bastion> getFakeBastions() {
           ],
         ),
       ],
+      defenders: [
+        Defender(
+          id: 'defender_1',
+          name: 'Sir Aldric the Steadfast',
+          description: 'Commander of the keep guard. Has held the gate against three sieges and bears the scars to prove it.',
+          imgUrl: null,
+          type: DefenderType.knight,
+          bastionId: userBastionId,
+        ),
+        Defender(
+          id: 'defender_2',
+          name: 'Lady Vex',
+          description: 'A shadowy sentinel who patrols the ramparts at night. The guards claim she never sleeps.',
+          imgUrl: null,
+          type: DefenderType.bastionDefender,
+          bastionId: userBastionId,
+        ),
+        Defender(
+          id: 'defender_3',
+          name: 'Grimfang',
+          description: 'A massive dire wolf bonded to the keep since it was a pup. Loyal only to the bastion lord.',
+          imgUrl: null,
+          type: DefenderType.beast,
+          bastionId: userBastionId,
+        ),
+        Defender(
+          id: 'defender_4',
+          name: 'Sergeant Thorne',
+          description: 'A no-nonsense veteran who drills the garrison daily. His whistle can be heard from every tower.',
+          imgUrl: null,
+          type: DefenderType.knight,
+          bastionId: userBastionId,
+        ),
+      ],
     ),
     Bastion(
       id: 'bastion_2',
@@ -140,6 +176,24 @@ List<Bastion> getFakeBastions() {
           imgUrl: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
           table: null,
           hirelings: [],
+        ),
+      ],
+      defenders: [
+        Defender(
+          id: 'defender_5',
+          name: 'Ranger-Captain Ivar',
+          description: 'Leads the northern patrols with cold precision. Can track a rabbit through a blizzard.',
+          imgUrl: null,
+          type: DefenderType.bastionDefender,
+          bastionId: 'bastion_2',
+        ),
+        Defender(
+          id: 'defender_6',
+          name: 'Frostpaw',
+          description: 'A great white bear that guards the garrison gate. More effective than any portcullis.',
+          imgUrl: null,
+          type: DefenderType.beast,
+          bastionId: 'bastion_2',
         ),
       ],
     ),
