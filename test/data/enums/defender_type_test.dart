@@ -24,6 +24,8 @@ void main() {
         expect(DefenderType.fromString('KNIGHT'), DefenderType.knight);
         expect(DefenderType.fromString('Knight'), DefenderType.knight);
         expect(DefenderType.fromString('BEAST'), DefenderType.beast);
+        expect(DefenderType.fromString('BASTION_DEFENDER'), DefenderType.bastionDefender);
+        expect(DefenderType.fromString('Bastion_Defender'), DefenderType.bastionDefender);
       });
 
       test('throws ArgumentError for unknown value', () {
