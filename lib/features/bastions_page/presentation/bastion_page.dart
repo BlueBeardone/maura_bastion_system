@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -29,19 +30,21 @@ class BastionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<BastionCubit>().state;
-    if (state is! BastionLoadedState) return const SizedBox.shrink();
+    return BlocBuilder<BastionCubit, BastionState>(
+      bloc: GetIt.I<BastionCubit>(),
+      builder: (context, state) {
+        if (state is! BastionLoadedState) return const SizedBox.shrink();
 
-    final bastion = state.bastions.firstWhere(
-      (b) => b.id == bastionId,
-      orElse: () => state.bastions.first,
-    );
+        final bastion = state.bastions.firstWhere(
+          (b) => b.id == bastionId,
+          orElse: () => state.bastions.first,
+        );
 
-    final catalogFacilities = getFacilityCatalog();
-    final builtIds = bastion.facilities.map((f) => f.id).toSet();
-    final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
+        final catalogFacilities = getFacilityCatalog();
+        final builtIds = bastion.facilities.map((f) => f.id).toSet();
+        final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
 
-    return StandardScaffold(
+        return StandardScaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -85,6 +88,8 @@ class BastionPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

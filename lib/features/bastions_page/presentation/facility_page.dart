@@ -32,7 +32,7 @@ class FacilityPage extends StatelessWidget {
       return _FacilityView(
         facility: facility,
         bastion: bastion,
-        assigned: const [],
+        assigned: bastion.getFacilityHirelings(facility.id),
         unassigned: const [],
         isUserBastion: false,
         isSelectionMode: false,
