@@ -5,7 +5,7 @@ class Hireling {
   final String? description;
   final String? imgUrl;
   final String bastionId;
-  final String facilityId;
+  final String? facilityId;
 
   Hireling({
     required this.id,
@@ -14,7 +14,7 @@ class Hireling {
     this.description,
     this.imgUrl,
     required this.bastionId,
-    required this.facilityId,
+    this.facilityId,
   });
 
   factory Hireling.fromJson(Map<String, dynamic> json) {
@@ -25,7 +25,7 @@ class Hireling {
       description: json['description'] as String?,
       imgUrl: json['imgUrl'] as String?,
       bastionId: json['bastionId'] as String,
-      facilityId: json['facilityId'] as String,
+      facilityId: json['facilityId'] as String?,
     );
   }
 
