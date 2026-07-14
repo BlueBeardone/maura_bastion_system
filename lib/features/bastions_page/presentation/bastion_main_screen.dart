@@ -206,7 +206,7 @@ class _BastionCardState extends State<_BastionCard> {
   void _navigateToBastion() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => BastionPage(
-        bastion: widget.bastion,
+        bastionId: widget.bastion.id,
         isUserBastion: widget.isUserBastion,
       )),
     );

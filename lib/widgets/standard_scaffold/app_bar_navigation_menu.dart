@@ -84,7 +84,7 @@ class AppBarNavigationMenu extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BastionPage(bastion: userBastion, isUserBastion: true),
+            builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
           ),
         );
         break;
