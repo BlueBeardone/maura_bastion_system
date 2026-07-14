@@ -4,6 +4,7 @@ import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.da
 import 'package:maura_bastion_system/features/about_page/about_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_main_screen.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/hirelings_page.dart';
 
 class AppBarNavigationMenu extends StatelessWidget {
   final List<MainNavigation> navigationItems;
@@ -83,11 +84,26 @@ class AppBarNavigationMenu extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BastionPage(bastion: userBastion),
+            builder: (context) => BastionPage(bastion: userBastion, isUserBastion: true),
           ),
         );
         break;
       case MainNavigation.hirelings:
+        final bastions = getFakeBastions();
+        final userBastion = bastions.firstWhere(
+          (b) => b.id == userBastionId,
+          orElse: () => bastions.first,
+        );
+        final allHirelings = userBastion.hirelings;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HirelingsPage(
+              bastion: userBastion,
+              initialHirelings: allHirelings,
+            ),
+          ),
+        );
         break;
     }
   }

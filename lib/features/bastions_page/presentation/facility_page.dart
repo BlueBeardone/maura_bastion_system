@@ -1,15 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class FacilityPage extends StatelessWidget {
   final Facility facility;
+  final Bastion bastion;
+  final bool isUserBastion;
 
-  const FacilityPage({super.key, required this.facility});
+  const FacilityPage({
+    super.key,
+    required this.facility,
+    required this.bastion,
+    required this.isUserBastion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isUserBastion) {
+      return _FacilityView(
+        facility: facility,
+        bastion: bastion,
+        assigned: bastion.getFacilityHirelings(facility.id),
+        unassigned: const [],
+        isUserBastion: false,
+      );
+    }
+
+    return BlocProvider(
+      create: (_) => HirelingsCubit(
+        bastionId: bastion.id,
+        initialHirelings: bastion.hirelings,
+      ),
+      child: BlocBuilder<HirelingsCubit, HirelingsState>(
+        builder: (context, state) {
+          final assigned = state.hirelings
+              .where((h) => h.facilityId == facility.id)
+              .toList();
+          final unassigned = state.hirelings
+              .where((h) => h.facilityId == null)
+              .toList();
+          return _FacilityView(
+            facility: facility,
+            bastion: bastion,
+            assigned: assigned,
+            unassigned: unassigned,
+            isUserBastion: true,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FacilityView extends StatelessWidget {
+  final Facility facility;
+  final Bastion bastion;
+  final List<Hireling> assigned;
+  final List<Hireling> unassigned;
+  final bool isUserBastion;
+
+  const _FacilityView({
+    required this.facility,
+    required this.bastion,
+    required this.assigned,
+    required this.unassigned,
+    required this.isUserBastion,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,11 +112,31 @@ class FacilityPage extends StatelessWidget {
                   _buildImage(),
                   const SizedBox(height: 20),
                   _buildHirelingsRow(),
+                  if (facility.minimumRequiredHirelings > 0) ...[
+                    const SizedBox(height: 8),
+                    _buildRequiredInfo(),
+                  ],
                   const SizedBox(height: 16),
                   _buildDescription(),
                   if (facility.table != null) ...[
                     const SizedBox(height: 24),
                     _buildTableSection(),
+                  ],
+                  const SizedBox(height: 24),
+                  _buildHirelingSection(
+                    context,
+                    header: 'Assigned Hirelings',
+                    hirelings: assigned,
+                    isAssigned: true,
+                  ),
+                  if (isUserBastion && unassigned.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _buildHirelingSection(
+                      context,
+                      header: 'Available Hirelings',
+                      hirelings: unassigned,
+                      isAssigned: false,
+                    ),
                   ],
                 ],
               ),
@@ -180,10 +264,29 @@ class FacilityPage extends StatelessWidget {
         Icon(Icons.people, color: MedievalColors.sepiaSecondary, size: 20),
         const SizedBox(width: 8),
         Text(
-          '${facility.hirelingAmount} Hirelings',
+          '${assigned.length} Hirelings',
           style: GoogleFonts.imFellEnglish(
             fontSize: 16,
             color: MedievalColors.sepiaSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRequiredInfo() {
+    return Row(
+      children: [
+        Icon(Icons.info_outline, color: MedievalColors.goldLeaf, size: 16),
+        const SizedBox(width: 6),
+        Text(
+          '${assigned.length} / ${facility.minimumRequiredHirelings} hirelings required',
+          style: GoogleFonts.imFellEnglish(
+            fontSize: 14,
+            fontStyle: FontStyle.italic,
+            color: assigned.length >= facility.minimumRequiredHirelings
+                ? MedievalColors.sepiaSecondary
+                : MedievalColors.vermillion,
           ),
         ),
       ],
@@ -298,6 +401,185 @@ class FacilityPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildHirelingSection(
+    BuildContext context, {
+    required String header,
+    required List<Hireling> hirelings,
+    required bool isAssigned,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: MedievalColors.parchment,
+            border: Border.all(color: MedievalColors.goldLeaf),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
+            ),
+          ),
+          child: Text(
+            header,
+            style: GoogleFonts.cinzel(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: MedievalColors.vermillion,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(color: MedievalColors.goldLeaf),
+              right: BorderSide(color: MedievalColors.goldLeaf),
+              bottom: BorderSide(color: MedievalColors.goldLeaf),
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(10),
+              bottomRight: Radius.circular(10),
+            ),
+          ),
+          child: hirelings.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(Icons.person_off, size: 32, color: MedievalColors.sepiaMuted),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No hirelings assigned to this facility',
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                          color: MedievalColors.sepiaMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: hirelings.map((h) {
+                      return _buildHirelingCard(context, h, isAssigned);
+                    }).toList(),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHirelingCard(BuildContext context, Hireling hireling, bool isAssigned) {
+    return SizedBox(
+      width: 170,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: isUserBastion
+              ? () {
+                  final cubit = context.read<HirelingsCubit>();
+                  if (isAssigned) {
+                    cubit.dismissHireling(hireling.id);
+                  } else {
+                    cubit.assignHireling(hireling.id, facility.id);
+                  }
+                }
+              : null,
+          child: Container(
+            decoration: BoxDecoration(
+              color: MedievalColors.parchment.withAlpha(180),
+              border: Border.all(color: MedievalColors.goldPale.withAlpha(120)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHirelingPortrait(hireling),
+                const SizedBox(height: 6),
+                Text(
+                  hireling.name,
+                  style: GoogleFonts.cinzel(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: MedievalColors.vermillion,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (hireling.role != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    hireling.role!,
+                    style: GoogleFonts.imFellEnglish(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: MedievalColors.sepiaSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHirelingPortrait(Hireling hireling) {
+    const double portraitSize = 80;
+
+    if (hireling.imgUrl != null) {
+      return Container(
+        width: portraitSize,
+        height: portraitSize,
+        decoration: BoxDecoration(
+          border: Border.all(color: MedievalColors.goldPale, width: 1.5),
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            hireling.imgUrl!,
+            width: portraitSize,
+            height: portraitSize,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => _hirelingPortraitPlaceholder(),
+          ),
+        ),
+      );
+    }
+    return _hirelingPortraitPlaceholder();
+  }
+
+  Widget _hirelingPortraitPlaceholder() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
+        shape: BoxShape.circle,
+        color: MedievalColors.parchment.withAlpha(120),
+      ),
+      child: Icon(
+        Icons.person,
+        size: 36,
+        color: MedievalColors.sepiaMuted,
+      ),
     );
   }
 }

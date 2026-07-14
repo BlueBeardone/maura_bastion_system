@@ -5,7 +5,7 @@ class Facility {
   final String id;
   final String name;
   final Rank rank;
-  final int hirelingAmount;
+  final int minimumRequiredHirelings;
   final String description;
   final String? imgUrl;
   final FacilityTable? table;
@@ -14,10 +14,10 @@ class Facility {
     required this.id,
     required this.name,
     required this.rank,
-    required this.hirelingAmount,
     required this.description,
     this.imgUrl,
     this.table,
+    this.minimumRequiredHirelings = 0,
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
@@ -25,12 +25,12 @@ class Facility {
       id: json['id'] as String,
       name: json['name'] as String,
       rank: Rank.fromString((json['rank'] as String).toLowerCase().trim()),
-      hirelingAmount: json['hirelingAmount'] as int,
       description: json['description'] as String,
       imgUrl: json['imgUrl'] as String?,
       table: json['table'] == null
           ? null
           : FacilityTable.fromJson(json['table'] as Map<String, dynamic>),
+      minimumRequiredHirelings: json['minimumRequiredHirelings'] as int? ?? 0,
     );
   }
 
@@ -39,10 +39,10 @@ class Facility {
       'id': id,
       'name': name,
       'rank': rank.title.toLowerCase(),
-      'hirelingAmount': hirelingAmount,
       'description': description,
       'imgUrl': imgUrl,
       'table': table?.toJson(),
+      'minimumRequiredHirelings': minimumRequiredHirelings,
     };
   }
 }
