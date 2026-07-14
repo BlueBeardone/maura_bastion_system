@@ -15,6 +15,7 @@ class HirelingsCubit extends Cubit<HirelingsState> {
     String? role,
     String? description,
     String? imgUrl,
+    String? acquisitionStory,
   }) {
     final newHireling = Hireling(
       id: 'hireling_${DateTime.now().millisecondsSinceEpoch}',
@@ -23,6 +24,7 @@ class HirelingsCubit extends Cubit<HirelingsState> {
       description: description,
       imgUrl: imgUrl,
       bastionId: state.bastionId,
+      acquisitionStory: acquisitionStory,
     );
     emit(state.copyWith(hirelings: [...state.hirelings, newHireling]));
   }

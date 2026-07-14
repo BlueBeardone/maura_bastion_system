@@ -46,6 +46,7 @@ List<Bastion> getFakeBastions() {
           imgUrl: null,
           bastionId: userBastionId,
           facilityId: 'facility_1',
+          acquisitionStory: 'Recruited from the King\'s forge after proving his steel against a master bladesmith.',
         ),
         Hireling(
           id: 'hireling_2',
@@ -55,6 +56,7 @@ List<Bastion> getFakeBastions() {
           imgUrl: null,
           bastionId: userBastionId,
           facilityId: 'facility_1',
+          acquisitionStory: 'Won in a drinking contest at the Hammer & Anvil tavern.',
         ),
         Hireling(
           id: 'hireling_3',
@@ -73,6 +75,7 @@ List<Bastion> getFakeBastions() {
           imgUrl: null,
           bastionId: userBastionId,
           facilityId: 'facility_2',
+          acquisitionStory: 'Found transcribing scrolls in a crumbling monastery. Offered her a proper library.',
         ),
         Hireling(
           id: 'hireling_5',
@@ -91,6 +94,7 @@ List<Bastion> getFakeBastions() {
           imgUrl: null,
           bastionId: userBastionId,
           facilityId: null,
+          acquisitionStory: 'Appeared at the gates during a storm, asking only for a roof and a fair wage.',
         ),
         Hireling(
           id: 'hireling_7',
@@ -100,6 +104,7 @@ List<Bastion> getFakeBastions() {
           imgUrl: null,
           bastionId: userBastionId,
           facilityId: null,
+          acquisitionStory: 'Healed the garrison captain\'s fever when the court physician had given up.',
         ),
       ],
       defenders: [

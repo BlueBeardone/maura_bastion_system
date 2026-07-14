@@ -6,6 +6,7 @@ class Hireling {
   final String? imgUrl;
   final String bastionId;
   final String? facilityId;
+  final String? acquisitionStory;
 
   Hireling({
     required this.id,
@@ -15,11 +16,12 @@ class Hireling {
     this.imgUrl,
     required this.bastionId,
     this.facilityId,
+    this.acquisitionStory,
   });
 
   static const _ignored = Object();
 
-  Hireling copyWith({Object? facilityId = _ignored}) => Hireling(
+  Hireling copyWith({Object? facilityId = _ignored, String? acquisitionStory}) => Hireling(
     id: id,
     name: name,
     role: role,
@@ -27,6 +29,7 @@ class Hireling {
     imgUrl: imgUrl,
     bastionId: bastionId,
     facilityId: identical(facilityId, _ignored) ? this.facilityId : facilityId as String?,
+    acquisitionStory: acquisitionStory ?? this.acquisitionStory,
   );
 
   factory Hireling.fromJson(Map<String, dynamic> json) {
@@ -38,6 +41,7 @@ class Hireling {
       imgUrl: json['imgUrl'] as String?,
       bastionId: json['bastionId'] as String,
       facilityId: json['facilityId'] as String?,
+      acquisitionStory: json['acquisitionStory'] as String?,
     );
   }
 
@@ -50,6 +54,7 @@ class Hireling {
       'imgUrl': imgUrl,
       'bastionId': bastionId,
       'facilityId': facilityId,
+      'acquisitionStory': acquisitionStory,
     };
   }
 }

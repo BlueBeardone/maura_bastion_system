@@ -46,6 +46,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
   String _role = '';
   String _description = '';
   String _imgUrl = '';
+  String _acquisitionStory = '';
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +235,16 @@ class _HirelingsViewState extends State<_HirelingsView> {
                 ),
                 onSaved: (value) => _imgUrl = value?.trim() ?? '',
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _acquisitionStory,
+                decoration: const InputDecoration(
+                  labelText: 'Acquisition Story',
+                  prefixIcon: Icon(Icons.auto_stories),
+                ),
+                maxLines: 2,
+                onSaved: (value) => _acquisitionStory = value?.trim() ?? '',
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -245,6 +256,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                           description:
                               _description.isNotEmpty ? _description : null,
                           imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
+                          acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
                         );
                     _formKey.currentState?.reset();
                     setState(() {
@@ -252,6 +264,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                       _role = '';
                       _description = '';
                       _imgUrl = '';
+                      _acquisitionStory = '';
                     });
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
