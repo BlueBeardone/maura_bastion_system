@@ -84,7 +84,7 @@ class AppBarNavigationMenu extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BastionPage(bastion: userBastion),
+            builder: (context) => BastionPage(bastion: userBastion, isUserBastion: true),
           ),
         );
         break;
@@ -94,9 +94,7 @@ class AppBarNavigationMenu extends StatelessWidget {
           (b) => b.id == userBastionId,
           orElse: () => bastions.first,
         );
-        final allHirelings = userBastion.facilities
-            .expand((f) => f.hirelings)
-            .toList();
+        final allHirelings = userBastion.hirelings;
         Navigator.push(
           context,
           MaterialPageRoute(

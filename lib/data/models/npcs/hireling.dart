@@ -17,6 +17,18 @@ class Hireling {
     this.facilityId,
   });
 
+  static const _ignored = Object();
+
+  Hireling copyWith({Object? facilityId = _ignored}) => Hireling(
+    id: id,
+    name: name,
+    role: role,
+    description: description,
+    imgUrl: imgUrl,
+    bastionId: bastionId,
+    facilityId: identical(facilityId, _ignored) ? this.facilityId : facilityId as String?,
+  );
+
   factory Hireling.fromJson(Map<String, dynamic> json) {
     return Hireling(
       id: json['id'] as String,

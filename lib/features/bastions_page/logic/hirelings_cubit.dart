@@ -32,4 +32,22 @@ class HirelingsCubit extends Cubit<HirelingsState> {
       hirelings: state.hirelings.where((h) => h.id != id).toList(),
     ));
   }
+
+  void assignHireling(String hirelingId, String facilityId) {
+    emit(state.copyWith(
+      hirelings: state.hirelings.map((h) {
+        if (h.id == hirelingId) return h.copyWith(facilityId: facilityId);
+        return h;
+      }).toList(),
+    ));
+  }
+
+  void dismissHireling(String hirelingId) {
+    emit(state.copyWith(
+      hirelings: state.hirelings.map((h) {
+        if (h.id == hirelingId) return h.copyWith(facilityId: null);
+        return h;
+      }).toList(),
+    ));
+  }
 }

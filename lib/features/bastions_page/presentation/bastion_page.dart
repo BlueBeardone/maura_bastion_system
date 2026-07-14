@@ -15,8 +15,13 @@ class BastionPage extends StatelessWidget {
   static const double _cardWidth = 200.0;
 
   final Bastion bastion;
+  final bool isUserBastion;
 
-  const BastionPage({super.key, required this.bastion});
+  const BastionPage({
+    super.key,
+    required this.bastion,
+    this.isUserBastion = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +87,11 @@ class BastionPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => FacilityPage(facility: facility)),
+              MaterialPageRoute(builder: (_) => FacilityPage(
+                facility: facility,
+                bastion: bastion,
+                isUserBastion: isUserBastion,
+              )),
             );
           },
           child: Container(
@@ -152,7 +161,7 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
                         Icon(Icons.group, size: 14, color: MedievalColors.sepiaSecondary),
                         const SizedBox(width: 4),
                         Text(
-                          '${facility.hirelingAmount}',
+                          '${bastion.facilityHirelingCount(facility.id)}',
                           style: GoogleFonts.imFellEnglish(
                             fontSize: 12,
                             color: MedievalColors.sepiaSecondary,
@@ -251,8 +260,9 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
   Widget _buildBastionHirelingsSection(BuildContext context) {
     final allHirelings = <Facility, List<Hireling>>{};
     for (final facility in bastion.facilities) {
-      if (facility.hirelings.isNotEmpty) {
-        allHirelings[facility] = facility.hirelings;
+      final facilityHirelings = bastion.getFacilityHirelings(facility.id);
+      if (facilityHirelings.isNotEmpty) {
+        allHirelings[facility] = facilityHirelings;
       }
     }
 
@@ -452,7 +462,11 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => FacilityPage(facility: facility)),
+          MaterialPageRoute(builder: (_) => FacilityPage(
+            facility: facility,
+            bastion: bastion,
+            isUserBastion: isUserBastion,
+          )),
         );
       },
       child: Container(

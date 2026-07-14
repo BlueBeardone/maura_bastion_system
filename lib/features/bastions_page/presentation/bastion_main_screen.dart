@@ -205,7 +205,10 @@ class _BastionCardState extends State<_BastionCard> {
 
   void _navigateToBastion() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => BastionPage(bastion: widget.bastion)),
+      MaterialPageRoute(builder: (_) => BastionPage(
+        bastion: widget.bastion,
+        isUserBastion: widget.isUserBastion,
+      )),
     );
   }
 
@@ -235,7 +238,7 @@ class _BastionCardState extends State<_BastionCard> {
   @override
   Widget build(BuildContext context) {
     final facilitiesCount = widget.bastion.facilities.length;
-    final totalHirelings = widget.bastion.facilities.fold<int>(0, (sum, f) => sum + f.hirelingAmount);
+    final totalHirelings = widget.bastion.hirelings.length;
     final totalDefenders = widget.bastion.defenders.length;
 
     return Container(
