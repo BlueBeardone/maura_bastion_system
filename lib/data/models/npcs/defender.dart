@@ -7,6 +7,7 @@ class Defender {
   final String? imgUrl;
   final DefenderType type;
   final String bastionId;
+  final String? acquisitionStory;
 
   Defender({
     required this.id,
@@ -15,7 +16,28 @@ class Defender {
     this.imgUrl,
     required this.type,
     required this.bastionId,
+    this.acquisitionStory,
   });
+
+  Defender copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? imgUrl,
+    DefenderType? type,
+    String? bastionId,
+    String? acquisitionStory,
+  }) {
+    return Defender(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imgUrl: imgUrl ?? this.imgUrl,
+      type: type ?? this.type,
+      bastionId: bastionId ?? this.bastionId,
+      acquisitionStory: acquisitionStory ?? this.acquisitionStory,
+    );
+  }
 
   factory Defender.fromJson(Map<String, dynamic> json) {
     return Defender(
@@ -25,6 +47,7 @@ class Defender {
       imgUrl: json['imgUrl'] as String?,
       type: DefenderType.fromString(json['type'] as String),
       bastionId: json['bastionId'] as String,
+      acquisitionStory: json['acquisitionStory'] as String?,
     );
   }
 
@@ -36,6 +59,7 @@ class Defender {
       'imgUrl': imgUrl,
       'type': type.title.toLowerCase(),
       'bastionId': bastionId,
+      'acquisitionStory': acquisitionStory,
     };
   }
 }

@@ -342,7 +342,8 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => DefendersPage(
-              defenders: bastion.defenders,
+              bastionId: bastion.id,
+              initialDefenders: bastion.defenders,
               bastionName: bastion.name,
             ),
           ),
