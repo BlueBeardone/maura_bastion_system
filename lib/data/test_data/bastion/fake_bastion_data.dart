@@ -27,6 +27,8 @@ List<Bastion> getFakeBastions() {
             ['Longsword', 'A', '18'],
             ['Plate Armor', 'B', '11'],
           ]),
+          constructionTurns: 5,
+          cost: 3000,
         ),
         Facility(
           id: 'facility_2',
@@ -35,6 +37,8 @@ List<Bastion> getFakeBastions() {
           description: 'A quiet study chamber where strategists refine training, reports, and battle plans.',
           imgUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 3,
+          cost: 1500,
         ),
       ],
       hirelings: [
@@ -159,6 +163,8 @@ List<Bastion> getFakeBastions() {
             ['Flare', '1 day', '4'],
             ['Courier', '2 days', '6'],
           ]),
+          constructionTurns: 4,
+          cost: 2000,
         ),
         Facility(
           id: 'facility_4',
@@ -167,6 +173,8 @@ List<Bastion> getFakeBastions() {
           description: 'Provides trained mounts and field riders for quick response through dense woods.',
           imgUrl: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 2,
+          cost: 800,
         ),
       ],
       hirelings: [
@@ -234,6 +242,8 @@ List<Bastion> getFakeBastions() {
             ['Sloop', '3 days', '6'],
             ['Brigantine', '7 days', '18'],
           ]),
+          constructionTurns: 5,
+          cost: 2500,
         ),
         Facility(
           id: 'facility_6',
@@ -242,6 +252,8 @@ List<Bastion> getFakeBastions() {
           description: 'Stores signal bells and harbor watchers for incoming ships and nighttime patrols.',
           imgUrl: 'https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 2,
+          cost: 600,
         ),
       ],
       hirelings: [
@@ -278,6 +290,8 @@ List<Bastion> getFakeBastions() {
           description: 'Tracks celestial patterns, weather changes, and long-range scouting reports.',
           imgUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 6,
+          cost: 3500,
         ),
         Facility(
           id: 'facility_8',
@@ -290,6 +304,8 @@ List<Bastion> getFakeBastions() {
             ['Silverleaf', 'Healing', '12'],
             ['Nightbloom', 'Stealth', '7'],
           ]),
+          constructionTurns: 4,
+          cost: 2800,
         ),
       ],
       hirelings: [
@@ -353,6 +369,8 @@ List<Bastion> getFakeBastions() {
           description: 'Turns ore into tools, armor, and construction materials for rapid repairs and expansion.',
           imgUrl: 'https://images.unsplash.com/photo-1581093458791-9f2c3f0f5e5c?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 4,
+          cost: 2200,
         ),
         Facility(
           id: 'facility_10',
@@ -361,6 +379,8 @@ List<Bastion> getFakeBastions() {
           description: 'Trades supplies, provisions, and rare goods with the surrounding villages and caravans.',
           imgUrl: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80',
           table: null,
+          constructionTurns: 3,
+          cost: 1200,
         ),
       ],
       hirelings: [
