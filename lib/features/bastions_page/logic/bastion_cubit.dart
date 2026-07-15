@@ -28,7 +28,19 @@ class BastionCubit extends Cubit<BastionState> {
     if (index == -1) return;
 
     final bastion = bastions[index];
-    final updatedFacilities = [...bastion.facilities, facility];
+    final facilityWithConstruction = Facility(
+      id: facility.id,
+      name: facility.name,
+      rank: facility.rank,
+      description: facility.description,
+      imgUrl: facility.imgUrl,
+      table: facility.table,
+      minimumRequiredHirelings: facility.minimumRequiredHirelings,
+      constructionTurns: facility.constructionTurns,
+      cost: facility.cost,
+      constructedTurns: facility.constructionTurns,
+    );
+    final updatedFacilities = [...bastion.facilities, facilityWithConstruction];
 
     bastions[index] = Bastion(
       id: bastion.id,
