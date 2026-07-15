@@ -127,17 +127,18 @@ class BastionPage extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: facilities.map((facility) {
-            return _buildFacilityCard(context, facility, bastion);
-          }).toList(),
+          children: [
+            ...facilities.map((facility) {
+              return _buildFacilityCard(context, facility, bastion);
+            }),
+            if (isUserBastion && !allBuilt) const SizedBox(height: 16),
+            if (isUserBastion && !allBuilt) _buildPlusCard(context, bastion)
+          ]
         ),
       );
+
     }
 
-    if (isUserBastion && !allBuilt) {
-      widgets.add(const SizedBox(height: 16));
-      widgets.add(_buildPlusCard(context, bastion));
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +294,7 @@ class BastionPage extends StatelessWidget {
             );
           },
           child: Container(
-            height: 260,
+            height: 241,
             decoration: BoxDecoration(
               gradient: const RadialGradient(
                 center: Alignment.center,
