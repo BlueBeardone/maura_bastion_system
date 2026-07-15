@@ -11,6 +11,7 @@ class Facility {
   final String description;
   final String? imgUrl;
   final FacilityTable? table;
+  final int constructedTurns;
 
   Facility({
     required this.id,
@@ -22,6 +23,7 @@ class Facility {
     this.minimumRequiredHirelings = 0,
     this.constructionTurns = 0,
     this.cost = 0,
+    this.constructedTurns = 0,
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class Facility {
       minimumRequiredHirelings: json['minimumRequiredHirelings'] as int? ?? 0,
       constructionTurns: json['constructionTurns'] as int? ?? 0,
       cost: json['cost'] as int? ?? 0,
+      constructedTurns: json['constructedTurns'] as int? ?? 0,
     );
   }
 
@@ -51,6 +54,7 @@ class Facility {
       'minimumRequiredHirelings': minimumRequiredHirelings,
       'constructionTurns': constructionTurns,
       'cost': cost,
+      'constructedTurns': constructedTurns,
     };
   }
 }

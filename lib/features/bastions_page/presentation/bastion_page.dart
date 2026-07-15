@@ -147,6 +147,7 @@ class BastionPage extends StatelessWidget {
   }
 
   Widget _buildFacilityCard(BuildContext context, Facility facility, Bastion bastion) {
+    final bool isConstructing = facility.constructedTurns != 0;
     return SizedBox(
       width: _cardWidth,
       child: Material(
@@ -162,60 +163,63 @@ class BastionPage extends StatelessWidget {
               )),
             );
           },
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const RadialGradient(
-                center: Alignment.center,
-                radius: 0.9,
-                colors: [
-                  MedievalColors.parchmentLight,
-                  MedievalColors.parchmentDark,
-                ],
-                stops: [0.6, 1.0],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(50),
-                  blurRadius: 6,
-                  offset: const Offset(2, 3),
-                ),
-              ],
-            ),
-            child: CustomPaint(
-              painter: ParchmentBorderPainter(),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      facility.name,
-                      style: GoogleFonts.cinzel(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: MedievalColors.vermillion,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildFramedImage(facility),
-                    const SizedBox(height: 8),
-                    Text(
-                      facility.description,
-                      style: GoogleFonts.imFellEnglish(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: MedievalColors.sepiaInk,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildFacilityInfoRow(facility, bastion),
+          child: Opacity(
+            opacity: isConstructing ? 0.5 : 1.0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const RadialGradient(
+                  center: Alignment.center,
+                  radius: 0.9,
+                  colors: [
+                    MedievalColors.parchmentLight,
+                    MedievalColors.parchmentDark,
                   ],
+                  stops: [0.6, 1.0],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(50),
+                    blurRadius: 6,
+                    offset: const Offset(2, 3),
+                  ),
+                ],
+              ),
+              child: CustomPaint(
+                painter: ParchmentBorderPainter(),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        facility.name,
+                        style: GoogleFonts.cinzel(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: MedievalColors.vermillion,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildFramedImage(facility),
+                      const SizedBox(height: 8),
+                      Text(
+                        facility.description,
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: MedievalColors.sepiaInk,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+                      _buildFacilityInfoRow(facility, bastion),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -242,39 +246,26 @@ class BastionPage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
-            const SizedBox(width: 3),
-            Text(
-              '${facility.constructionTurns}t',
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
-                color: MedievalColors.sepiaSecondary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
             Icon(Icons.group, size: 12, color: MedievalColors.sepiaSecondary),
             const SizedBox(width: 3),
             Text(
-              '${bastion.facilityHirelingCount(facility.id)} HL',
+              '${bastion.facilityHirelingCount(facility.id)}',
               style: GoogleFonts.imFellEnglish(
                 fontSize: 11,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.monetization_on, size: 12, color: MedievalColors.goldLeaf),
-            const SizedBox(width: 3),
-            Text(
-              '${facility.cost} GP',
+            Spacer(),
+            if(facility.constructedTurns != 0) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
+            if(facility.constructedTurns != 0) const SizedBox(width: 3),
+            if(facility.constructedTurns != 0) Text(
+              '${facility.constructedTurns}t',
               style: GoogleFonts.imFellEnglish(
                 fontSize: 11,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
+            if(facility.constructedTurns != 0) const SizedBox(width: 4),
           ],
         ),
       ],
@@ -282,8 +273,12 @@ class BastionPage extends StatelessWidget {
   }
 
   Widget _buildPlusCard(BuildContext context, Bastion bastion) {
-    return SizedBox(
-      width: _cardWidth,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: 214,
+        maxWidth: _cardWidth,
+        minWidth: _cardWidth,
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -294,7 +289,6 @@ class BastionPage extends StatelessWidget {
             );
           },
           child: Container(
-            height: 241,
             decoration: BoxDecoration(
               gradient: const RadialGradient(
                 center: Alignment.center,

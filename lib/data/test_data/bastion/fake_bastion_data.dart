@@ -29,6 +29,7 @@ List<Bastion> getFakeBastions() {
           ]),
           constructionTurns: 5,
           cost: 3000,
+          constructedTurns: 1,
         ),
         Facility(
           id: 'facility_2',
