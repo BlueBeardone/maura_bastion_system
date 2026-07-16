@@ -16,19 +16,17 @@ class FacilitySelectionPage extends StatelessWidget {
 
   final Bastion? bastion;
   final Set<String>? initialSelectedIds;
-  final ValueChanged<List<Facility>>? onComplete;
 
   const FacilitySelectionPage({
     super.key,
     required this.bastion,
     this.initialSelectedIds,
-    this.onComplete,
   });
 
   @override
   Widget build(BuildContext context) {
     final catalog = getFacilityCatalog();
-    final bool isPickMode = onComplete != null;
+    final bool isPickMode = bastion == null;
 
     late final List<Facility> available;
     if (isPickMode) {

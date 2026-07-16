@@ -37,7 +37,6 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
       MaterialPageRoute(builder: (_) => FacilitySelectionPage(
         bastion: null,
         initialSelectedIds: _selectedFacilities.map((f) => f.id).toSet(),
-        onComplete: (list) => Navigator.of(context).pop(list),
       )),
     );
     if (selected != null) {
@@ -63,15 +62,18 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
     // Find the newly created bastion in the updated state
     final state = cubit.state;
     if (state is BastionLoadedState) {
-      final newBastion = state.bastions.lastWhere(
+      final newBastionIndex = state.bastions.indexWhere(
         (b) => b.name == name && b.description == description,
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => BastionPage(
-          bastionId: newBastion.id,
-          isUserBastion: true,
-        )),
-      );
+      if (newBastionIndex != -1) {
+        final newBastion = state.bastions[newBastionIndex];
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => BastionPage(
+            bastionId: newBastion.id,
+            isUserBastion: true,
+          )),
+        );
+      }
     }
   }
 
