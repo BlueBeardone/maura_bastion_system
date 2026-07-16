@@ -54,4 +54,39 @@ class BastionCubit extends Cubit<BastionState> {
 
     emit(BastionLoadedState(bastions: bastions));
   }
+
+  void createBastion(
+    String name,
+    String description,
+    String? imgUrl,
+    List<Facility> facilities,
+  ) {
+    if (state is! BastionLoadedState) return;
+    final loaded = state as BastionLoadedState;
+    final bastions = List<Bastion>.from(loaded.bastions);
+
+    final id = 'bastion_${DateTime.now().millisecondsSinceEpoch}';
+    final builtFacilities = facilities.map((f) => Facility(
+      id: f.id,
+      name: f.name,
+      rank: f.rank,
+      description: f.description,
+      imgUrl: f.imgUrl,
+      table: f.table,
+      minimumRequiredHirelings: f.minimumRequiredHirelings,
+      constructionTurns: f.constructionTurns,
+      cost: f.cost,
+      constructedTurns: 0,
+    )).toList();
+
+    bastions.add(Bastion(
+      id: id,
+      name: name,
+      description: description,
+      imgUrl: imgUrl,
+      facilities: builtFacilities,
+    ));
+
+    emit(BastionLoadedState(bastions: bastions));
+  }
 }
