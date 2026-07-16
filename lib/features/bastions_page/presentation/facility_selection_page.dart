@@ -14,17 +14,31 @@ import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold
 class FacilitySelectionPage extends StatelessWidget {
   static const double _cardWidth = 200.0;
 
-  final Bastion bastion;
+  final Bastion? bastion;
+  final Set<String>? initialSelectedIds;
+  final ValueChanged<List<Facility>>? onComplete;
 
-  const FacilitySelectionPage({super.key, required this.bastion});
+  const FacilitySelectionPage({
+    super.key,
+    required this.bastion,
+    this.initialSelectedIds,
+    this.onComplete,
+  });
 
   @override
   Widget build(BuildContext context) {
     final catalog = getFacilityCatalog();
-    final builtIds = bastion.facilities.map((f) => f.id).toSet();
-    final available = catalog.where((f) => !builtIds.contains(f.id)).toList();
+    final bool isPickMode = onComplete != null;
 
-    if (available.isEmpty) {
+    late final List<Facility> available;
+    if (isPickMode) {
+      available = List.from(catalog);
+    } else {
+      final builtIds = bastion!.facilities.map((f) => f.id).toSet();
+      available = catalog.where((f) => !builtIds.contains(f.id)).toList();
+    }
+
+    if (available.isEmpty && !isPickMode) {
       return StandardScaffold(
         body: Center(
           child: Text(
@@ -47,7 +61,117 @@ class FacilitySelectionPage extends StatelessWidget {
       grouped.putIfAbsent(facility.rank, () => []).add(facility);
     }
 
+    if (isPickMode) {
+      return _buildPickMode(context, catalog, ranks, grouped);
+    } else {
+      return _buildConstructionMode(context, ranks, grouped);
+    }
+  }
+
+  Widget _buildPickMode(
+    BuildContext context,
+    List<Facility> catalog,
+    List<Rank> ranks,
+    Map<Rank, List<Facility>> grouped,
+  ) {
+    final selectedIds = Set<String>.from(initialSelectedIds ?? {});
+
+    return StatefulBuilder(
+      builder: (context, setInnerState) {
+        final widgets = <Widget>[];
+
+        for (final rank in ranks) {
+          final facilities = grouped[rank];
+          if (facilities == null || facilities.isEmpty) continue;
+
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              child: Text(
+                'Rank: ${rank.title}',
+                style: GoogleFonts.cinzel(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: MedievalColors.vermillion,
+                ),
+              ),
+            ),
+          );
+
+          widgets.add(
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: facilities.map((facility) {
+                final isSelected = selectedIds.contains(facility.id);
+                return _buildFacilityCard(
+                  context,
+                  facility,
+                  isPickMode: true,
+                  isSelected: isSelected,
+                  onTap: () {
+                    setInnerState(() {
+                      if (selectedIds.contains(facility.id)) {
+                        selectedIds.remove(facility.id);
+                      } else {
+                        selectedIds.add(facility.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Select Facilities',
+              style: GoogleFonts.cinzel(
+                fontSize: 18,
+                color: MedievalColors.goldPale,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  final selected = catalog.where(
+                    (f) => selectedIds.contains(f.id),
+                  ).toList();
+                  Navigator.of(context).pop(selected);
+                },
+                child: Text(
+                  'Done (${selectedIds.length})',
+                  style: GoogleFonts.cinzel(
+                    fontSize: 14,
+                    color: MedievalColors.goldPale,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: widgets,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConstructionMode(
+    BuildContext context,
+    List<Rank> ranks,
+    Map<Rank, List<Facility>> grouped,
+  ) {
     final widgets = <Widget>[];
+
     for (final rank in ranks) {
       final facilities = grouped[rank];
       if (facilities == null || facilities.isEmpty) continue;
@@ -90,27 +214,35 @@ class FacilitySelectionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFacilityCard(BuildContext context, Facility facility) {
+  Widget _buildFacilityCard(
+    BuildContext context,
+    Facility facility, {
+    bool isPickMode = false,
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
     return SizedBox(
       width: _cardWidth,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => FacilityPage(
-                facility: facility,
-                bastion: bastion,
-                isUserBastion: true,
-                onConstruct: () {
-                  GetIt.I<BastionCubit>().addFacility(bastion.id, facility);
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+          onTap: isPickMode
+              ? onTap
+              : () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => FacilityPage(
+                      facility: facility,
+                      bastion: bastion!,
+                      isUserBastion: true,
+                      onConstruct: () {
+                        GetIt.I<BastionCubit>().addFacility(bastion!.id, facility);
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                    )),
+                  );
                 },
-              )),
-            );
-          },
           child: Container(
             decoration: BoxDecoration(
               gradient: const RadialGradient(
@@ -123,6 +255,9 @@ class FacilitySelectionPage extends StatelessWidget {
                 stops: [0.6, 1.0],
               ),
               borderRadius: BorderRadius.circular(14),
+              border: isSelected
+                  ? Border.all(color: MedievalColors.goldLeaf, width: 2)
+                  : null,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withAlpha(50),
@@ -133,39 +268,61 @@ class FacilitySelectionPage extends StatelessWidget {
             ),
             child: CustomPaint(
               painter: ParchmentBorderPainter(),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      facility.name,
-                      style: GoogleFonts.cinzel(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: MedievalColors.vermillion,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          facility.name,
+                          style: GoogleFonts.cinzel(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: MedievalColors.vermillion,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildFramedImage(facility),
+                        const SizedBox(height: 8),
+                        Text(
+                          facility.description,
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 13,
+                            height: 1.4,
+                            color: MedievalColors.sepiaInk,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildFacilityInfoRow(facility),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    _buildFramedImage(facility),
-                    const SizedBox(height: 8),
-                    Text(
-                      facility.description,
-                      style: GoogleFonts.imFellEnglish(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: MedievalColors.sepiaInk,
+                  ),
+                  if (isSelected)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: MedievalColors.verdigris,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 10),
-                    _buildFacilityInfoRow(facility),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
