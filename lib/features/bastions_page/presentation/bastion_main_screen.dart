@@ -8,6 +8,7 @@ import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.da
 import 'package:maura_bastion_system/data/models/user/user.dart';
 import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
@@ -141,44 +142,51 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildAddBastionCard(BuildContext context) {
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        gradient: const RadialGradient(
-          center: Alignment.center,
-          radius: 0.9,
-          colors: [
-            MedievalColors.parchmentLight,
-            MedievalColors.parchmentDark,
-          ],
-          stops: [0.6, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(50),
-            blurRadius: 6,
-            offset: const Offset(2, 3),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BastionCreationPage()),
+        );
+      },
       child: Container(
-        width: 72,
-        height: 72,
+        height: 180,
         decoration: BoxDecoration(
-          color: MedievalColors.vermillionDark.withAlpha(80),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: MedievalColors.goldLeaf,
-            width: 2,
+          gradient: const RadialGradient(
+            center: Alignment.center,
+            radius: 0.9,
+            colors: [
+              MedievalColors.parchmentLight,
+              MedievalColors.parchmentDark,
+            ],
+            stops: [0.6, 1.0],
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(50),
+              blurRadius: 6,
+              offset: const Offset(2, 3),
+            ),
+          ],
         ),
         alignment: Alignment.center,
-        child: Icon(
-          Icons.add,
-          color: MedievalColors.goldPale,
-          size: 34,
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: MedievalColors.vermillionDark.withAlpha(80),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: MedievalColors.goldLeaf,
+              width: 2,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.add,
+            color: MedievalColors.goldPale,
+            size: 34,
+          ),
         ),
       ),
     );
