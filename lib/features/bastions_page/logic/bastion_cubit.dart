@@ -85,6 +85,7 @@ class BastionCubit extends Cubit<BastionState> {
       description: description,
       imgUrl: imgUrl,
       facilities: builtFacilities,
+      hirelings: getDefaultUserHirelings(id),
     ));
 
     emit(BastionLoadedState(bastions: bastions));

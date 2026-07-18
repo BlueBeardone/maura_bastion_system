@@ -19,8 +19,7 @@ List<UserCredentials> fakeUserCredentials = [
     user: User(
       id: '1',
       displayName: 'Administrator',
-      bastionId: 'bastion_1',
-    ),
+      ),
   ),
   UserCredentials(
     username: 'user',

@@ -4,13 +4,14 @@ import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
 import 'package:maura_bastion_system/data/models/user/user.dart';
 import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
@@ -51,14 +52,16 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
+    final authState = GetIt.I<AuthCubit>().state;
+    final currentUserBastionId = authState is AuthAuthenticatedState ? authState.user.bastionId : null;
     Bastion? userBastion;
     for (final bastion in bastions) {
-      if (bastion.id == userBastionId) {
+      if (bastion.id == currentUserBastionId) {
         userBastion = bastion;
         break;
       }
     }
-    final otherBastions = bastions.where((bastion) => bastion.id != userBastionId).toList();
+    final otherBastions = bastions.where((bastion) => bastion.id != currentUserBastionId).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {

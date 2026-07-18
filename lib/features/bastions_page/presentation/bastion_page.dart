@@ -428,12 +428,16 @@ class BastionPage extends StatelessWidget {
   }
 
   Widget _buildBastionHirelingsSection(BuildContext context, Bastion bastion) {
-    final allHirelings = <Facility, List<Hireling>>{};
+    final allHirelings = <Facility?, List<Hireling>>{};
     for (final facility in bastion.facilities) {
       final facilityHirelings = bastion.getFacilityHirelings(facility.id);
       if (facilityHirelings.isNotEmpty) {
         allHirelings[facility] = facilityHirelings;
       }
+    }
+    final unassigned = bastion.unassignedHirelings;
+    if (unassigned.isNotEmpty) {
+      allHirelings[null] = unassigned;
     }
 
     if (allHirelings.isEmpty) {
@@ -485,7 +489,7 @@ class BastionPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        entry.key.name,
+                        entry.key?.name ?? 'Unassigned',
                         style: GoogleFonts.imFellEnglish(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -628,17 +632,19 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBastionHirelingChip(BuildContext context, Hireling hireling, Facility facility, Bastion bastion) {
+  Widget _buildBastionHirelingChip(BuildContext context, Hireling hireling, Facility? facility, Bastion bastion) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => FacilityPage(
-            facility: facility,
-            bastion: bastion,
-            isUserBastion: isUserBastion,
-          )),
-        );
-      },
+      onTap: facility != null
+          ? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => FacilityPage(
+                  facility: facility,
+                  bastion: bastion,
+                  isUserBastion: isUserBastion,
+                )),
+              );
+            }
+          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
