@@ -14,16 +14,20 @@ class FacilityPage extends StatelessWidget {
   final Facility facility;
   final Bastion bastion;
   final bool isUserBastion;
+  final VoidCallback? onConstruct;
 
   const FacilityPage({
     super.key,
     required this.facility,
     required this.bastion,
     required this.isUserBastion,
+    this.onConstruct,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isSelectionMode = onConstruct != null;
+
     if (!isUserBastion) {
       return _FacilityView(
         facility: facility,
@@ -31,6 +35,19 @@ class FacilityPage extends StatelessWidget {
         assigned: bastion.getFacilityHirelings(facility.id),
         unassigned: const [],
         isUserBastion: false,
+        isSelectionMode: false,
+      );
+    }
+
+    if (isSelectionMode) {
+      return _FacilityView(
+        facility: facility,
+        bastion: bastion,
+        assigned: const [],
+        unassigned: const [],
+        isUserBastion: true,
+        isSelectionMode: true,
+        onConstruct: onConstruct,
       );
     }
 
@@ -53,6 +70,7 @@ class FacilityPage extends StatelessWidget {
             assigned: assigned,
             unassigned: unassigned,
             isUserBastion: true,
+            isSelectionMode: false,
           );
         },
       ),
@@ -66,6 +84,8 @@ class _FacilityView extends StatelessWidget {
   final List<Hireling> assigned;
   final List<Hireling> unassigned;
   final bool isUserBastion;
+  final bool isSelectionMode;
+  final VoidCallback? onConstruct;
 
   const _FacilityView({
     required this.facility,
@@ -73,6 +93,8 @@ class _FacilityView extends StatelessWidget {
     required this.assigned,
     required this.unassigned,
     required this.isUserBastion,
+    this.isSelectionMode = false,
+    this.onConstruct,
   });
 
   @override
@@ -112,9 +134,13 @@ class _FacilityView extends StatelessWidget {
                   _buildImage(),
                   const SizedBox(height: 20),
                   _buildHirelingsRow(),
-                  if (facility.minimumRequiredHirelings > 0) ...[
+                  if (!isSelectionMode && facility.minimumRequiredHirelings > 0) ...[
                     const SizedBox(height: 8),
                     _buildRequiredInfo(),
+                  ],
+                  if (isSelectionMode) ...[
+                    const SizedBox(height: 12),
+                    _buildConstructionInfo(),
                   ],
                   const SizedBox(height: 16),
                   _buildDescription(),
@@ -122,20 +148,46 @@ class _FacilityView extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildTableSection(),
                   ],
-                  const SizedBox(height: 24),
-                  _buildHirelingSection(
-                    context,
-                    header: 'Assigned Hirelings',
-                    hirelings: assigned,
-                    isAssigned: true,
-                  ),
-                  if (isUserBastion && unassigned.isNotEmpty) ...[
-                    const SizedBox(height: 20),
+                  if (!isSelectionMode) ...[
+                    const SizedBox(height: 24),
                     _buildHirelingSection(
                       context,
-                      header: 'Available Hirelings',
-                      hirelings: unassigned,
-                      isAssigned: false,
+                      header: 'Assigned Hirelings',
+                      hirelings: assigned,
+                      isAssigned: true,
+                    ),
+                    if (isUserBastion && unassigned.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      _buildHirelingSection(
+                        context,
+                        header: 'Available Hirelings',
+                        hirelings: unassigned,
+                        isAssigned: false,
+                      ),
+                    ],
+                  ],
+                  if (isSelectionMode && onConstruct != null) ...[
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: onConstruct,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MedievalColors.vermillion,
+                          foregroundColor: MedievalColors.goldPale,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Construct Facility — ${facility.cost} GP',
+                          style: GoogleFonts.cinzel(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -259,6 +311,21 @@ class _FacilityView extends StatelessWidget {
   }
 
   Widget _buildHirelingsRow() {
+    if (isSelectionMode) {
+      return Row(
+        children: [
+          Icon(Icons.people, color: MedievalColors.sepiaSecondary, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            '${facility.minimumRequiredHirelings} Hirelings Required',
+            style: GoogleFonts.imFellEnglish(
+              fontSize: 16,
+              color: MedievalColors.sepiaSecondary,
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         Icon(Icons.people, color: MedievalColors.sepiaSecondary, size: 20),
@@ -287,6 +354,32 @@ class _FacilityView extends StatelessWidget {
             color: assigned.length >= facility.minimumRequiredHirelings
                 ? MedievalColors.sepiaSecondary
                 : MedievalColors.vermillion,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConstructionInfo() {
+    return Row(
+      children: [
+        Icon(Icons.timer_rounded, color: MedievalColors.sepiaSecondary, size: 16),
+        const SizedBox(width: 6),
+        Text(
+          '${facility.constructionTurns} turns',
+          style: GoogleFonts.imFellEnglish(
+            fontSize: 14,
+            color: MedievalColors.sepiaSecondary,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Icon(Icons.monetization_on, color: MedievalColors.goldLeaf, size: 16),
+        const SizedBox(width: 6),
+        Text(
+          '${facility.cost} GP',
+          style: GoogleFonts.imFellEnglish(
+            fontSize: 14,
+            color: MedievalColors.sepiaSecondary,
           ),
         ),
       ],

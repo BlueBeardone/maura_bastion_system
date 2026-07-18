@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
 import 'package:maura_bastion_system/data/models/user/user.dart';
 import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
@@ -25,13 +28,13 @@ class BastionMainScreen extends StatelessWidget {
 
   Widget _body(BuildContext context) {
     return BlocBuilder<BastionCubit, BastionState>(
-      bloc: BastionCubit()..loadBastions(),
+      bloc: GetIt.I<BastionCubit>(),
       builder: (context, state) {
         if (state is BastionErrorState) {
           return MyErrorWidget(
             message: state.message,
             icon: Icons.error_outline,
-            onRetry: () => BastionCubit().loadBastions(),
+            onRetry: () => GetIt.I<BastionCubit>().loadBastions(),
           );
         }
 
@@ -49,14 +52,16 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
+    final authState = GetIt.I<AuthCubit>().state;
+    final currentUserBastionId = authState is AuthAuthenticatedState ? authState.user.bastionId : null;
     Bastion? userBastion;
     for (final bastion in bastions) {
-      if (bastion.id == userBastionId) {
+      if (bastion.id == currentUserBastionId) {
         userBastion = bastion;
         break;
       }
     }
-    final otherBastions = bastions.where((bastion) => bastion.id != userBastionId).toList();
+    final otherBastions = bastions.where((bastion) => bastion.id != currentUserBastionId).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -140,44 +145,51 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _buildAddBastionCard(BuildContext context) {
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        gradient: const RadialGradient(
-          center: Alignment.center,
-          radius: 0.9,
-          colors: [
-            MedievalColors.parchmentLight,
-            MedievalColors.parchmentDark,
-          ],
-          stops: [0.6, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(50),
-            blurRadius: 6,
-            offset: const Offset(2, 3),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BastionCreationPage()),
+        );
+      },
       child: Container(
-        width: 72,
-        height: 72,
+        height: 180,
         decoration: BoxDecoration(
-          color: MedievalColors.vermillionDark.withAlpha(80),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: MedievalColors.goldLeaf,
-            width: 2,
+          gradient: const RadialGradient(
+            center: Alignment.center,
+            radius: 0.9,
+            colors: [
+              MedievalColors.parchmentLight,
+              MedievalColors.parchmentDark,
+            ],
+            stops: [0.6, 1.0],
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(50),
+              blurRadius: 6,
+              offset: const Offset(2, 3),
+            ),
+          ],
         ),
         alignment: Alignment.center,
-        child: Icon(
-          Icons.add,
-          color: MedievalColors.goldPale,
-          size: 34,
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: MedievalColors.vermillionDark.withAlpha(80),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: MedievalColors.goldLeaf,
+              width: 2,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.add,
+            color: MedievalColors.goldPale,
+            size: 34,
+          ),
         ),
       ),
     );
@@ -206,7 +218,7 @@ class _BastionCardState extends State<_BastionCard> {
   void _navigateToBastion() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => BastionPage(
-        bastion: widget.bastion,
+        bastionId: widget.bastion.id,
         isUserBastion: widget.isUserBastion,
       )),
     );

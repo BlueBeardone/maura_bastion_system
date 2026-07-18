@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -6,26 +8,43 @@ import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
+import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
 class BastionPage extends StatelessWidget {
   static const double _cardWidth = 200.0;
 
-  final Bastion bastion;
+  final String bastionId;
   final bool isUserBastion;
 
   const BastionPage({
     super.key,
-    required this.bastion,
+    required this.bastionId,
     this.isUserBastion = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return StandardScaffold(
+    return BlocBuilder<BastionCubit, BastionState>(
+      bloc: GetIt.I<BastionCubit>(),
+      builder: (context, state) {
+        if (state is! BastionLoadedState) return const SizedBox.shrink();
+
+        final bastion = state.bastions.firstWhere(
+          (b) => b.id == bastionId,
+          orElse: () => state.bastions.first,
+        );
+
+        final catalogFacilities = getFacilityCatalog();
+        final builtIds = bastion.facilities.map((f) => f.id).toSet();
+        final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
+
+        return StandardScaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -54,21 +73,15 @@ class BastionPage extends StatelessWidget {
                       ),
                     )
                   : const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: bastion.facilities.map((facility) {
-                  return _buildFacilityCard(context, facility);
-                }).toList(),
-              ),
+              _buildRankedFacilities(context, bastion, allBuilt),
               const SizedBox(height: 24),
               Wrap(
                 spacing: 16,
                 runSpacing: 16,
                 children: [
-                  _buildBastionHirelingsSection(context),
+                  _buildBastionHirelingsSection(context, bastion),
                   if (bastion.defenders.isNotEmpty)
-                    _buildDefendersSection(context),
+                    _buildDefendersSection(context, bastion),
                 ],
               ),
             ],
@@ -76,9 +89,65 @@ class BastionPage extends StatelessWidget {
         ),
       ),
     );
+      },
+    );
   }
 
-  Widget _buildFacilityCard(BuildContext context, Facility facility) {
+  Widget _buildRankedFacilities(BuildContext context, Bastion bastion, bool allBuilt) {
+    final ranks = [Rank.D, Rank.C, Rank.B, Rank.A, Rank.S];
+    final byRank = bastion.facilities.where((f) => ranks.contains(f.rank)).toList()
+      ..sort((a, b) => ranks.indexOf(a.rank) - ranks.indexOf(b.rank));
+
+    final grouped = <Rank, List<Facility>>{};
+    for (final facility in byRank) {
+      grouped.putIfAbsent(facility.rank, () => []).add(facility);
+    }
+
+    final widgets = <Widget>[];
+
+    for (final rank in ranks) {
+      final facilities = grouped[rank];
+      if (facilities == null || facilities.isEmpty) continue;
+
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 16, bottom: 8),
+          child: Text(
+            'Rank: ${rank.title}',
+            style: GoogleFonts.cinzel(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: MedievalColors.vermillion,
+            ),
+          ),
+        ),
+      );
+
+      widgets.add(
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            ...facilities.map((facility) {
+              return _buildFacilityCard(context, facility, bastion);
+            }),
+            if (isUserBastion && !allBuilt) const SizedBox(height: 16),
+            if (isUserBastion && !allBuilt) _buildPlusCard(context, bastion)
+          ]
+        ),
+      );
+
+    }
+
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  Widget _buildFacilityCard(BuildContext context, Facility facility, Bastion bastion) {
+    final bool isConstructing = facility.constructedTurns != 0;
     return SizedBox(
       width: _cardWidth,
       child: Material(
@@ -92,6 +161,131 @@ class BastionPage extends StatelessWidget {
                 bastion: bastion,
                 isUserBastion: isUserBastion,
               )),
+            );
+          },
+          child: Opacity(
+            opacity: isConstructing ? 0.5 : 1.0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const RadialGradient(
+                  center: Alignment.center,
+                  radius: 0.9,
+                  colors: [
+                    MedievalColors.parchmentLight,
+                    MedievalColors.parchmentDark,
+                  ],
+                  stops: [0.6, 1.0],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(50),
+                    blurRadius: 6,
+                    offset: const Offset(2, 3),
+                  ),
+                ],
+              ),
+              child: CustomPaint(
+                painter: ParchmentBorderPainter(),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        facility.name,
+                        style: GoogleFonts.cinzel(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: MedievalColors.vermillion,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildFramedImage(facility),
+                      const SizedBox(height: 8),
+                      Text(
+                        facility.description,
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: MedievalColors.sepiaInk,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+                      _buildFacilityInfoRow(facility, bastion),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFacilityInfoRow(Facility facility, Bastion bastion) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.meeting_room, size: 12, color: MedievalColors.sepiaSecondary),
+            const SizedBox(width: 3),
+            Text(
+              'Rank ${facility.rank.title}',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 11,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.group, size: 12, color: MedievalColors.sepiaSecondary),
+            const SizedBox(width: 3),
+            Text(
+              '${bastion.facilityHirelingCount(facility.id)}',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 11,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+            Spacer(),
+            if(facility.constructedTurns != 0) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
+            if(facility.constructedTurns != 0) const SizedBox(width: 3),
+            if(facility.constructedTurns != 0) Text(
+              '${facility.constructedTurns}t',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 11,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+            if(facility.constructedTurns != 0) const SizedBox(width: 4),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlusCard(BuildContext context, Bastion bastion) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: 214,
+        maxWidth: _cardWidth,
+        minWidth: _cardWidth,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => FacilitySelectionPage(bastion: bastion)),
             );
           },
           child: Container(
@@ -116,61 +310,37 @@ class BastionPage extends StatelessWidget {
             ),
             child: CustomPaint(
               painter: ParchmentBorderPainter(),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      facility.name,
-                      style: GoogleFonts.cinzel(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: MedievalColors.vermillion,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: MedievalColors.vermillionDark.withAlpha(80),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: MedievalColors.goldLeaf,
+                        width: 2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    _buildFramedImage(facility),
-                    const SizedBox(height: 8),
-                    Text(
-                      facility.description,
-                      style: GoogleFonts.imFellEnglish(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: MedievalColors.sepiaInk,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.add,
+                      color: MedievalColors.goldPale,
+                      size: 34,
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Icon(Icons.meeting_room, size: 14, color: MedievalColors.sepiaSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Rank ${facility.rank.title}',
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 12,
-                            color: MedievalColors.sepiaSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(Icons.group, size: 14, color: MedievalColors.sepiaSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${bastion.facilityHirelingCount(facility.id)}',
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 12,
-                            color: MedievalColors.sepiaSecondary,
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Construct Facility',
+                    style: GoogleFonts.imFellEnglish(
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      color: MedievalColors.sepiaMuted,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -201,7 +371,7 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
             _nailDot(Alignment.bottomLeft),
             _nailDot(Alignment.bottomRight),
           ],
-),
+        ),
       );
     }
     return _imagePlaceholder('No Engraving');
@@ -257,13 +427,17 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
     );
   }
 
-  Widget _buildBastionHirelingsSection(BuildContext context) {
-    final allHirelings = <Facility, List<Hireling>>{};
+  Widget _buildBastionHirelingsSection(BuildContext context, Bastion bastion) {
+    final allHirelings = <Facility?, List<Hireling>>{};
     for (final facility in bastion.facilities) {
       final facilityHirelings = bastion.getFacilityHirelings(facility.id);
       if (facilityHirelings.isNotEmpty) {
         allHirelings[facility] = facilityHirelings;
       }
+    }
+    final unassigned = bastion.unassignedHirelings;
+    if (unassigned.isNotEmpty) {
+      allHirelings[null] = unassigned;
     }
 
     if (allHirelings.isEmpty) {
@@ -312,10 +486,10 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Column(
-crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        entry.key.name,
+                        entry.key?.name ?? 'Unassigned',
                         style: GoogleFonts.imFellEnglish(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -327,7 +501,7 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: 8,
                         runSpacing: 8,
                         children: entry.value.map((h) {
-                          return _buildBastionHirelingChip(context, h, entry.key);
+                          return _buildBastionHirelingChip(context, h, entry.key, bastion);
                         }).toList(),
                       ),
                     ],
@@ -342,7 +516,7 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
     );
   }
 
-  Widget _buildDefendersSection(BuildContext context) {
+  Widget _buildDefendersSection(BuildContext context, Bastion bastion) {
     final knights = bastion.defenders.where((d) => d.type == DefenderType.knight).length;
     final bastionDefenders = bastion.defenders.where((d) => d.type == DefenderType.bastionDefender).length;
     final beasts = bastion.defenders.where((d) => d.type == DefenderType.beast).length;
@@ -458,17 +632,19 @@ crossAxisAlignment: CrossAxisAlignment.stretch,
     );
   }
 
-  Widget _buildBastionHirelingChip(BuildContext context, Hireling hireling, Facility facility) {
+  Widget _buildBastionHirelingChip(BuildContext context, Hireling hireling, Facility? facility, Bastion bastion) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => FacilityPage(
-            facility: facility,
-            bastion: bastion,
-            isUserBastion: isUserBastion,
-          )),
-        );
-      },
+      onTap: facility != null
+          ? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => FacilityPage(
+                  facility: facility,
+                  bastion: bastion,
+                  isUserBastion: isUserBastion,
+                )),
+              );
+            }
+          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
