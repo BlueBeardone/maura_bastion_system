@@ -69,12 +69,12 @@ class _LoginPageState extends State<LoginPage> {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Use one of these credentials to login:\n• admin / admin123\n• user / password\n• tester / test123',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      // const SizedBox(height: 12),
+                      // Text(
+                      //   'Use one of these credentials to login:\n• admin / admin123\n• user / password\n• tester / test123',
+                      //   textAlign: TextAlign.center,
+                      //   style: Theme.of(context).textTheme.bodyMedium,
+                      // ),
                       const SizedBox(height: 24),
                       TextField(
                         autocorrect: false,
