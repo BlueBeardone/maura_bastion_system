@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/fake_bastion_data.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/about_page/about_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_main_screen.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/hirelings_page.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 
 class AppBarNavigationMenu extends StatelessWidget {
   final List<MainNavigation> navigationItems;
@@ -76,35 +80,50 @@ class AppBarNavigationMenu extends StatelessWidget {
         );
         break;
       case MainNavigation.facility:
-        final bastions = getFakeBastions();
-        final userBastion = bastions.firstWhere(
-          (b) => b.id == userBastionId,
-          orElse: () => bastions.first,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
-          ),
-        );
+        _navigateToUserBastion(context);
         break;
       case MainNavigation.hirelings:
-        final bastions = getFakeBastions();
-        final userBastion = bastions.firstWhere(
-          (b) => b.id == userBastionId,
-          orElse: () => bastions.first,
-        );
-        final allHirelings = userBastion.hirelings;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HirelingsPage(
-              bastion: userBastion,
-              initialHirelings: allHirelings,
-            ),
-          ),
-        );
+        _navigateToHirelings(context);
         break;
     }
+  }
+
+  Bastion? _getUserBastion() {
+    final bastionState = GetIt.I<BastionCubit>().state;
+    if (bastionState is BastionLoadedState) {
+      final authState = GetIt.I<AuthCubit>().state;
+      if (authState is AuthAuthenticatedState) {
+        final userBastionId = authState.user.bastionId;
+        if (userBastionId != null) {
+          try {
+            return bastionState.bastions.firstWhere((b) => b.id == userBastionId);
+          } catch (_) {}
+        }
+      }
+      return bastionState.bastions.isNotEmpty ? bastionState.bastions.first : null;
+    }
+    return null;
+  }
+
+  void _navigateToUserBastion(BuildContext context) {
+    final userBastion = _getUserBastion();
+    if (userBastion == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
+      ),
+    );
+  }
+
+  void _navigateToHirelings(BuildContext context) {
+    final userBastion = _getUserBastion();
+    if (userBastion == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HirelingsPage(bastion: userBastion),
+      ),
+    );
   }
 }

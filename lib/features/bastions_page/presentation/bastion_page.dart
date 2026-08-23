@@ -527,7 +527,6 @@ class BastionPage extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => DefendersPage(
               bastionId: bastion.id,
-              initialDefenders: bastion.defenders,
               bastionName: bastion.name,
             ),
           ),

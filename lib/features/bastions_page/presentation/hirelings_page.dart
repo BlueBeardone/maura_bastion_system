@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
@@ -9,12 +11,10 @@ import 'package:maura_bastion_system/features/news_paper/presentation/widgets/pa
 
 class HirelingsPage extends StatelessWidget {
   final Bastion bastion;
-  final List<Hireling> initialHirelings;
 
   const HirelingsPage({
     super.key,
     required this.bastion,
-    this.initialHirelings = const [],
   });
 
   @override
@@ -22,8 +22,8 @@ class HirelingsPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => HirelingsCubit(
         bastionId: bastion.id,
-        initialHirelings: initialHirelings,
-      ),
+        hirelingApi: GetIt.I<HirelingApi>(),
+      )..loadHirelings(),
       child: _HirelingsView(bastion: bastion),
     );
   }

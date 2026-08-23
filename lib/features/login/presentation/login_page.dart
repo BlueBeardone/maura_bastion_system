@@ -81,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                         controller: _displayNameController,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.headlineMedium?.color),
                         decoration: const InputDecoration(
-                          labelText: 'Username',
+                          labelText: 'Email',
                           border: OutlineInputBorder(),
                         ),
                       ),

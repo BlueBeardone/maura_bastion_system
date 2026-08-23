@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/api/defender_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
@@ -10,13 +12,11 @@ import 'package:maura_bastion_system/features/news_paper/presentation/widgets/pa
 class DefendersPage extends StatelessWidget {
   final String bastionId;
   final String bastionName;
-  final List<Defender> initialDefenders;
 
   const DefendersPage({
     super.key,
     required this.bastionId,
     required this.bastionName,
-    this.initialDefenders = const [],
   });
 
   @override
@@ -24,8 +24,8 @@ class DefendersPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => DefendersCubit(
         bastionId: bastionId,
-        initialDefenders: initialDefenders,
-      ),
+        defenderApi: GetIt.I<DefenderApi>(),
+      )..loadDefenders(),
       child: _DefendersView(bastionName: bastionName),
     );
   }

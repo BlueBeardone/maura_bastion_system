@@ -4,8 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
-import 'package:maura_bastion_system/data/models/user/user.dart';
-import 'package:maura_bastion_system/data/test_data/user/fake_users.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
@@ -121,16 +119,9 @@ class BastionMainScreen extends StatelessWidget {
                 Expanded(
                   child: () {
                     final bastion = row[i];
-                    User? owner;
-                    for (final user in fakeUsers) {
-                      if (user.bastionId == bastion.id) {
-                        owner = user;
-                        break;
-                      }
-                    }
                     return _BastionCard(
                       bastion: bastion,
-                      ownerName: owner?.displayName,
+                      ownerName: null,
                     );
                   }(),
                 ),
