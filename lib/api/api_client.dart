@@ -1,14 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import 'api_exception.dart';
 import 'api_response.dart';
 
 class ApiClient {
   final String baseUrl;
+  final http.Client _client;
   String? _authToken;
 
-  ApiClient({this.baseUrl = 'http://localhost:8080'});
+  ApiClient({this.baseUrl = 'http://localhost:8080', http.Client? client})
+      : _client = client ?? http.Client();
 
   void setAuthToken(String? token) {
     _authToken = token;
@@ -18,11 +21,11 @@ class ApiClient {
 
   Map<String, String> get _headers {
     final headers = <String, String>{
-      HttpHeaders.contentTypeHeader: 'application/json',
-      HttpHeaders.acceptHeader: 'application/json',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     };
     if (_authToken != null) {
-      headers[HttpHeaders.authorizationHeader] = 'Bearer $_authToken';
+      headers['Authorization'] = 'Bearer $_authToken';
     }
     return headers;
   }
@@ -63,22 +66,18 @@ class ApiClient {
     Map<String, dynamic>? body,
     T Function(dynamic json) parser,
   ) async {
-    final client = HttpClient();
+    final request = http.Request(method, Uri.parse('$baseUrl$path'));
+    request.headers.addAll(_headers);
+
+    if (body != null) {
+      request.body = jsonEncode(body);
+    }
+
     try {
-      final uri = Uri.parse('$baseUrl$path');
-      final request = await client.openUrl(method, uri);
-
-      _headers.forEach((key, value) {
-        request.headers.set(key, value);
-      });
-
-      if (body != null) {
-        request.write(jsonEncode(body));
-      }
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-      final json = jsonDecode(responseBody) as Map<String, dynamic>;
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
+      final json =
+          jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException(
@@ -97,7 +96,7 @@ class ApiClient {
       }
 
       return apiResponse.data as T;
-    } on SocketException catch (e) {
+    } on http.ClientException catch (e) {
       throw ApiException(
         statusCode: 0,
         message: 'Connection failed: ${e.message}',
@@ -107,8 +106,6 @@ class ApiClient {
         statusCode: 0,
         message: 'Invalid response format: ${e.message}',
       );
-    } finally {
-      client.close();
     }
   }
 }
