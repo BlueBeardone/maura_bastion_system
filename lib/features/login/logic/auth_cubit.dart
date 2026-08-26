@@ -10,21 +10,21 @@ class AuthCubit extends Cubit<AuthState> {
       : _identityApi = identityApi,
         super(const AuthUnauthenticatedState());
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(String username, String password) async {
     emit(const AuthLoadingState());
 
     try {
-      final normalizedEmail = email.trim();
+      final normalizedUsername = username.trim();
       final normalizedPassword = password.trim();
 
-      if (normalizedEmail.isEmpty || normalizedPassword.isEmpty) {
-        emit(const AuthErrorState(message: 'Email and password are required.'));
+      if (normalizedUsername.isEmpty || normalizedPassword.isEmpty) {
+        emit(const AuthErrorState(message: 'Username and password are required.'));
         emit(const AuthUnauthenticatedState());
         return;
       }
 
       final user = await _identityApi.login(
-        LoginRequest(email: normalizedEmail, password: normalizedPassword),
+        LoginRequest(username: normalizedUsername, password: normalizedPassword),
       );
 
       emit(AuthAuthenticatedState(user: user));
