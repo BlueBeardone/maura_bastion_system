@@ -11,19 +11,19 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  late final TextEditingController _displayNameController;
+  late final TextEditingController _usernameController;
   late final TextEditingController _passwordController;
 
   @override
   void initState() {
     super.initState();
-    _displayNameController = TextEditingController();
+    _usernameController = TextEditingController();
     _passwordController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _displayNameController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -78,10 +78,10 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 24),
                       TextField(
                         autocorrect: false,
-                        controller: _displayNameController,
+                        controller: _usernameController,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.headlineMedium?.color),
                         decoration: const InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'Username',
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                             ? null
                             : () {
                                 context.read<AuthCubit>().login(
-                                      _displayNameController.text.trim(),
+                                      _usernameController.text.trim(),
                                       _passwordController.text.trim(),
                                     );
                               },
