@@ -20,9 +20,10 @@ class _RecordingIdentityApi extends IdentityApi {
 
 void main() {
   late AuthCubit cubit;
+  late _RecordingIdentityApi api;
 
   setUp(() {
-    final api = _RecordingIdentityApi(ApiClient());
+    api = _RecordingIdentityApi(ApiClient());
     cubit = AuthCubit(identityApi: api);
   });
 
@@ -33,6 +34,33 @@ void main() {
     final sub = cubit.stream.listen(states.add);
 
     await cubit.login('   ', 'secret');
+    await pumpEventQueue();
+    sub.cancel();
+
+    final errorStates = states.whereType<AuthErrorState>();
+    expect(errorStates, isNotEmpty);
+    expect(errorStates.single.message, 'Username and password are required.');
+  });
+
+  test('trims credentials and emits authenticated state on success', () async {
+    final states = <AuthState>[];
+    final sub = cubit.stream.listen(states.add);
+
+    await cubit.login('  admin  ', '  secret  ');
+    await pumpEventQueue();
+    sub.cancel();
+
+    expect(states.last, isA<AuthAuthenticatedState>());
+    expect(api.requests, hasLength(1));
+    expect(api.requests.single.username, 'admin');
+    expect(api.requests.single.password, 'secret');
+  });
+
+  test('emits error for empty password', () async {
+    final states = <AuthState>[];
+    final sub = cubit.stream.listen(states.add);
+
+    await cubit.login('admin', '   ');
     await pumpEventQueue();
     sub.cancel();
 
