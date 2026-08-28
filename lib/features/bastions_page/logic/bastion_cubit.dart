@@ -47,6 +47,7 @@ class BastionCubit extends Cubit<BastionState> {
 
     final updatedBastion = Bastion(
       id: bastion.id,
+      userId: bastion.userId,
       name: bastion.name,
       description: bastion.description,
       imgUrl: bastion.imgUrl,

@@ -84,6 +84,7 @@ List<Bastion> getFakeBastions() {
   final bastions = [
     Bastion(
       id: userBastionId,
+      userId: '1',
       name: 'Aurelian Keep',
       description: 'The user bastion sits at the heart of the realm, centered on defense, morale, and disciplined growth.',
       imgUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
@@ -232,6 +233,7 @@ List<Bastion> getFakeBastions() {
     ),
     Bastion(
       id: 'bastion_2',
+      userId: 'user_2',
       name: 'Briarwatch Garrison',
       description: 'A rugged outpost built to monitor the wilds and protect trade routes against northern incursions.',
       imgUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
@@ -304,6 +306,7 @@ List<Bastion> getFakeBastions() {
     ),
     Bastion(
       id: 'bastion_3',
+      userId: 'user_3',
       name: 'Crimson Harbor',
       description: 'A coastal bastion designed for fleet coordination, port security, and harbor expansions.',
       imgUrl: 'https://images.unsplash.com/photo-1454789476662-53eb23ba5907?auto=format&fit=crop&w=1200&q=80',
@@ -350,6 +353,7 @@ List<Bastion> getFakeBastions() {
     ),
     Bastion(
       id: 'bastion_4',
+      userId: 'user_4',
       name: 'Moonshadow Watch',
       description: 'A quiet mountain stronghold with magical outlooks, scout patrols, and training grounds for elite rangers.',
       imgUrl: null,
@@ -432,6 +436,7 @@ List<Bastion> getFakeBastions() {
     ),
     Bastion(
       id: 'bastion_5',
+      userId: 'user_5',
       name: 'Stonegate Bastion',
       description: 'An old stone fortress restored for merchants, engineers, and field medics who keep the roads secure.',
       imgUrl: 'https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?auto=format&fit=crop&w=1200&q=80',

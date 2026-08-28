@@ -93,12 +93,10 @@ class AppBarNavigationMenu extends StatelessWidget {
     if (bastionState is BastionLoadedState) {
       final authState = GetIt.I<AuthCubit>().state;
       if (authState is AuthAuthenticatedState) {
-        final userBastionId = authState.user.bastionId;
-        if (userBastionId != null) {
-          try {
-            return bastionState.bastions.firstWhere((b) => b.id == userBastionId);
-          } catch (_) {}
-        }
+        final currentUserId = authState.user.id;
+        try {
+          return bastionState.bastions.firstWhere((b) => b.belongsTo(currentUserId));
+        } catch (_) {}
       }
       return bastionState.bastions.isNotEmpty ? bastionState.bastions.first : null;
     }

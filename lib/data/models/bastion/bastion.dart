@@ -4,6 +4,7 @@ import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 
 class Bastion {
   final String id;
+  final String? userId;
   final String name;
   final String description;
   final String? imgUrl;
@@ -13,6 +14,7 @@ class Bastion {
 
   Bastion({
     required this.id,
+    this.userId,
     required this.name,
     required this.description,
     this.imgUrl,
@@ -20,6 +22,8 @@ class Bastion {
     this.defenders = const [],
     this.hirelings = const [],
   });
+
+  bool belongsTo(String? userId) => this.userId == userId;
 
   List<Hireling> getFacilityHirelings(String facilityId) =>
       hirelings.where((h) => h.facilityId == facilityId).toList();
@@ -33,6 +37,7 @@ class Bastion {
   factory Bastion.fromJson(Map<String, dynamic> json) {
     return Bastion(
       id: json['id'] as String,
+      userId: json['userId'] as String?,
       name: json['name'] as String,
       description: json['description'] as String,
       imgUrl: json['imgUrl'] as String?,
@@ -51,6 +56,7 @@ class Bastion {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'name': name,
       'description': description,
       'imgUrl': imgUrl,

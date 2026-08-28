@@ -51,15 +51,15 @@ class BastionMainScreen extends StatelessWidget {
 
   Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
     final authState = GetIt.I<AuthCubit>().state;
-    final currentUserBastionId = authState is AuthAuthenticatedState ? authState.user.bastionId : null;
+    final currentUserId = authState is AuthAuthenticatedState ? authState.user.id : null;
     Bastion? userBastion;
     for (final bastion in bastions) {
-      if (bastion.id == currentUserBastionId) {
+      if (bastion.belongsTo(currentUserId)) {
         userBastion = bastion;
         break;
       }
     }
-    final otherBastions = bastions.where((bastion) => bastion.id != currentUserBastionId).toList();
+    final otherBastions = bastions.where((bastion) => !bastion.belongsTo(currentUserId)).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -15,10 +15,11 @@ void main() {
     expect(sortedNames, equals(expectedSorted));
   });
 
-  test('administrator login assigns the user bastion', () {
+  test('administrator user owns the user bastion', () {
     final user = findUserByCredentials('admin', 'admin123');
+    final userBastion = getFakeBastions().firstWhere((b) => b.id == userBastionId);
 
     expect(user, isNotNull);
-    expect(user!.bastionId, equals(userBastionId));
+    expect(userBastion.belongsTo(user!.id), isTrue);
   });
 }
