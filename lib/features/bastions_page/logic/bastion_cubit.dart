@@ -64,13 +64,13 @@ class BastionCubit extends Cubit<BastionState> {
     }
   }
 
-  Future<void> createBastion(
+  Future<Bastion?> createBastion(
     String name,
     String description,
     String? imgUrl,
     List<Facility> facilities,
   ) async {
-    if (state is! BastionLoadedState) return;
+    if (state is! BastionLoadedState) return null;
     final loaded = state as BastionLoadedState;
 
     final builtFacilities = facilities.map((f) => Facility(
@@ -98,8 +98,10 @@ class BastionCubit extends Cubit<BastionState> {
       final bastions = List<Bastion>.from(loaded.bastions);
       bastions.add(newBastion);
       emit(BastionLoadedState(bastions: bastions));
+      return newBastion;
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to create bastion'));
+      return null;
     }
   }
 }

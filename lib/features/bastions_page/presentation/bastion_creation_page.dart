@@ -44,7 +44,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
     }
   }
 
-  void _createBastion() {
+  Future<void> _createBastion() async {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
@@ -52,29 +52,21 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
     final imgUrl = _imageUrlController.text.trim();
     final cubit = GetIt.I<BastionCubit>();
 
-    cubit.createBastion(
+    final newBastion = await cubit.createBastion(
       name,
       description,
       imgUrl.isEmpty ? null : imgUrl,
       _selectedFacilities,
     );
 
-    // Find the newly created bastion in the updated state
-    final state = cubit.state;
-    if (state is BastionLoadedState) {
-      final newBastionIndex = state.bastions.indexWhere(
-        (b) => b.name == name && b.description == description,
-      );
-      if (newBastionIndex != -1) {
-        final newBastion = state.bastions[newBastionIndex];
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => BastionPage(
-            bastionId: newBastion.id,
-            isUserBastion: true,
-          )),
-        );
-      }
-    }
+    if (newBastion == null || !mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => BastionPage(
+        bastionId: newBastion.id,
+        isUserBastion: true,
+      )),
+    );
   }
 
   @override
