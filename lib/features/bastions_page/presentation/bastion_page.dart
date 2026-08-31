@@ -80,8 +80,7 @@ class BastionPage extends StatelessWidget {
                 runSpacing: 16,
                 children: [
                   _buildBastionHirelingsSection(context, bastion),
-                  if (bastion.defenders.isNotEmpty)
-                    _buildDefendersSection(context, bastion),
+                  _buildDefendersSection(context, bastion),
                 ],
               ),
             ],
@@ -139,6 +138,18 @@ class BastionPage extends StatelessWidget {
 
     }
 
+    if (widgets.isEmpty && isUserBastion && !allBuilt) {
+      widgets.add(
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            const SizedBox(height: 16),
+            _buildPlusCard(context, bastion),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,10 +451,6 @@ class BastionPage extends StatelessWidget {
       allHirelings[null] = unassigned;
     }
 
-    if (allHirelings.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Container(
@@ -482,7 +489,20 @@ class BastionPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              ...allHirelings.entries.map((entry) {
+              if (allHirelings.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'No hirelings recruited yet',
+                    style: GoogleFonts.imFellEnglish(
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      color: MedievalColors.sepiaMuted,
+                    ),
+                  ),
+                )
+              else
+                ...allHirelings.entries.map((entry) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Column(
@@ -588,12 +608,26 @@ class BastionPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (knights > 0)
-                    _buildDefenderTypeRow(Icons.shield, 'Knights', knights),
-                  if (bastionDefenders > 0)
-                    _buildDefenderTypeRow(Icons.castle, 'Bastion Defenders', bastionDefenders),
-                  if (beasts > 0)
-                    _buildDefenderTypeRow(Icons.pets, 'Beasts', beasts),
+                  if (bastion.defenders.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'No defenders stationed at this bastion',
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                          color: MedievalColors.sepiaMuted,
+                        ),
+                      ),
+                    )
+                  else ...[
+                    if (knights > 0)
+                      _buildDefenderTypeRow(Icons.shield, 'Knights', knights),
+                    if (bastionDefenders > 0)
+                      _buildDefenderTypeRow(Icons.castle, 'Bastion Defenders', bastionDefenders),
+                    if (beasts > 0)
+                      _buildDefenderTypeRow(Icons.pets, 'Beasts', beasts),
+                  ],
                 ],
               ),
             ),
