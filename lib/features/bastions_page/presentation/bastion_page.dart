@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
@@ -30,65 +31,67 @@ class BastionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BastionCubit, BastionState>(
-      bloc: GetIt.I<BastionCubit>(),
-      builder: (context, state) {
-        if (state is! BastionLoadedState) return const SizedBox.shrink();
+    return BlocProvider(
+      create: (_) => BastionCubit(bastionApi: GetIt.I<BastionApi>())..loadBastions(),
+      child: BlocBuilder<BastionCubit, BastionState>(
+        builder: (context, state) {
+          if (state is! BastionLoadedState) return const SizedBox.shrink();
 
-        final bastion = state.bastions.firstWhere(
-          (b) => b.id == bastionId,
-          orElse: () => state.bastions.first,
-        );
+          final bastion = state.bastions.firstWhere(
+            (b) => b.id == bastionId,
+            orElse: () => state.bastions.first,
+          );
 
-        final catalogFacilities = getFacilityCatalog();
-        final builtIds = bastion.facilities.map((f) => f.id).toSet();
-        final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
+          final catalogFacilities = getFacilityCatalog();
+          final builtIds = bastion.facilities.map((f) => f.id).toSet();
+          final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
 
-        return StandardScaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                bastion.name,
-                style: GoogleFonts.cinzel(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: MedievalColors.vermillion,
+          return StandardScaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      bastion.name,
+                      style: GoogleFonts.cinzel(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: MedievalColors.vermillion,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    bastion.description.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Text(
+                              bastion.description,
+                              style: GoogleFonts.imFellEnglish(
+                                fontSize: 15,
+                                height: 1.4,
+                                color: MedievalColors.sepiaInk,
+                              ),
+                            ),
+                          )
+                        : const SizedBox(height: 16),
+                    _buildRankedFacilities(context, bastion, allBuilt),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _buildBastionHirelingsSection(context, bastion),
+                        _buildDefendersSection(context, bastion),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              bastion.description.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Text(
-                        bastion.description,
-                        style: GoogleFonts.imFellEnglish(
-                          fontSize: 15,
-                          height: 1.4,
-                          color: MedievalColors.sepiaInk,
-                        ),
-                      ),
-                    )
-                  : const SizedBox(height: 16),
-              _buildRankedFacilities(context, bastion, allBuilt),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _buildBastionHirelingsSection(context, bastion),
-                  _buildDefendersSection(context, bastion),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-      },
+            ),
+          );
+        }
+      )
     );
   }
 
@@ -166,13 +169,16 @@ class BastionPage extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () {
+            final cubit = context.read<BastionCubit>();
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => FacilityPage(
                 facility: facility,
                 bastion: bastion,
                 isUserBastion: isUserBastion,
               )),
-            );
+            ).then((_) {
+              if (context.mounted) cubit.loadBastions();
+            });
           },
           child: Opacity(
             opacity: isConstructing ? 0.5 : 1.0,
@@ -295,9 +301,12 @@ class BastionPage extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () {
+            final cubit = context.read<BastionCubit>();
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => FacilitySelectionPage(bastion: bastion)),
-            );
+            ).then((_) {
+              if (context.mounted) cubit.loadBastions();
+            });
           },
           child: Container(
             decoration: BoxDecoration(
@@ -543,6 +552,7 @@ class BastionPage extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        final cubit = context.read<BastionCubit>();
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => DefendersPage(
@@ -550,7 +560,9 @@ class BastionPage extends StatelessWidget {
               bastionName: bastion.name,
             ),
           ),
-        );
+        ).then((_) {
+          if (context.mounted) cubit.loadBastions();
+        });
       },
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
@@ -669,13 +681,16 @@ class BastionPage extends StatelessWidget {
     return GestureDetector(
       onTap: facility != null
           ? () {
+              final cubit = context.read<BastionCubit>();
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => FacilityPage(
                   facility: facility,
                   bastion: bastion,
                   isUserBastion: isUserBastion,
                 )),
-              );
+              ).then((_) {
+                if (context.mounted) cubit.loadBastions();
+              });
             }
           : null,
       child: Container(

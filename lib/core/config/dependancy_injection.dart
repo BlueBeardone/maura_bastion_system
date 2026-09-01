@@ -8,8 +8,6 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/api/newspaper_api.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
-import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
-import 'package:maura_bastion_system/features/news_paper/logic/news_paper_cubit.dart';
 
 class DependencyInjection {
   static void init() async {
@@ -35,7 +33,5 @@ class DependencyInjection {
 
   static void _registerCubits() {
     GetIt.I.registerLazySingleton<AuthCubit>(() => AuthCubit(identityApi: GetIt.I<IdentityApi>()));
-    GetIt.I.registerLazySingleton<BastionCubit>(() => BastionCubit(bastionApi: GetIt.I<BastionApi>())..loadBastions());
-    GetIt.I.registerLazySingleton<NewsPaperCubit>(() => NewsPaperCubit(newspaperApi: GetIt.I<NewspaperApi>()));
   }
 }

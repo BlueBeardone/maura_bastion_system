@@ -1,13 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
-import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
-import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
@@ -20,19 +22,39 @@ void main() {
   testWidgets(
     'empty bastion still shows Construct Facility, Hirelings and Defenders containers',
     (tester) async {
-      final bastion = Bastion(
-        id: 'bastion_empty',
-        name: 'Empty Bastion',
-        description: 'An empty stronghold awaiting its lord.',
-        facilities: const [],
-      );
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/maura/v1/bastions' &&
+            request.method == 'GET') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  'id': 'bastion_empty',
+                  'userId': 'user_1',
+                  'name': 'Empty Bastion',
+                  'description': 'An empty stronghold awaiting its lord.',
+                  'facilities': [],
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'not found'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
 
-      final apiClient = ApiClient(baseUrl: 'http://localhost:1');
-      final bastionCubit = BastionCubit(
-        bastionApi: BastionApi(client: apiClient),
+      final apiClient = ApiClient(
+        baseUrl: 'http://example.test',
+        client: mockClient,
       );
-      bastionCubit.emit(BastionLoadedState(bastions: [bastion]));
-      GetIt.I.registerSingleton<BastionCubit>(bastionCubit);
+      GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
 
       final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
       GetIt.I.registerSingleton<AuthCubit>(authCubit);

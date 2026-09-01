@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -25,27 +26,29 @@ class BastionMainScreen extends StatelessWidget {
   }
 
   Widget _body(BuildContext context) {
-    return BlocBuilder<BastionCubit, BastionState>(
-      bloc: GetIt.I<BastionCubit>(),
-      builder: (context, state) {
-        if (state is BastionErrorState) {
-          return MyErrorWidget(
-            message: state.message,
-            icon: Icons.error_outline,
-            onRetry: () => GetIt.I<BastionCubit>().loadBastions(),
-          );
-        }
+    return BlocProvider(
+      create: (_) => BastionCubit(bastionApi: GetIt.I<BastionApi>())..loadBastions(),
+      child: BlocBuilder<BastionCubit, BastionState>(
+        builder: (context, state) {
+          if (state is BastionErrorState) {
+            return MyErrorWidget(
+              message: state.message,
+              icon: Icons.error_outline,
+              onRetry: () => context.read<BastionCubit>().loadBastions(),
+            );
+          }
 
-        if (state is BastionLoadingState) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (state is BastionLoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (state is BastionLoadedState) {
-          return _buildBastionsView(context, state.bastions);
-        }
+          if (state is BastionLoadedState) {
+            return _buildBastionsView(context, state.bastions);
+          }
 
-        return const Center(child: Text('Unknown state'));
-      },
+          return const Center(child: Text('Unknown state'));
+        },
+      ),
     );
   }
 
@@ -206,13 +209,16 @@ class _BastionCardState extends State<_BastionCard> {
   bool _isExpanded = false;
   static const int _maxCollapsedLines = 2;
 
-  void _navigateToBastion() {
-    Navigator.of(context).push(
+  Future<void> _navigateToBastion() async {
+    final cubit = context.read<BastionCubit>();
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => BastionPage(
         bastionId: widget.bastion.id,
         isUserBastion: widget.isUserBastion,
       )),
     );
+    if (!context.mounted) return;
+    cubit.loadBastions();
   }
 
   void _toggleExpand() {
