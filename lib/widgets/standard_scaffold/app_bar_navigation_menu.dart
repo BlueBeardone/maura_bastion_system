@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/about_page/about_page.dart';
@@ -91,7 +92,10 @@ class AppBarNavigationMenu extends StatelessWidget {
   }
 
   Future<Bastion?> _fetchUserBastion() async {
-    final cubit = BastionCubit(bastionApi: GetIt.I<BastionApi>());
+    final cubit = BastionCubit(
+      bastionApi: GetIt.I<BastionApi>(),
+      facilityApi: GetIt.I<FacilityApi>(),
+    );
     Bastion? result;
     try {
       await cubit.loadBastions();

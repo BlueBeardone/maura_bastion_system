@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
@@ -55,6 +56,7 @@ void main() {
         client: mockClient,
       );
       GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
+      GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
 
       final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
       GetIt.I.registerSingleton<AuthCubit>(authCubit);
