@@ -165,7 +165,7 @@ class BastionPage extends StatelessWidget {
   }
 
   Widget _buildFacilityCard(BuildContext context, Facility facility, Bastion bastion) {
-    final bool isConstructing = facility.constructedTurns != 0;
+    final bool isConstructing = facility.constructedTurns < facility.constructionTurns;
     return SizedBox(
       width: _cardWidth,
       child: Material(
@@ -238,7 +238,7 @@ class BastionPage extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 10),
-                      _buildFacilityInfoRow(facility, bastion),
+                      _buildFacilityInfoRow(facility, bastion, isConstructing),
                     ],
                   ),
                 ),
@@ -250,7 +250,7 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFacilityInfoRow(Facility facility, Bastion bastion) {
+  Widget _buildFacilityInfoRow(Facility facility, Bastion bastion, bool isConstructing) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -277,16 +277,16 @@ class BastionPage extends StatelessWidget {
               ),
             ),
             Spacer(),
-            if(facility.constructedTurns != 0) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
-            if(facility.constructedTurns != 0) const SizedBox(width: 3),
-            if(facility.constructedTurns != 0) Text(
-              '${facility.constructedTurns}t',
+            if(isConstructing) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
+            if(isConstructing) const SizedBox(width: 3),
+            if(isConstructing) Text(
+              '${facility.constructedTurns}/${facility.constructionTurns}t',
               style: GoogleFonts.imFellEnglish(
                 fontSize: 11,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
-            if(facility.constructedTurns != 0) const SizedBox(width: 4),
+            if(isConstructing) const SizedBox(width: 4),
           ],
         ),
       ],
