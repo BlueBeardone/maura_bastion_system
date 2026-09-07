@@ -282,46 +282,51 @@ class _HirelingsViewState extends State<_HirelingsView> {
   }
 
   Widget _buildEmptyState() {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const RadialGradient(
-            center: Alignment.center,
-            radius: 0.9,
-            colors: [
-              MedievalColors.parchmentLight,
-              MedievalColors.parchmentDark,
-            ],
-            stops: [0.6, 1.0],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(50),
-              blurRadius: 6,
-              offset: const Offset(2, 3),
-            ),
-          ],
-        ),
-        child: CustomPaint(
-          painter: ParchmentBorderPainter(),
-          child: const Padding(
-            padding: EdgeInsets.all(32),
-            child: Column(
-              children: [
-                Icon(Icons.person_off, size: 48, color: MedievalColors.sepiaMuted),
-                SizedBox(height: 12),
-                Text(
-                  'No hirelings recruited yet',
-                  style: TextStyle(
-                    fontFamily: 'IMFellEnglish',
-                    fontSize: 15,
-                    fontStyle: FontStyle.italic,
-                    color: MedievalColors.sepiaMuted,
-                  ),
-                ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const RadialGradient(
+              center: Alignment.center,
+              radius: 0.9,
+              colors: [
+                MedievalColors.parchmentLight,
+                MedievalColors.parchmentDark,
               ],
+              stops: [0.6, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(50),
+                blurRadius: 6,
+                offset: const Offset(2, 3),
+              ),
+            ],
+          ),
+          child: CustomPaint(
+            painter: ParchmentBorderPainter(),
+            child: const Padding(
+              padding: EdgeInsets.all(32),
+              child: SizedBox(
+                height: 100,
+                child: Column(
+                  children: [
+                    Icon(Icons.person_off, size: 48, color: MedievalColors.sepiaMuted),
+                    SizedBox(height: 12),
+                    Text(
+                      'No hirelings recruited yet',
+                      style: TextStyle(
+                        fontFamily: 'IMFellEnglish',
+                        fontSize: 15,
+                        fontStyle: FontStyle.italic,
+                        color: MedievalColors.sepiaMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

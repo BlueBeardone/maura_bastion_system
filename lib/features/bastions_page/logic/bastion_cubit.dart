@@ -40,9 +40,6 @@ class BastionCubit extends Cubit<BastionState> {
     String? imgUrl,
     List<Facility> facilities,
   ) async {
-    if (state is! BastionLoadedState) return null;
-    final loaded = state as BastionLoadedState;
-
     final builtFacilities = facilities.map((f) => Facility(
       id: f.id,
       name: f.name,
@@ -65,8 +62,10 @@ class BastionCubit extends Cubit<BastionState> {
         facilities: builtFacilities,
       ));
 
-      final bastions = List<Bastion>.from(loaded.bastions);
-      bastions.add(newBastion);
+        final bastions = state is BastionLoadedState
+          ? List<Bastion>.from((state as BastionLoadedState).bastions)
+          : <Bastion>[];
+        bastions.add(newBastion);
       emit(BastionLoadedState(bastions: bastions));
       return newBastion;
     } catch (e, stackTrace) {
