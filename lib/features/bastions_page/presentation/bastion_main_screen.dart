@@ -144,10 +144,12 @@ class BastionMainScreen extends StatelessWidget {
 
   Widget _buildAddBastionCard(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
+      onTap: () async {
+        await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const BastionCreationPage()),
         );
+        if (!context.mounted) return;
+        context.read<BastionCubit>().loadBastions();
       },
       child: Container(
         height: 180,
