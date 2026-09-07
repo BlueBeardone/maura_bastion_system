@@ -59,7 +59,7 @@ class AppBarNavigationMenu extends StatelessWidget {
             value: buttonItem,
             child: Text(
               buttonItem.title,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).appBarTheme.foregroundColor),
             ),
           );
         }).toList();
