@@ -2,8 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
 
 part 'bastion_state.dart';
 
@@ -11,6 +13,7 @@ class BastionCubit extends Cubit<BastionState> {
   final BastionApi _bastionApi;
   final FacilityApi _facilityApi;
   bool _advancingTurn = false;
+  bool _upgrading = false;
 
   BastionCubit({required BastionApi bastionApi, required FacilityApi facilityApi})
       : _bastionApi = bastionApi,
@@ -81,6 +84,54 @@ class BastionCubit extends Cubit<BastionState> {
       return null;
     } finally {
       _advancingTurn = false;
+    }
+  }
+
+  Future<Facility?> upgradeFacility(String bastionId, Facility facility) async {
+    if (_upgrading) return null;
+    if (state is! BastionLoadedState) return null;
+
+    final loaded = state as BastionLoadedState;
+    final bastion = loaded.bastions.firstWhere(
+      (b) => b.id == bastionId,
+      orElse: () => loaded.bastions.first,
+    );
+
+    if (facility.rank == Rank.S) return null;
+    if (!upgradeableFacilityIds.contains(facility.id)) return null;
+    final nextRank = facility.rank.next;
+    if (nextRank == null) return null;
+    final anyBusy = bastion.facilities
+        .any((f) => f.constructedTurns < f.constructionTurns);
+    if (anyBusy) return null;
+
+    final upgraded = Facility(
+      id: facility.id,
+      name: facility.name,
+      rank: nextRank,
+      description: facility.description,
+      imgUrl: facility.imgUrl,
+      table: facility.table,
+      minimumRequiredHirelings: facility.minimumRequiredHirelings,
+      constructionTurns: 2,
+      cost: baseCostByRank[nextRank]!,
+      constructedTurns: 0,
+    );
+
+    try {
+      _upgrading = true;
+      await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
+      await loadBastions();
+      return upgraded;
+    } catch (e, stackTrace) {
+      emit(BastionErrorState(
+        error: e as Exception,
+        stackTrace: stackTrace,
+        message: 'Failed to upgrade facility',
+      ));
+      return null;
+    } finally {
+      _upgrading = false;
     }
   }
 

@@ -351,4 +351,307 @@ void main() {
       await cubit.close();
     });
   });
+
+  group('BastionCubit.upgradeFacility', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      String rank = 'd',
+      int constructed = 0,
+      int total = 0,
+      int requiredHirelings = 0,
+      Map<String, dynamic>? table,
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank,
+          'description': 'desc',
+          'constructionTurns': total,
+          'constructedTurns': constructed,
+          'minimumRequiredHirelings': requiredHirelings,
+          'cost': 0,
+          'table': table,
+        };
+
+    Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
+        {
+          'id': 'bastion-1',
+          'userId': 'user_1',
+          'name': 'Test Bastion',
+          'description': 'desc',
+          'facilities': facilities,
+        };
+
+    test('upgrades a built D facility to C, persisting rank, cost, and turns',
+        () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                    id: 'cat_barracks',
+                    name: 'Barracks',
+                    constructed: 2,
+                    total: 2,
+                    table: {
+                      'table': [
+                        ['Rank', 'Capacity'],
+                        ['D', '4'],
+                      ],
+                    },
+                  ),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/facilities/cat_barracks') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final barracks =
+          (cubit.state as BastionLoadedState).bastions.first.facilities.first;
+      final upgraded = await cubit.upgradeFacility('bastion-1', barracks);
+
+      expect(upgraded, isNotNull);
+      expect(upgraded!.rank, Rank.C);
+      expect(upgraded.cost, 1500);
+      expect(upgraded.constructionTurns, 2);
+      expect(upgraded.constructedTurns, 0);
+      expect(upgraded.id, 'cat_barracks');
+      expect(upgraded.table, isNotNull);
+      expect(puts.length, 1);
+      final body = jsonDecode(puts.first.body) as Map<String, dynamic>;
+      expect(body['rank'], 'c');
+      expect(body['cost'], 1500);
+      expect(body['constructionTurns'], 2);
+      expect(body['constructedTurns'], 0);
+
+      await cubit.close();
+    });
+
+    test('returns null without PUT when another facility is under construction',
+        () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'cat_barracks',
+                      name: 'Barracks',
+                      constructed: 2,
+                      total: 2),
+                  facilityJson(
+                      id: 'cat_kitchen',
+                      name: 'Kitchen',
+                      constructed: 0,
+                      total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final barracks = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .firstWhere((f) => f.id == 'cat_barracks');
+      final result = await cubit.upgradeFacility('bastion-1', barracks);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('returns null without PUT when the facility is already Rank S',
+        () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'cat_barracks',
+                      name: 'Barracks',
+                      rank: 's',
+                      constructed: 2,
+                      total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final barracks = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .firstWhere((f) => f.id == 'cat_barracks');
+      final result = await cubit.upgradeFacility('bastion-1', barracks);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('returns null without PUT for a non-upgradeable facility id',
+        () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'keep', name: 'Keep', constructed: 2, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final keep = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .firstWhere((f) => f.id == 'keep');
+      final result = await cubit.upgradeFacility('bastion-1', keep);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+
+      await cubit.close();
+    });
+  });
 }
