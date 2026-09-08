@@ -102,7 +102,7 @@ void main() {
         'constructedTurns': constructed,
         'minimumRequiredHirelings': requiredHirelings,
         'cost': 0,
-        if (table != null) 'table': table,
+        'table': ?table,
       };
 
   MockClient bastionTurnMockClient(List<Map<String, dynamic>> facilities,
