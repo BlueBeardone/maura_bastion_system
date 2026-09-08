@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -154,6 +155,7 @@ void main() {
         jsonDecode(puts.first.body)['constructedTurns'],
         1,
       );
+      expect(jsonDecode(puts.first.body)['bastionId'], 'bastion-1');
       expect(bastionGets, greaterThanOrEqualTo(2)); // refetched after update
 
       await cubit.close();
@@ -209,6 +211,142 @@ void main() {
 
       expect(advanced, isNull);
       expect(puts, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('ignores re-entrant calls while an advance is in flight', () async {
+      final puts = <http.Request>[];
+      final putReceived = Completer<void>();
+      final releasePut = Completer<void>();
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/facilities/barracks') {
+          puts.add(request);
+          putReceived.complete();
+          await releasePut.future;
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final first = cubit.advanceBastionTurn('bastion-1');
+      await putReceived.future;
+
+      final second = await cubit.advanceBastionTurn('bastion-1');
+      expect(second, isNull);
+      expect(puts.length, 1);
+
+      releasePut.complete();
+      final advanced = await first;
+      expect(advanced, isNotNull);
+      expect(advanced!.constructedTurns, 1);
+      expect(puts.length, 1);
+
+      await cubit.close();
+    });
+
+    test('stops advancing when facility reaches its construction cap',
+        () async {
+      final puts = <http.Request>[];
+      var constructed = 1;
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks',
+                      name: 'Barracks',
+                      constructed: constructed,
+                      total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/facilities/barracks') {
+          puts.add(request);
+          constructed =
+              (jsonDecode(request.body) as Map<String, dynamic>)['constructedTurns']
+                  as int;
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final first = await cubit.advanceBastionTurn('bastion-1');
+      expect(first, isNotNull);
+      expect(first!.constructedTurns, 2);
+      expect(puts.length, 1);
+      expect(jsonDecode(puts.first.body)['constructedTurns'], 2);
+      expect(jsonDecode(puts.first.body)['bastionId'], 'bastion-1');
+
+      final second = await cubit.advanceBastionTurn('bastion-1');
+      expect(second, isNull);
+      expect(puts.length, 1);
 
       await cubit.close();
     });

@@ -88,15 +88,36 @@ class BastionTurnDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  header,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.imFellEnglish(
-                    fontSize: 14,
-                    height: 1.4,
-                    color: MedievalColors.sepiaInk,
+                if (advancedFacility != null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.timer_rounded,
+                        size: 16,
+                        color: MedievalColors.sepiaSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        header,
+                        style: GoogleFonts.imFellEnglish(
+                          fontSize: 14,
+                          height: 1.4,
+                          color: MedievalColors.sepiaInk,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    header,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.imFellEnglish(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: MedievalColors.sepiaInk,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 12),
                 Flexible(
                   child: eligible.isEmpty

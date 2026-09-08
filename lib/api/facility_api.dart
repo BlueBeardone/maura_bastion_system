@@ -36,10 +36,11 @@ class FacilityApi {
     return Facility.fromJson(data);
   }
 
-  Future<Facility> update(String id, Facility facility) async {
+  Future<Facility> update(String id, Facility facility,
+      {String? bastionId}) async {
     final json = facility.toJson();
     if (json['bastionId'] == null) {
-      json['bastionId'] = '';
+      json['bastionId'] = bastionId ?? '';
     }
 
     final data = await _client.put<Map<String, dynamic>>(

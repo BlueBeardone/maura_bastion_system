@@ -10,6 +10,7 @@ part 'bastion_state.dart';
 class BastionCubit extends Cubit<BastionState> {
   final BastionApi _bastionApi;
   final FacilityApi _facilityApi;
+  bool _advancingTurn = false;
 
   BastionCubit({required BastionApi bastionApi, required FacilityApi facilityApi})
       : _bastionApi = bastionApi,
@@ -35,6 +36,7 @@ class BastionCubit extends Cubit<BastionState> {
   }
 
   Future<Facility?> advanceBastionTurn(String bastionId) async {
+    if (_advancingTurn) return null;
     if (state is! BastionLoadedState) return null;
 
     final loaded = state as BastionLoadedState;
@@ -66,7 +68,8 @@ class BastionCubit extends Cubit<BastionState> {
     );
 
     try {
-      await _facilityApi.update(advanced.id, advanced);
+      _advancingTurn = true;
+      await _facilityApi.update(advanced.id, advanced, bastionId: bastion.id);
       await loadBastions();
       return advanced;
     } catch (e, stackTrace) {
@@ -76,6 +79,8 @@ class BastionCubit extends Cubit<BastionState> {
         message: 'Failed to advance bastion turn',
       ));
       return null;
+    } finally {
+      _advancingTurn = false;
     }
   }
 
