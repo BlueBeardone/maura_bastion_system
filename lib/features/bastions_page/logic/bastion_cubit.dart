@@ -34,6 +34,51 @@ class BastionCubit extends Cubit<BastionState> {
     }
   }
 
+  Future<Facility?> advanceBastionTurn(String bastionId) async {
+    if (state is! BastionLoadedState) return null;
+
+    final loaded = state as BastionLoadedState;
+    final bastion = loaded.bastions.firstWhere(
+      (b) => b.id == bastionId,
+      orElse: () => loaded.bastions.first,
+    );
+
+    Facility? target;
+    for (final facility in bastion.facilities) {
+      if (facility.constructedTurns < facility.constructionTurns) {
+        target = facility;
+        break;
+      }
+    }
+    if (target == null) return null;
+
+    final advanced = Facility(
+      id: target.id,
+      name: target.name,
+      rank: target.rank,
+      description: target.description,
+      imgUrl: target.imgUrl,
+      table: target.table,
+      minimumRequiredHirelings: target.minimumRequiredHirelings,
+      constructionTurns: target.constructionTurns,
+      cost: target.cost,
+      constructedTurns: target.constructedTurns + 1,
+    );
+
+    try {
+      await _facilityApi.update(advanced.id, advanced);
+      await loadBastions();
+      return advanced;
+    } catch (e, stackTrace) {
+      emit(BastionErrorState(
+        error: e as Exception,
+        stackTrace: stackTrace,
+        message: 'Failed to advance bastion turn',
+      ));
+      return null;
+    }
+  }
+
   Future<Bastion?> createBastion(
     String name,
     String description,
