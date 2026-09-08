@@ -6,8 +6,13 @@ import 'package:maura_bastion_system/widgets/standard_scaffold/app_bar_navigatio
 
 class StandardScaffold extends StatelessWidget {
   final Widget body;
+  final Widget? floatingActionButton;
 
-  const StandardScaffold({super.key, required this.body});
+  const StandardScaffold({
+    super.key,
+    required this.body,
+    this.floatingActionButton,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +39,7 @@ class StandardScaffold extends StatelessWidget {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
       body: SafeArea(child: body),
+      floatingActionButton: floatingActionButton,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     );
   }
