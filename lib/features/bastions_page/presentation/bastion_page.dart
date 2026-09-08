@@ -15,6 +15,7 @@ import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
@@ -51,6 +52,13 @@ class BastionPage extends StatelessWidget {
           final allBuilt = catalogFacilities.every((f) => builtIds.contains(f.id));
 
           return StandardScaffold(
+            floatingActionButton: isUserBastion
+                ? FloatingActionButton(
+                    onPressed: () => _takeBastionTurn(context, bastion),
+                    tooltip: 'Bastion Turn',
+                    child: const Icon(Icons.auto_awesome),
+                  )
+                : null,
             body: Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
@@ -96,6 +104,17 @@ class BastionPage extends StatelessWidget {
           );
         }
       )
+    );
+  }
+
+  Future<void> _takeBastionTurn(BuildContext context, Bastion bastion) async {
+    final cubit = context.read<BastionCubit>();
+    final advanced = await cubit.advanceBastionTurn(bastion.id);
+    if (!context.mounted) return;
+    await BastionTurnDialog.show(
+      context,
+      advancedFacility: advanced,
+      bastion: bastion,
     );
   }
 
@@ -276,14 +295,24 @@ class BastionPage extends StatelessWidget {
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
-            Spacer(),
-            if(isConstructing) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
-            if(isConstructing) const SizedBox(width: 3),
-            if(isConstructing) Text(
-              '${facility.constructedTurns}/${facility.constructionTurns}t',
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
-                color: MedievalColors.sepiaSecondary,
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if(isConstructing) Icon(Icons.timer_rounded, size: 12, color: MedievalColors.sepiaSecondary),
+                    if(isConstructing) const SizedBox(width: 3),
+                    if(isConstructing) Text(
+                      '${facility.constructedTurns}/${facility.constructionTurns}t',
+                      style: GoogleFonts.imFellEnglish(
+                        fontSize: 11,
+                        color: MedievalColors.sepiaSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             if(isConstructing) const SizedBox(width: 4),
