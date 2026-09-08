@@ -27,4 +27,14 @@ extension MainNavigationExtension on Rank {
       case Rank.D: return "D";
     }
   }
+
+  Rank? get next {
+    switch (this) {
+      case Rank.D: return Rank.C;
+      case Rank.C: return Rank.B;
+      case Rank.B: return Rank.A;
+      case Rank.A: return Rank.S;
+      case Rank.S: return null;
+    }
+  }
 }

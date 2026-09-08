@@ -2,6 +2,36 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
+const Map<Rank, int> baseCostByRank = {
+  Rank.D: 600,
+  Rank.C: 1500,
+  Rank.B: 4500,
+  Rank.A: 9000,
+  Rank.S: 20000,
+};
+
+const Set<String> upgradeableFacilityIds = {
+  'cat_barracks',
+  'cat_battlements',
+  'cat_bedroom',
+  'cat_dining_room',
+  'cat_kitchen',
+  'cat_well_room',
+  'cat_siege_engine',
+  'cat_library',
+  'cat_sanctuary',
+  'cat_stables',
+  'cat_trading_hub',
+  'cat_training_area',
+  'cat_observatory',
+};
+
+int facilityUpgradeCost(Rank rank) {
+  final next = rank.next;
+  if (next == null) return 0;
+  return baseCostByRank[next]! - baseCostByRank[rank]!;
+}
+
 List<Facility> getFacilityCatalog() {
   return [
     // ===================== Rank D =====================
