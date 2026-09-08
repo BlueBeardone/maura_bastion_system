@@ -10,6 +10,7 @@ import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
@@ -248,5 +249,105 @@ void main() {
       find.descendant(of: dialogFinder, matching: find.text('Facility Table')),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+      'upgrading a facility from its page POPTS it back at the next rank',
+      (tester) async {
+    var puts = 0;
+    var firstBastionGet = true;
+    final mockClient = MockClient((request) async {
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/bastions') {
+        final rankField = firstBastionGet ? 'd' : 'c';
+        firstBastionGet = false;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_1',
+                'userId': 'user_1',
+                'name': 'Test Bastion',
+                'description': 'A test stronghold.',
+                'facilities': [
+                  turnFacilityJson(
+                    id: 'cat_barracks',
+                    name: 'Barracks',
+                    rank: rankField,
+                    constructed: rankField == 'd' ? 2 : 0,
+                    total: rankField == 'd' ? 2 : 2,
+                  ),
+                ],
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/hirelings') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': <Object>[],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'PUT' &&
+          request.url.path == '/maura/v1/facilities/cat_barracks') {
+        puts++;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': jsonDecode(request.body),
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final apiClient =
+        ApiClient(baseUrl: 'http://example.test', client: mockClient);
+    GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
+    GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
+    GetIt.I.registerSingleton<AuthCubit>(authCubit);
+
+    await tester.pumpWidget(
+      BlocProvider<AuthCubit>(
+        create: (_) => authCubit,
+        child: const MaterialApp(
+          home: BastionPage(bastionId: 'bastion_1', isUserBastion: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Barracks'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Upgrade to Rank C — 900 GP'));
+    await tester.tap(find.text('Upgrade to Rank C — 900 GP'));
+    await tester.pumpAndSettle();
+
+    expect(puts, 1);
+    expect(find.text('Upgrade to Rank C — 900 GP'), findsNothing);
+    expect(find.text('Barracks'), findsWidgets);
   });
 }

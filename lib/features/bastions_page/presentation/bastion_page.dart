@@ -198,6 +198,14 @@ class BastionPage extends StatelessWidget {
                 facility: facility,
                 bastion: bastion,
                 isUserBastion: isUserBastion,
+                onUpgrade: isUserBastion
+                    ? () async {
+                        await cubit.upgradeFacility(bastion.id, facility);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    : null,
               )),
             ).then((_) {
               if (context.mounted) cubit.loadBastions();
@@ -720,6 +728,14 @@ class BastionPage extends StatelessWidget {
                   facility: facility,
                   bastion: bastion,
                   isUserBastion: isUserBastion,
+                  onUpgrade: isUserBastion
+                      ? () async {
+                          await cubit.upgradeFacility(bastion.id, facility);
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      : null,
                 )),
               ).then((_) {
                 if (context.mounted) cubit.loadBastions();
