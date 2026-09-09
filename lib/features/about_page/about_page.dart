@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maura_bastion_system/features/about_page/theme_reference_view.dart';
 
@@ -66,7 +67,7 @@ class AboutPage extends StatelessWidget {
           color: Colors.redAccent
         ),
         const SizedBox(height: 16,),
-        Card(
+        if(kDebugMode) Card(
           color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.12),
           child: ListTile(
             title: Text('Theme reference', style: Theme.of(context).textTheme.titleMedium),
