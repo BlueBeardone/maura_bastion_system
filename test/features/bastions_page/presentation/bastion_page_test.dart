@@ -222,6 +222,15 @@ void main() {
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
 
+    // Quest gate appears first, asking for the quest text.
+    expect(find.text('Quest:'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Cleared the crypt');
+    // Flush the rebuild so Confirm (enabled by onChanged setState) is tappable.
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
     // Dialog is open, construction advanced for the first under-construction facility.
     expect(find.text('Bastion Turn'), findsOneWidget);
     expect(
@@ -249,6 +258,27 @@ void main() {
       find.descendant(of: dialogFinder, matching: find.text('Facility Table')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('FAB turn is aborted when the quest dialog is cancelled',
+      (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(
+            id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+      ]),
+    );
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Quest:'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Turn'), findsNothing);
   });
 
   testWidgets(

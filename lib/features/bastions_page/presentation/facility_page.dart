@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
@@ -287,12 +288,12 @@ class _FacilityView extends StatelessWidget {
         child: Stack(
           children: [
             ClipRRect(
-              child: Image.network(
-                facility.imgUrl!,
+              child: SafeNetworkImage(
+                url: facility.imgUrl,
+                placeholder: _imagePlaceholder(),
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _imagePlaceholder(),
               ),
             ),
             _nailDot(Alignment.topLeft),
@@ -596,12 +597,12 @@ class _FacilityView extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child: ClipOval(
-          child: Image.network(
-            hireling.imgUrl!,
+          child: SafeNetworkImage(
+            url: hireling.imgUrl,
+            placeholder: _hirelingPortraitPlaceholder(),
             width: portraitSize,
             height: portraitSize,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => _hirelingPortraitPlaceholder(),
           ),
         ),
       );

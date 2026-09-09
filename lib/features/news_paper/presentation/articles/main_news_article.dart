@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
 
@@ -81,12 +82,11 @@ class MainNewsArticle extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Image.network(
-            imageUrl,
+          SafeNetworkImage(
+            url: imageUrl,
+            placeholder: _buildImagePlaceholder(),
             height: 280,
             width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => _buildImagePlaceholder(),
           ),
           Positioned(
             top: 4,

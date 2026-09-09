@@ -1,17 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
 import 'api_exception.dart';
 import 'api_response.dart';
 
+final String _baseUrl = Platform.environment['URL'] ?? 'http://localhost:8080';
+
 class ApiClient {
   final String baseUrl;
   final http.Client _client;
   String? _authToken;
 
-  ApiClient({this.baseUrl = 'http://localhost:8080', http.Client? client})
-      : _client = client ?? http.Client();
+  ApiClient({String? baseUrl, http.Client? client})
+      : baseUrl = baseUrl ?? _baseUrl,
+        _client = client ?? http.Client();
 
   void setAuthToken(String? token) {
     _authToken = token;

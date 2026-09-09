@@ -5,6 +5,7 @@ import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
@@ -473,12 +474,12 @@ class _BastionCardState extends State<_BastionCard> {
         child: Stack(
           children: [
             ClipRRect(
-              child: Image.network(
-                widget.bastion.imgUrl!,
+              child: SafeNetworkImage(
+                url: widget.bastion.imgUrl,
+                placeholder: _imagePlaceholder('Engraving Unavailable'),
                 height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _imagePlaceholder('Engraving Unavailable'),
               ),
             ),
             Positioned(top: 2, left: 2, child: _nailDot()),

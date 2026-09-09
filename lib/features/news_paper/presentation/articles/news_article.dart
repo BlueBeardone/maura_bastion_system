@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 
 class NewsArticle extends StatefulWidget {
@@ -116,12 +117,11 @@ class _NewsArticleState extends State<NewsArticle> {
       ),
       child: Stack(
         children: [
-          Image.network(
-            imageUrl,
+          SafeNetworkImage(
+            url: imageUrl,
+            placeholder: _buildImagePlaceholder(),
             height: 120,
             width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => _buildImagePlaceholder(),
           ),
           Positioned(
             top: 2,

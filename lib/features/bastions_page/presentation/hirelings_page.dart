@@ -4,6 +4,8 @@ import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
+import 'package:maura_bastion_system/core/utils/url_validator.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
@@ -233,6 +235,12 @@ class _HirelingsViewState extends State<_HirelingsView> {
                   labelText: 'Image URL',
                   prefixIcon: Icon(Icons.image),
                 ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  return UrlValidator.isValidFormat(v.trim())
+                      ? null
+                      : 'Please enter a valid URL (https://...)';
+                },
                 onSaved: (value) => _imgUrl = value?.trim() ?? '',
               ),
               const SizedBox(height: 16),
@@ -247,9 +255,21 @@ class _HirelingsViewState extends State<_HirelingsView> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
                     _formKey.currentState?.save();
+                    if (_imgUrl.isNotEmpty) {
+                      final result = await UrlValidator.check(_imgUrl);
+                      if (!mounted) return;
+                      if (result == UrlCheckResult.unreachable) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Image URL is unreachable'),
+                          ),
+                        );
+                        return;
+                      }
+                    }
                     context.read<HirelingsCubit>().addHireling(
                           name: _name,
                           role: _role.isNotEmpty ? _role : null,
@@ -443,12 +463,12 @@ class _HirelingsViewState extends State<_HirelingsView> {
           shape: BoxShape.circle,
         ),
         child: ClipOval(
-          child: Image.network(
-            hireling.imgUrl!,
+          child: SafeNetworkImage(
+            url: hireling.imgUrl,
+            placeholder: _portraitPlaceholder(size),
             width: size,
             height: size,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => _portraitPlaceholder(size),
           ),
         ),
       );

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
@@ -406,12 +407,12 @@ class FacilitySelectionPage extends StatelessWidget {
         child: Stack(
           children: [
             ClipRRect(
-              child: Image.network(
-                facility.imgUrl!,
+              child: SafeNetworkImage(
+                url: facility.imgUrl,
+                placeholder: _imagePlaceholder('No Engraving'),
                 height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _imagePlaceholder('No Engraving'),
               ),
             ),
             _nailDot(Alignment.topLeft),

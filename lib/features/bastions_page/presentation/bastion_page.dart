@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -16,6 +17,7 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/facilit
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/quest_input_dialog.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
@@ -108,6 +110,9 @@ class BastionPage extends StatelessWidget {
   }
 
   Future<void> _takeBastionTurn(BuildContext context, Bastion bastion) async {
+    final quest = await QuestInputDialog.show(context);
+    if (quest == null) return;
+    if (!context.mounted) return;
     final cubit = context.read<BastionCubit>();
     final advanced = await cubit.advanceBastionTurn(bastion.id);
     if (!context.mounted) return;
@@ -419,12 +424,12 @@ class BastionPage extends StatelessWidget {
         child: Stack(
           children: [
             ClipRRect(
-              child: Image.network(
-                facility.imgUrl!,
+              child: SafeNetworkImage(
+                url: facility.imgUrl,
+                placeholder: _imagePlaceholder('No Engraving'),
                 height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _imagePlaceholder('No Engraving'),
               ),
             ),
             _nailDot(Alignment.topLeft),

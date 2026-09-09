@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_detail_sheet.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_type_icon.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
@@ -340,49 +341,61 @@ class _DefendersViewState extends State<_DefendersView> {
   }
 
   Widget _buildCompactDefenderCard(Defender defender) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const RadialGradient(
-          center: Alignment.center,
-          radius: 0.9,
-          colors: [
-            MedievalColors.parchmentLight,
-            MedievalColors.parchmentDark,
-          ],
-          stops: [0.6, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(50),
-            blurRadius: 6,
-            offset: const Offset(2, 3),
+    return GestureDetector(
+      onTap: () {
+        final cubit = context.read<DefendersCubit>();
+        showModalBottomSheet(
+          context: context,
+          builder: (_) => BlocProvider<DefendersCubit>.value(
+            value: cubit,
+            child: DefenderDetailSheet(defender: defender),
           ),
-        ],
-      ),
-      child: CustomPaint(
-        painter: ParchmentBorderPainter(),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DefenderTypeIcon(type: defender.type),
-              const SizedBox(width: 10),
-              Text(
-                defender.name ?? 'Unnamed Defender',
-                style: GoogleFonts.cinzel(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: defender.name != null
-                      ? MedievalColors.vermillion
-                      : MedievalColors.sepiaMuted,
-                  fontStyle: defender.name == null
-                      ? FontStyle.italic
-                      : FontStyle.normal,
-                ),
-              ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const RadialGradient(
+            center: Alignment.center,
+            radius: 0.9,
+            colors: [
+              MedievalColors.parchmentLight,
+              MedievalColors.parchmentDark,
             ],
+            stops: [0.6, 1.0],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(50),
+              blurRadius: 6,
+              offset: const Offset(2, 3),
+            ),
+          ],
+        ),
+        child: CustomPaint(
+          painter: ParchmentBorderPainter(),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DefenderTypeIcon(type: defender.type),
+                const SizedBox(width: 10),
+                Text(
+                  defender.name ?? 'Unnamed Defender',
+                  style: GoogleFonts.cinzel(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: defender.name != null
+                        ? MedievalColors.vermillion
+                        : MedievalColors.sepiaMuted,
+                    fontStyle: defender.name == null
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
