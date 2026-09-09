@@ -41,4 +41,11 @@ class DefendersCubit extends Cubit<DefendersState> {
       emit(state.copyWith(defenders: [...state.defenders, newDefender]));
     } catch (_) {}
   }
+
+  Future<void> removeDefender(String id) async {
+    await _defenderApi.delete(id);
+    emit(state.copyWith(
+      defenders: state.defenders.where((d) => d.id != id).toList(),
+    ));
+  }
 }
