@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_type_icon.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 class DefendersPage extends StatelessWidget {
@@ -366,7 +367,7 @@ class _DefendersViewState extends State<_DefendersView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTypeIcon(defender.type),
+              DefenderTypeIcon(type: defender.type),
               const SizedBox(width: 10),
               Text(
                 defender.name ?? 'Unnamed Defender',
@@ -385,29 +386,6 @@ class _DefendersViewState extends State<_DefendersView> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTypeIcon(DefenderType type) {
-    IconData iconData;
-    switch (type) {
-      case DefenderType.knight:
-        iconData = Icons.shield;
-      case DefenderType.bastionDefender:
-        iconData = Icons.castle;
-      case DefenderType.beast:
-        iconData = Icons.pets;
-    }
-
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: MedievalColors.goldPale.withAlpha(100)),
-        color: MedievalColors.parchmentDark,
-      ),
-      child: Icon(iconData, size: 20, color: MedievalColors.sepiaMuted),
     );
   }
 }
