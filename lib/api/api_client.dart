@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 import 'api_response.dart';
 
-final String _baseUrl = Platform.environment['URL'] ?? 'http://localhost:8080';
+final String _baseUrl = Platform.environment['KAFKA'] ?? 'http://localhost:8080';
 
 class ApiClient {
   final String baseUrl;
