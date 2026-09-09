@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 
 import 'package:maura_bastion_system/api/newspaper_api.dart';
+import 'package:maura_bastion_system/data/default_data/news_paper/default_news_paper_data.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_data.dart';
 import 'package:maura_bastion_system/features/news_paper/logic/news_paper_state.dart';
@@ -24,7 +25,7 @@ class NewsPaperCubit extends Cubit<NewsPaperMainState> {
   }
 
   List<NewspaperData> _buildNewspaperData(List<NewspaperArticle> articles) {
-    if (articles.isEmpty) return [];
+    if (articles.isEmpty) return getDefaultNewspapers();
 
     final months = [
       'January', 'February', 'March', 'April', 'May', 'June',

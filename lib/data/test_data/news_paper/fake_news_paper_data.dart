@@ -1,13 +1,6 @@
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_data.dart';
-
-String formatDate(DateTime date) {
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  return '${date.day} ${monthNames[date.month - 1]} ${date.year}';
-}
+import 'package:maura_bastion_system/data/news_paper/news_paper_format.dart';
 
 List<NewspaperData> getFakeNewspapers() {
   final now = DateTime.now();
