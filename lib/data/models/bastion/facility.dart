@@ -12,8 +12,10 @@ class Facility {
   final String? imgUrl;
   final FacilityTable? table;
   final int constructedTurns;
+  final String? branchUpgradeId;
+  final bool branchUpgradeActive;
 
-  Facility({
+  const Facility({
     required this.id,
     required this.name,
     required this.rank,
@@ -24,7 +26,38 @@ class Facility {
     this.constructionTurns = 0,
     this.cost = 0,
     this.constructedTurns = 0,
+    this.branchUpgradeId,
+    this.branchUpgradeActive = false,
   });
+
+  Facility copyWith({
+    String? name,
+    Rank? rank,
+    String? description,
+    String? imgUrl,
+    FacilityTable? table,
+    int? minimumRequiredHirelings,
+    int? constructionTurns,
+    int? cost,
+    int? constructedTurns,
+    String? branchUpgradeId,
+    bool? branchUpgradeActive,
+  }) {
+    return Facility(
+      id: id,
+      name: name ?? this.name,
+      rank: rank ?? this.rank,
+      description: description ?? this.description,
+      imgUrl: imgUrl ?? this.imgUrl,
+      table: table ?? this.table,
+      minimumRequiredHirelings: minimumRequiredHirelings ?? this.minimumRequiredHirelings,
+      constructionTurns: constructionTurns ?? this.constructionTurns,
+      cost: cost ?? this.cost,
+      constructedTurns: constructedTurns ?? this.constructedTurns,
+      branchUpgradeId: branchUpgradeId ?? this.branchUpgradeId,
+      branchUpgradeActive: branchUpgradeActive ?? this.branchUpgradeActive,
+    );
+  }
 
   factory Facility.fromJson(Map<String, dynamic> json) {
     return Facility(
@@ -40,6 +73,8 @@ class Facility {
       constructionTurns: json['constructionTurns'] as int? ?? 0,
       cost: json['cost'] as int? ?? 0,
       constructedTurns: json['constructedTurns'] as int? ?? 0,
+      branchUpgradeId: json['branchUpgradeId'] as String?,
+      branchUpgradeActive: json['branchUpgradeActive'] as bool? ?? false,
     );
   }
 
@@ -55,6 +90,8 @@ class Facility {
       'constructionTurns': constructionTurns,
       'cost': cost,
       'constructedTurns': constructedTurns,
+      'branchUpgradeId': branchUpgradeId,
+      'branchUpgradeActive': branchUpgradeActive,
     };
   }
 }

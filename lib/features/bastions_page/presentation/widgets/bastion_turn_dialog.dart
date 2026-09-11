@@ -4,29 +4,34 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/bastion/individual_bastion_event.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 class BastionTurnDialog extends StatelessWidget {
   final Facility? advancedFacility;
   final Bastion bastion;
+  final IndividualBastionEvent? event;
 
   const BastionTurnDialog({
     super.key,
     required this.advancedFacility,
     required this.bastion,
+    this.event,
   });
 
   static Future<void> show(
     BuildContext context, {
     required Facility? advancedFacility,
     required Bastion bastion,
+    IndividualBastionEvent? event,
   }) {
     return showDialog(
       context: context,
       builder: (_) => BastionTurnDialog(
         advancedFacility: advancedFacility,
         bastion: bastion,
+        event: event,
       ),
     );
   }
@@ -120,6 +125,12 @@ class BastionTurnDialog extends StatelessWidget {
                   ),
                 const SizedBox(height: 12),
                 Flexible(
+                  child: SingleChildScrollView(
+                    child: _buildEventSection(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Flexible(
                   child: eligible.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -151,6 +162,55 @@ class BastionTurnDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEventSection() {
+    final e = event;
+    if (e == null) {
+      return Text(
+        'No individual event this turn.',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.imFellEnglish(
+          fontSize: 13,
+          fontStyle: FontStyle.italic,
+          color: MedievalColors.sepiaMuted,
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Individual Event',
+          style: GoogleFonts.imFellEnglish(
+            fontSize: 12,
+            color: MedievalColors.sepiaSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          e.name,
+          style: GoogleFonts.cinzel(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: MedievalColors.vermillion,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          e.description,
+          style: GoogleFonts.imFellEnglish(
+            fontSize: 13,
+            height: 1.4,
+            color: MedievalColors.sepiaInk,
+          ),
+        ),
+        if (e.table != null) ...[
+          const SizedBox(height: 8),
+          FacilityTableView(table: e.table!),
+        ],
+      ],
     );
   }
 

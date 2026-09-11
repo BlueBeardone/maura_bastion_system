@@ -57,6 +57,7 @@ void main() {
     required List<Facility> bastionFacilities,
     required bool isUserBastion,
     VoidCallback? onUpgrade,
+    VoidCallback? onPurchaseBranchUpgrade,
   }) async {
     final apiClient =
         ApiClient(baseUrl: 'http://example.test', client: hirelingMock());
@@ -80,6 +81,7 @@ void main() {
             bastion: bastion,
             isUserBastion: isUserBastion,
             onUpgrade: onUpgrade,
+            onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
           ),
         ),
       ),
@@ -197,5 +199,107 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Upgrade to Rank C — 900 GP'));
     expect(called, isTrue);
+  });
+
+  Facility kitchen({
+    int constructed = 2,
+    int total = 2,
+    Rank rank = Rank.D,
+    String? branchUpgradeId,
+    bool branchUpgradeActive = false,
+  }) =>
+      Facility(
+        id: 'cat_kitchen',
+        name: 'Kitchen',
+        rank: rank,
+        description: 'Kitchen description.',
+        minimumRequiredHirelings: 1,
+        constructionTurns: total,
+        constructedTurns: constructed,
+        cost: 600,
+        branchUpgradeId: branchUpgradeId,
+        branchUpgradeActive: branchUpgradeActive,
+      );
+
+  group('FacilityPage branch upgrade card', () {
+    testWidgets('shows purchase button for unowned upgrade', (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(),
+        bastionFacilities: [kitchen()],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Industrial Kitchen'), findsWidgets);
+      expect(find.textContaining('500 GP'), findsWidgets);
+    });
+
+    testWidgets('shows Owned badge and capacity 3 when owned', (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
+        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Owned'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNothing);
+    });
+
+    testWidgets('shows Renew label for lapsed perTurn upgrade', (tester) async {
+      Facility pub({
+        required String? branchUpgradeId,
+        required bool branchUpgradeActive,
+      }) =>
+          Facility(
+            id: 'cat_pub',
+            name: 'Pub',
+            rank: Rank.A,
+            description: 'Pub description.',
+            minimumRequiredHirelings: 1,
+            constructionTurns: 8,
+            constructedTurns: 8,
+            cost: 9000,
+            branchUpgradeId: branchUpgradeId,
+            branchUpgradeActive: branchUpgradeActive,
+          );
+
+      await pumpFacilityPage(
+        tester,
+        facility: pub(
+          branchUpgradeId: 'bru_pub_of_legend',
+          branchUpgradeActive: false,
+        ),
+        bastionFacilities: [
+          pub(
+            branchUpgradeId: 'bru_pub_of_legend',
+            branchUpgradeActive: false,
+          ),
+        ],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Renew'), findsOneWidget);
+    });
+
+    testWidgets('hirelings required line uses hirelingCapacity',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
+        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('/ 3 hirelings'), findsOneWidget);
+    });
   });
 }

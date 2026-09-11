@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
@@ -21,6 +22,7 @@ class FacilityPage extends StatelessWidget {
   final bool isUserBastion;
   final VoidCallback? onConstruct;
   final VoidCallback? onUpgrade;
+  final VoidCallback? onPurchaseBranchUpgrade;
 
   const FacilityPage({
     super.key,
@@ -29,6 +31,7 @@ class FacilityPage extends StatelessWidget {
     required this.isUserBastion,
     this.onConstruct,
     this.onUpgrade,
+    this.onPurchaseBranchUpgrade,
   });
 
   @override
@@ -44,6 +47,7 @@ class FacilityPage extends StatelessWidget {
         isUserBastion: false,
         isSelectionMode: false,
         onUpgrade: onUpgrade,
+        onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
       );
     }
 
@@ -57,6 +61,7 @@ class FacilityPage extends StatelessWidget {
         isSelectionMode: true,
         onConstruct: onConstruct,
         onUpgrade: onUpgrade,
+        onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
       );
     }
 
@@ -81,6 +86,7 @@ class FacilityPage extends StatelessWidget {
             isUserBastion: true,
             isSelectionMode: false,
             onUpgrade: onUpgrade,
+            onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
           );
         },
       ),
@@ -97,6 +103,7 @@ class _FacilityView extends StatelessWidget {
   final bool isSelectionMode;
   final VoidCallback? onConstruct;
   final VoidCallback? onUpgrade;
+  final VoidCallback? onPurchaseBranchUpgrade;
 
   const _FacilityView({
     required this.facility,
@@ -107,6 +114,7 @@ class _FacilityView extends StatelessWidget {
     this.isSelectionMode = false,
     this.onConstruct,
     this.onUpgrade,
+    this.onPurchaseBranchUpgrade,
   });
 
   @override
@@ -159,6 +167,11 @@ class _FacilityView extends StatelessWidget {
                   if (facility.table != null) ...[
                     const SizedBox(height: 24),
                     _buildTableSection(),
+                  ],
+                  if (branchUpgradeFor(facility.id) != null &&
+                      !isSelectionMode) ...[
+                    const SizedBox(height: 24),
+                    _buildBranchUpgradeCard(),
                   ],
                   if (!isSelectionMode) ...[
                     const SizedBox(height: 24),
@@ -244,6 +257,132 @@ class _FacilityView extends StatelessWidget {
     final anyBusy = bastion.facilities
         .any((f) => f.constructedTurns < f.constructionTurns);
     return !anyBusy;
+  }
+
+  bool _shouldShowBranchUpgradePurchase() {
+    if (onPurchaseBranchUpgrade == null) return false;
+    if (!isUserBastion || isSelectionMode) return false;
+    if (facility.constructedTurns < facility.constructionTurns) return false;
+    final anyBusy = bastion.facilities
+        .any((f) => f.constructedTurns < f.constructionTurns);
+    return !anyBusy;
+  }
+
+  Widget _buildBranchUpgradeCard() {
+    final upgrade = branchUpgradeFor(facility.id)!;
+    final owned = facility.hasActiveBranchUpgrade;
+    final isLapsed = facility.branchUpgradeId != null &&
+        !facility.branchUpgradeActive &&
+        upgrade.kind == BranchUpgradeKind.perTurn;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: owned
+            ? MedievalColors.goldLeaf.withAlpha(40)
+            : MedievalColors.parchment.withAlpha(120),
+        border: Border.all(
+          color: owned ? MedievalColors.goldBright : MedievalColors.goldPale,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  upgrade.name,
+                  style: GoogleFonts.cinzel(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: MedievalColors.vermillion,
+                  ),
+                ),
+              ),
+              if (owned)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: MedievalColors.goldBright,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Owned',
+                    style: GoogleFonts.cinzel(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: MedievalColors.parchment,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            upgrade.description,
+            style: GoogleFonts.imFellEnglish(
+              fontSize: 13,
+              height: 1.3,
+              color: MedievalColors.sepiaInk,
+            ),
+          ),
+          if (owned && upgrade.hirelingCapacity != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Holds up to ${upgrade.hirelingCapacity} hirelings',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+          ],
+          if (!owned && _shouldShowBranchUpgradePurchase() &&
+              upgrade.kind != BranchUpgradeKind.perUse) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onPurchaseBranchUpgrade,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MedievalColors.vermillion,
+                  foregroundColor: MedievalColors.goldPale,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  isLapsed
+                      ? 'Renew ${upgrade.name} — ${upgrade.costFor(facility.rank)} GP'
+                      : '${upgrade.name} — ${upgrade.costFor(facility.rank)} GP',
+                  style: GoogleFonts.cinzel(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (!owned &&
+              upgrade.kind == BranchUpgradeKind.perUse &&
+              _shouldShowBranchUpgradePurchase()) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Per-play upgrade — pay ${upgrade.costFor(facility.rank)} GP each time you host a play.',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildHeader() {
@@ -394,11 +533,11 @@ class _FacilityView extends StatelessWidget {
         Icon(Icons.info_outline, color: MedievalColors.goldLeaf, size: 16),
         const SizedBox(width: 6),
         Text(
-          '${assigned.length} / ${facility.minimumRequiredHirelings} hirelings required',
+          '${assigned.length} / ${facility.hirelingCapacity} hirelings required',
           style: GoogleFonts.imFellEnglish(
             fontSize: 14,
             fontStyle: FontStyle.italic,
-            color: assigned.length >= facility.minimumRequiredHirelings
+            color: assigned.length >= facility.hirelingCapacity
                 ? MedievalColors.sepiaSecondary
                 : MedievalColors.vermillion,
           ),

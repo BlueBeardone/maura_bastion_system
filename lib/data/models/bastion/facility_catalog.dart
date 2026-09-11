@@ -1,4 +1,5 @@
 import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
@@ -30,6 +31,106 @@ int facilityUpgradeCost(Rank rank) {
   final next = rank.next;
   if (next == null) return 0;
   return baseCostByRank[next]! - baseCostByRank[rank]!;
+}
+
+const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
+  'cat_kitchen': BranchUpgrade(
+    id: 'bru_industrial_kitchen',
+    facilityId: 'cat_kitchen',
+    name: 'Industrial Kitchen',
+    cost: 500,
+    description:
+        'Pay 500 GP. The amount of hirelings your kitchen can hold increases to 3. While you have three hirelings in the kitchen, when you successfully pass a DC to craft a treat in the kitchen, you get 1d6 extra treats!',
+    kind: BranchUpgradeKind.oneTime,
+    hirelingCapacity: 3,
+  ),
+  'cat_laboratory': BranchUpgrade(
+    id: 'bru_industrial_laboratory',
+    facilityId: 'cat_laboratory',
+    name: 'Industrial Laboratory',
+    cost: 4000,
+    description:
+        'Pay 4,000 GP. The amount of hirelings your Laboratory can hold increases to 2. While you have two hirelings in the laboratory, when you successfully pass a DC to craft a potion, poison, or dilution, you have a 20% chance to gain a double. Increase this chance by 10% for each Laboratory rank above C.',
+    kind: BranchUpgradeKind.oneTime,
+    hirelingCapacity: 2,
+  ),
+  'cat_library': BranchUpgrade(
+    id: 'bru_vault_of_knowledge',
+    facilityId: 'cat_library',
+    name: 'Vault of Knowledge',
+    cost: 1000,
+    description:
+        'Pay 1,000 GP to gain new and accurate information, and your bonus to a skill increases to +3 until the end of the Bastion Turn.',
+    kind: BranchUpgradeKind.oneTime,
+  ),
+  'cat_trading_hub': BranchUpgrade(
+    id: 'bru_specialized_shelving',
+    facilityId: 'cat_trading_hub',
+    name: 'Specialized Shelving',
+    cost: 2000,
+    description:
+        'Pay 2,000 GP to increase the total value of what you can procure by 500 GP per rank. You also unlock additional items to buy.',
+    kind: BranchUpgradeKind.oneTime,
+  ),
+  'cat_workshop': BranchUpgrade(
+    id: 'bru_mastercraft_workshop',
+    facilityId: 'cat_workshop',
+    name: 'Mastercraft Workshop',
+    cost: 4000,
+    description:
+        'Pay 4,000 GP. The amount of hirelings your Workshop can hold increases to 2. While you have two hirelings in the Workshop, the Individual Bastion Turn Order also adds 1d4 to your crafting roll. This does not stack with Flash of Genius or Built for Success.',
+    kind: BranchUpgradeKind.oneTime,
+    hirelingCapacity: 2,
+  ),
+  'cat_pub': BranchUpgrade(
+    id: 'bru_pub_of_legend',
+    facilityId: 'cat_pub',
+    name: 'Pub of Legend',
+    cost: 2000,
+    description:
+        'Pay 2,000 GP each Individual Bastion Turn to increase your Hireling count to 4. While you have at least 4 hirelings working in the pub, you can have another pub special.',
+    kind: BranchUpgradeKind.perTurn,
+    hirelingCapacity: 4,
+  ),
+  'cat_theatre': BranchUpgrade(
+    id: 'bru_stage_enhancements',
+    facilityId: 'cat_theatre',
+    name: 'Stage Enhancements',
+    costByRank: {Rank.B: 750, Rank.A: 1000, Rank.S: 1500},
+    description:
+        'Pay the amount of gold listed in the table every time you make a play for players, to increase the Performance Token. You can pay up to your Facility Rank from the table.',
+    kind: BranchUpgradeKind.perUse,
+  ),
+};
+
+BranchUpgrade? branchUpgradeFor(String facilityId) =>
+    branchUpgradesByFacilityId[facilityId];
+
+extension FacilityBranchUpgradeX on Facility {
+  BranchUpgrade? get branchUpgrade {
+    if (branchUpgradeId == null) return null;
+    for (final upgrade in branchUpgradesByFacilityId.values) {
+      if (upgrade.id == branchUpgradeId) return upgrade;
+    }
+    return null;
+  }
+
+  bool get hasActiveBranchUpgrade {
+    final upgrade = branchUpgrade;
+    if (upgrade == null) return false;
+    if (upgrade.kind == BranchUpgradeKind.perTurn && !branchUpgradeActive) {
+      return false;
+    }
+    return true;
+  }
+
+  int get hirelingCapacity {
+    final upgrade = branchUpgrade;
+    if (!hasActiveBranchUpgrade || upgrade!.hirelingCapacity == null) {
+      return minimumRequiredHirelings;
+    }
+    return upgrade.hirelingCapacity!;
+  }
 }
 
 List<Facility> getFacilityCatalog() {

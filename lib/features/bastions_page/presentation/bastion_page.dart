@@ -12,6 +12,7 @@ import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/bastion/individual_bastion_events_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
@@ -116,10 +117,12 @@ class BastionPage extends StatelessWidget {
     final cubit = context.read<BastionCubit>();
     final advanced = await cubit.advanceBastionTurn(bastion.id);
     if (!context.mounted) return;
+    final event = rollIndividualBastionEvent();
     await BastionTurnDialog.show(
       context,
       advancedFacility: advanced,
       bastion: bastion,
+      event: event,
     );
   }
 
@@ -206,6 +209,14 @@ class BastionPage extends StatelessWidget {
                 onUpgrade: isUserBastion
                     ? () async {
                         await cubit.upgradeFacility(bastion.id, facility);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    : null,
+                onPurchaseBranchUpgrade: isUserBastion
+                    ? () async {
+                        await cubit.purchaseBranchUpgrade(bastion.id, facility);
                         if (context.mounted) {
                           Navigator.of(context).pop();
                         }
@@ -736,6 +747,15 @@ class BastionPage extends StatelessWidget {
                   onUpgrade: isUserBastion
                       ? () async {
                           await cubit.upgradeFacility(bastion.id, facility);
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      : null,
+                  onPurchaseBranchUpgrade: isUserBastion
+                      ? () async {
+                          await cubit
+                              .purchaseBranchUpgrade(bastion.id, facility);
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }

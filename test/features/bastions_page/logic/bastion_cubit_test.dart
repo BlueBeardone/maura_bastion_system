@@ -68,19 +68,24 @@ void main() {
     Map<String, dynamic> facilityJson({
       required String id,
       required String name,
+      String rank = 'd',
       int constructed = 0,
       int total = 0,
       int requiredHirelings = 0,
+      String? branchUpgradeId,
+      bool branchUpgradeActive = false,
     }) =>
         {
           'id': id,
           'name': name,
-          'rank': 'd',
+          'rank': rank.toLowerCase(),
           'description': 'desc',
           'constructionTurns': total,
           'constructedTurns': constructed,
           'minimumRequiredHirelings': requiredHirelings,
           'cost': 0,
+          'branchUpgradeId': ?branchUpgradeId,
+          'branchUpgradeActive': branchUpgradeActive,
         };
 
     Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
@@ -348,6 +353,76 @@ void main() {
       expect(second, isNull);
       expect(puts.length, 1);
 
+      await cubit.close();
+    });
+
+    test('lapses an active perTurn branch upgrade on turn advance', () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                    id: 'cat_kitchen', name: 'Kitchen', rank: 'd',
+                    constructed: 0, total: 2,
+                  ),
+                  facilityJson(
+                    id: 'cat_pub', name: 'Pub', rank: 'a',
+                    branchUpgradeId: 'bru_pub_of_legend',
+                    branchUpgradeActive: true,
+                  ),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      await cubit.advanceBastionTurn('bastion-1');
+
+      expect(puts, hasLength(2));
+      final kitchenPut = puts.firstWhere(
+        (r) => r.url.path == '/maura/v1/facilities/cat_kitchen',
+      );
+      final pubPut = puts.firstWhere(
+        (r) => r.url.path == '/maura/v1/facilities/cat_pub',
+      );
+      final kitchenBody = jsonDecode(kitchenPut.body) as Map<String, dynamic>;
+      final pubBody = jsonDecode(pubPut.body) as Map<String, dynamic>;
+      expect(kitchenBody['constructedTurns'], 1);
+      expect(pubBody['branchUpgradeActive'], isFalse);
       await cubit.close();
     });
   });
@@ -651,6 +726,222 @@ void main() {
       expect(result, isNull);
       expect(puts, isEmpty);
 
+      await cubit.close();
+    });
+  });
+
+  group('BastionCubit.purchaseBranchUpgrade', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      required String rank,
+      String? branchUpgradeId,
+      bool branchUpgradeActive = false,
+      int constructed = 2,
+      int total = 2,
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank.toLowerCase(),
+          'description': 'desc',
+          'constructionTurns': total,
+          'constructedTurns': constructed,
+          'minimumRequiredHirelings': 1,
+          'cost': 600,
+          'branchUpgradeId': ?branchUpgradeId,
+          'branchUpgradeActive': branchUpgradeActive,
+        };
+
+    Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
+        {
+          'id': 'bastion-1',
+          'userId': 'user_1',
+          'name': 'Test Bastion',
+          'description': 'desc',
+          'facilities': facilities,
+        };
+
+    /// Returns (mockClient, capturedPuts). The mock answers GET
+    /// /maura/v1/bastions with the given facilities and PUTs facilities back.
+    (MockClient, List<http.Request>) purchaseMock(
+      List<Map<String, dynamic>> facilities,
+    ) {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [bastionJson(facilities)],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+      return (mock, puts);
+    }
+
+    BastionCubit cubitWith(MockClient mock) {
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      return BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+    }
+
+    test('purchases a oneTime upgrade and persists ownership', () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(id: 'cat_kitchen', name: 'Kitchen', rank: 'd'),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final kitchen = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', kitchen);
+
+      expect(result, isNotNull);
+      expect(result!.branchUpgradeId, 'bru_industrial_kitchen');
+      expect(result.branchUpgradeActive, isTrue);
+      expect(puts, hasLength(1));
+      final body = jsonDecode(puts.first.body) as Map<String, dynamic>;
+      expect(body['branchUpgradeId'], 'bru_industrial_kitchen');
+      expect(body['branchUpgradeActive'], isTrue);
+      await cubit.close();
+    });
+
+    test('rejects purchase when a branch upgrade is already active',
+        () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(
+          id: 'cat_kitchen',
+          name: 'Kitchen',
+          rank: 'd',
+          branchUpgradeId: 'bru_industrial_kitchen',
+        ),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final kitchen = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', kitchen);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+      await cubit.close();
+    });
+
+    test('rejects facilities without a branch upgrade', () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(id: 'cat_barracks', name: 'Barracks', rank: 'd'),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final barracks = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', barracks);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+      await cubit.close();
+    });
+
+    test('rejects facility still under construction', () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(
+            id: 'cat_kitchen', name: 'Kitchen', rank: 'd',
+            constructed: 0, total: 2),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final kitchen = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', kitchen);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
+      await cubit.close();
+    });
+
+    test('renews a lapsed perTurn upgrade', () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(
+          id: 'cat_pub',
+          name: 'Pub',
+          rank: 'a',
+          branchUpgradeId: 'bru_pub_of_legend',
+          branchUpgradeActive: false,
+        ),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final pub = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', pub);
+
+      expect(result, isNotNull);
+      expect(result!.branchUpgradeActive, isTrue);
+      expect(puts, hasLength(1));
+      await cubit.close();
+    });
+
+    test('rejects perUse upgrades without persisting anything', () async {
+      final (mock, puts) = purchaseMock([
+        facilityJson(id: 'cat_theatre', name: 'Theatre', rank: 'b'),
+      ]);
+      final cubit = cubitWith(mock);
+      await cubit.loadBastions();
+      final theatre = (cubit.state as BastionLoadedState)
+          .bastions
+          .first
+          .facilities
+          .first;
+
+      final result = await cubit.purchaseBranchUpgrade('bastion-1', theatre);
+
+      expect(result, isNull);
+      expect(puts, isEmpty);
       await cubit.close();
     });
   });

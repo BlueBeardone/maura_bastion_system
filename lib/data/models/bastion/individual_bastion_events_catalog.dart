@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:maura_bastion_system/data/models/bastion/individual_bastion_event.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
@@ -171,4 +173,15 @@ Roll a d8 on the table below for the number of attackers per Rank above D.''',
       ]),
     ),
   ];
+}
+
+/// Rolls 1d100 and returns the matching individual Bastion event.
+IndividualBastionEvent rollIndividualBastionEvent({Random? rng}) {
+  final events = getIndividualBastionEventsCatalog();
+  assert(
+    events.first.rollMin == 1 && events.last.rollMax == 100,
+    'Individual event catalog must cover rolls 1-100',
+  );
+  final roll = (rng ?? Random()).nextInt(100) + 1;
+  return events.firstWhere((e) => e.matchesRoll(roll));
 }

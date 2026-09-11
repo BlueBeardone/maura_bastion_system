@@ -4,6 +4,7 @@ import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 
@@ -57,22 +58,32 @@ class BastionCubit extends Cubit<BastionState> {
     }
     if (target == null) return null;
 
-    final advanced = Facility(
-      id: target.id,
-      name: target.name,
-      rank: target.rank,
-      description: target.description,
-      imgUrl: target.imgUrl,
-      table: target.table,
-      minimumRequiredHirelings: target.minimumRequiredHirelings,
-      constructionTurns: target.constructionTurns,
-      cost: target.cost,
+    var advanced = target.copyWith(
       constructedTurns: target.constructedTurns + 1,
     );
+
+    // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance.
+    final targetPerTurnActive = target.branchUpgrade?.kind ==
+            BranchUpgradeKind.perTurn &&
+        target.branchUpgradeActive;
+    if (targetPerTurnActive) {
+      advanced = advanced.copyWith(branchUpgradeActive: false);
+    }
+    final lapsed = <Facility>[];
+    for (final facility in bastion.facilities) {
+      if (facility.id == target.id) continue;
+      final isPerTurn = facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
+      if (isPerTurn && facility.branchUpgradeActive) {
+        lapsed.add(facility.copyWith(branchUpgradeActive: false));
+      }
+    }
 
     try {
       _advancingTurn = true;
       await _facilityApi.update(advanced.id, advanced, bastionId: bastion.id);
+      for (final facility in lapsed) {
+        await _facilityApi.update(facility.id, facility, bastionId: bastion.id);
+      }
       await loadBastions();
       return advanced;
     } catch (e, stackTrace) {
@@ -105,14 +116,8 @@ class BastionCubit extends Cubit<BastionState> {
         .any((f) => f.constructedTurns < f.constructionTurns);
     if (anyBusy) return null;
 
-    final upgraded = Facility(
-      id: facility.id,
-      name: facility.name,
+    final upgraded = facility.copyWith(
       rank: nextRank,
-      description: facility.description,
-      imgUrl: facility.imgUrl,
-      table: facility.table,
-      minimumRequiredHirelings: facility.minimumRequiredHirelings,
       constructionTurns: 2,
       cost: baseCostByRank[nextRank]!,
       constructedTurns: 0,
@@ -128,6 +133,50 @@ class BastionCubit extends Cubit<BastionState> {
         error: e as Exception,
         stackTrace: stackTrace,
         message: 'Failed to upgrade facility',
+      ));
+      return null;
+    } finally {
+      _upgrading = false;
+    }
+  }
+
+  Future<Facility?> purchaseBranchUpgrade(
+      String bastionId, Facility facility) async {
+    if (_upgrading) return null;
+    if (state is! BastionLoadedState) return null;
+
+    final loaded = state as BastionLoadedState;
+    final bastion = loaded.bastions.firstWhere(
+      (b) => b.id == bastionId,
+      orElse: () => loaded.bastions.first,
+    );
+
+    final upgrade = branchUpgradeFor(facility.id);
+    if (upgrade == null) return null;
+    // perUse upgrades (Theatre Stage Enhancements) are per-play payments with
+    // no persistent state — never recorded here.
+    if (upgrade.kind == BranchUpgradeKind.perUse) return null;
+    if (facility.hasActiveBranchUpgrade) return null;
+    if (facility.constructedTurns < facility.constructionTurns) return null;
+    final anyBusy = bastion.facilities
+        .any((f) => f.constructedTurns < f.constructionTurns);
+    if (anyBusy) return null;
+
+    final purchased = facility.copyWith(
+      branchUpgradeId: upgrade.id,
+      branchUpgradeActive: true,
+    );
+
+    try {
+      _upgrading = true;
+      await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
+      await loadBastions();
+      return purchased;
+    } catch (e, stackTrace) {
+      emit(BastionErrorState(
+        error: e as Exception,
+        stackTrace: stackTrace,
+        message: 'Failed to purchase branch upgrade',
       ));
       return null;
     } finally {
