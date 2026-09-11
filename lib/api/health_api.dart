@@ -6,7 +6,7 @@ class HealthApi {
   HealthApi({required ApiClient client}) : _client = client;
 
   Future<bool> check() async {
-    await _client.get<bool>(
+    await _client.get<bool?>(
       '/maura/v1/health',
       parser: (data) => true,
     );

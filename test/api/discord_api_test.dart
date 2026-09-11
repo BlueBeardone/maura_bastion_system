@@ -241,5 +241,52 @@ void main() {
         );
       },
     );
+
+    group('null-data success envelopes (real backend shape)', () {
+      late MockClient mock;
+      late DiscordApi api;
+
+      setUp(() {
+        mock = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'Message sent',
+              'data': null,
+              'errors': null,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+        api = DiscordApi(
+          client: ApiClient(baseUrl: 'http://example.test', client: mock),
+        );
+      });
+
+      const result = BastionTurnResult(
+        bastionId: 'bastion-1',
+        bastionName: 'Ravencrest',
+        quest: 'Clear the goblin warren',
+        advancedFacility: null,
+        event: BastionTurnEventResult(
+          name: 'Guest',
+          description: 'A guest arrives',
+          rolledRow: null,
+        ),
+      );
+
+      test('sendIndividualBastionTurn completes without throwing', () async {
+        await api.sendIndividualBastionTurn(result);
+      });
+
+      test('sendMessage completes without throwing', () async {
+        await api.sendMessage('Hello from the bastion');
+      });
+
+      test('sendBastionCreated completes without throwing', () async {
+        await api.sendBastionCreated('Hello from the bastion');
+      });
+    });
   });
 }

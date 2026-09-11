@@ -8,7 +8,7 @@ class DiscordApi {
   DiscordApi({required ApiClient client}) : _client = client;
 
   Future<void> sendMessage(String message) async {
-    await _client.post<Map<String, dynamic>>(
+    await _client.post<Map<String, dynamic>?>(
       '/maura/v1/discord',
       {'message': message},
       parser: (json) => json as Map<String, dynamic>,
@@ -16,7 +16,7 @@ class DiscordApi {
   }
 
   Future<void> sendIndividualBastionTurn(BastionTurnResult result) async {
-    await _client.post<Map<String, dynamic>>(
+    await _client.post<Map<String, dynamic>?>(
       '/maura/v1/discord/individual-bastion-turn',
       result.toJson(),
       parser: (json) => json as Map<String, dynamic>,
@@ -42,7 +42,7 @@ class DiscordApi {
       _post('/maura/v1/discord/defender-acquired', message);
 
   Future<void> _post(String path, String message) async {
-    await _client.post<Map<String, dynamic>>(
+    await _client.post<Map<String, dynamic>?>(
       path,
       {'message': message},
       parser: (json) => json as Map<String, dynamic>,
