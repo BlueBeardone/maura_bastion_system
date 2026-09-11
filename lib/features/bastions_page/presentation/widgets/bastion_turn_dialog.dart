@@ -62,7 +62,10 @@ class BastionTurnDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 480),
+        constraints: BoxConstraints(
+          maxWidth: 480,
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
         decoration: BoxDecoration(
           gradient: const RadialGradient(
             center: Alignment.center,
@@ -213,11 +216,51 @@ class BastionTurnDialog extends StatelessWidget {
             color: MedievalColors.sepiaInk,
           ),
         ),
+        if (result?.event?.rolledRow != null) ...[
+          const SizedBox(height: 8),
+          _buildRolledResultCallout(result!.event!.rolledRow!),
+        ],
         if (e.table != null) ...[
           const SizedBox(height: 8),
           FacilityTableView(table: e.table!),
         ],
       ],
+    );
+  }
+
+  Widget _buildRolledResultCallout(String rolledRow) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: MedievalColors.parchment,
+        border: Border.all(color: MedievalColors.goldLeaf),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rolled',
+              style: GoogleFonts.cinzel(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: MedievalColors.vermillion,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              rolledRow,
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 13,
+                height: 1.4,
+                color: MedievalColors.sepiaInk,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
