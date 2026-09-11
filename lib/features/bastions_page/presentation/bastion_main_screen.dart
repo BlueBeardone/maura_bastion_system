@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
@@ -32,6 +33,7 @@ class BastionMainScreen extends StatelessWidget {
       create: (_) => BastionCubit(
         bastionApi: GetIt.I<BastionApi>(),
         facilityApi: GetIt.I<FacilityApi>(),
+        discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
       )..loadBastions(),
       child: BlocBuilder<BastionCubit, BastionState>(
         builder: (context, state) {

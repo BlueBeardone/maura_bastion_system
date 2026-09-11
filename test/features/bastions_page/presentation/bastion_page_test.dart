@@ -9,9 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
@@ -59,6 +61,9 @@ void main() {
       );
       GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
       GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+      GetIt.I.registerSingleton<DiscordAnnouncer>(
+        DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+      );
 
       final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
       GetIt.I.registerSingleton<AuthCubit>(authCubit);
@@ -155,6 +160,10 @@ void main() {
     final apiClient = ApiClient(baseUrl: 'http://example.test', client: mockClient);
     GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
     GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordApi>(DiscordApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
     final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 
@@ -354,6 +363,9 @@ void main() {
     GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
     GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
     GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
     final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 

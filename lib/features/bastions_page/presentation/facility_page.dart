@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -69,6 +70,8 @@ class FacilityPage extends StatelessWidget {
       create: (_) => HirelingsCubit(
         bastionId: bastion.id,
         hirelingApi: GetIt.I<HirelingApi>(),
+        discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
+        bastionName: bastion.name,
       )..loadHirelings(),
       child: BlocBuilder<HirelingsCubit, HirelingsState>(
         builder: (context, state) {

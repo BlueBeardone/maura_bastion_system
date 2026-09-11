@@ -1,18 +1,25 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 
 part 'hirelings_state.dart';
 
 class HirelingsCubit extends Cubit<HirelingsState> {
   final HirelingApi _hirelingApi;
+  final DiscordAnnouncer? _discordAnnouncer;
+  final String? _bastionName;
 
   HirelingsCubit({
     required String bastionId,
     required HirelingApi hirelingApi,
-  }) : _hirelingApi = hirelingApi,
-       super(HirelingsState(bastionId: bastionId));
+    DiscordAnnouncer? discordAnnouncer,
+    String? bastionName,
+  })  : _hirelingApi = hirelingApi,
+        _discordAnnouncer = discordAnnouncer,
+        _bastionName = bastionName,
+        super(HirelingsState(bastionId: bastionId));
 
   Future<void> loadHirelings() async {
     try {
@@ -40,6 +47,10 @@ class HirelingsCubit extends Cubit<HirelingsState> {
         acquisitionStory: acquisitionStory,
       ));
       emit(state.copyWith(hirelings: [...state.hirelings, newHireling]));
+      try {
+        await _discordAnnouncer
+            ?.announceHirelingHired(newHireling, bastionName: _bastionName);
+      } catch (_) {}
     } catch (_) {}
   }
 

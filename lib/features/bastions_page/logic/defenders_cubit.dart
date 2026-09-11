@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/defender_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 
@@ -8,12 +9,18 @@ part 'defenders_state.dart';
 
 class DefendersCubit extends Cubit<DefendersState> {
   final DefenderApi _defenderApi;
+  final DiscordAnnouncer? _discordAnnouncer;
+  final String? _bastionName;
 
   DefendersCubit({
     required String bastionId,
     required DefenderApi defenderApi,
-  }) : _defenderApi = defenderApi,
-       super(DefendersState(bastionId: bastionId));
+    DiscordAnnouncer? discordAnnouncer,
+    String? bastionName,
+  })  : _defenderApi = defenderApi,
+        _discordAnnouncer = discordAnnouncer,
+        _bastionName = bastionName,
+        super(DefendersState(bastionId: bastionId));
 
   Future<void> loadDefenders() async {
     try {
@@ -39,6 +46,10 @@ class DefendersCubit extends Cubit<DefendersState> {
         bastionId: state.bastionId,
       ));
       emit(state.copyWith(defenders: [...state.defenders, newDefender]));
+      try {
+        await _discordAnnouncer
+            ?.announceDefenderAcquired(newDefender, bastionName: _bastionName);
+      } catch (_) {}
     } catch (_) {}
   }
 

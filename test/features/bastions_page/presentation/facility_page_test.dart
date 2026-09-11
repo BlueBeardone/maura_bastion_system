@@ -8,8 +8,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
@@ -17,9 +19,9 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/facilit
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
-    GetIt.I.reset();
+    await GetIt.I.reset();
   });
 
   Facility barracks({int constructed = 2, int total = 2, Rank rank = Rank.D}) =>
@@ -62,6 +64,9 @@ void main() {
     final apiClient =
         ApiClient(baseUrl: 'http://example.test', client: hirelingMock());
     GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
     final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 

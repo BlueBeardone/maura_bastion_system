@@ -100,6 +100,105 @@ void main() {
       expect(captured.body, jsonEncode(result.toJson()));
     });
 
+    group('per-event endpoints', () {
+      final capturedRequests = <http.Request>[];
+      late DiscordApi api;
+
+      setUp(() {
+        capturedRequests.clear();
+        final mock = MockClient((request) async {
+          capturedRequests.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+        api = DiscordApi(
+          client: ApiClient(baseUrl: 'http://example.test', client: mock),
+        );
+      });
+
+      Future<void> expectPostsTo(
+        Future<void> Function(DiscordApi) call,
+        String path,
+      ) async {
+        await call(api);
+        expect(capturedRequests, hasLength(1));
+        expect(capturedRequests.first.method, 'POST');
+        expect(capturedRequests.first.url.toString(), 'http://example.test$path');
+        expect(
+          capturedRequests.first.body,
+          jsonEncode({'message': 'Hello from the bastion'}),
+        );
+      }
+
+      test('sendBastionCreated POSTs to /maura/v1/discord/bastion-creation', () async {
+        await expectPostsTo(
+          (api) => api.sendBastionCreated('Hello from the bastion'),
+          '/maura/v1/discord/bastion-creation',
+        );
+      });
+
+      test('sendFacilityBuilt POSTs to /maura/v1/discord/facility-built', () async {
+        await expectPostsTo(
+          (api) => api.sendFacilityBuilt('Hello from the bastion'),
+          '/maura/v1/discord/facility-built',
+        );
+      });
+
+      test('sendFacilityRankUp POSTs to /maura/v1/discord/facility-rank-up', () async {
+        await expectPostsTo(
+          (api) => api.sendFacilityRankUp('Hello from the bastion'),
+          '/maura/v1/discord/facility-rank-up',
+        );
+      });
+
+      test('sendBranchUpgradePurchased POSTs to /maura/v1/discord/branch-upgrade', () async {
+        await expectPostsTo(
+          (api) => api.sendBranchUpgradePurchased('Hello from the bastion'),
+          '/maura/v1/discord/branch-upgrade',
+        );
+      });
+
+      test('sendHirelingHired POSTs to /maura/v1/discord/hireling-hired', () async {
+        await expectPostsTo(
+          (api) => api.sendHirelingHired('Hello from the bastion'),
+          '/maura/v1/discord/hireling-hired',
+        );
+      });
+
+      test('sendDefenderAcquired POSTs to /maura/v1/discord/defender-acquired', () async {
+        await expectPostsTo(
+          (api) => api.sendDefenderAcquired('Hello from the bastion'),
+          '/maura/v1/discord/defender-acquired',
+        );
+      });
+
+      test('throws ApiException when the backend reports failure for a per-event endpoint', () async {
+        final mock = MockClient((request) async {
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+            500,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+
+        final api = DiscordApi(
+          client: ApiClient(baseUrl: 'http://example.test', client: mock),
+        );
+
+        expect(
+          () => api.sendBastionCreated('Hello from the bastion'),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', 500)
+                .having((e) => e.message, 'message', 'webhook unreachable'),
+          ),
+        );
+      });
+    });
+
     test(
       'throws ApiException when the backend reports failure for the bastion turn result',
       () async {

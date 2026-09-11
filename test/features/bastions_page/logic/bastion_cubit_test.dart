@@ -6,9 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 
 void main() {
@@ -945,4 +949,249 @@ void main() {
       await cubit.close();
     });
   });
+
+  group('BastionCubit announcements', () {
+    final discordPosts = <http.Request>[];
+    late MockClient mock;
+
+    setUp(() {
+      discordPosts.clear();
+      mock = MockClient((request) async {
+const discordPaths = <String>{
+        '/maura/v1/discord/bastion-creation',
+        '/maura/v1/discord/facility-built',
+        '/maura/v1/discord/facility-rank-up',
+        '/maura/v1/discord/branch-upgrade',
+      };
+      if (request.method == 'POST' && discordPaths.contains(request.url.path)) {
+        discordPosts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' && request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': {
+                ...jsonDecode(request.body) as Map<String, dynamic>,
+                'id': 'bastion-1',
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' && request.url.path == '/maura/v1/facilities') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' && request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  'id': 'bastion-1',
+                  'userId': 'user_1',
+                  'name': 'Ravencrest',
+                  'description': 'A keep on the hill.',
+                  'facilities': [
+                    {
+                      'id': 'cat_barracks',
+                      'name': 'Barracks',
+                      'rank': 'd',
+                      'description': 'Houses the guard.',
+                      'constructionTurns': 2,
+                      'constructedTurns': 2,
+                      'minimumRequiredHirelings': 0,
+                      'cost': 600,
+                    },
+                    {
+                      'id': 'cat_kitchen',
+                      'name': 'Kitchen',
+                      'rank': 'd',
+                      'description': 'Cooks food.',
+                      'constructionTurns': 2,
+                      'constructedTurns': 2,
+                      'minimumRequiredHirelings': 1,
+                      'cost': 600,
+                    },
+                  ],
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+    });
+
+    BastionCubit cubit() => BastionCubit(
+          bastionApi: BastionApi(
+              client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+          facilityApi: FacilityApi(
+              client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+          discordAnnouncer: DiscordAnnouncer(
+              discordApi: DiscordApi(
+                  client:
+                      ApiClient(baseUrl: 'http://example.test', client: mock))),
+        );
+
+    test('createBastion announces the founding', () async {
+      final c = cubit();
+      await c.createBastion('Ravencrest', 'A keep on the hill.', null, []);
+
+      expect(discordPosts, hasLength(1));
+      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
+      expect(body['message'],
+          '🏰 **Ravencrest** has been founded!\n\nA keep on the hill.');
+
+      await c.close();
+    });
+
+    test('addFacility announces construction start with the bastion name', () async {
+      final c = cubit();
+      await c.loadBastions();
+      discordPosts.clear();
+
+      const facility = Facility(
+        id: 'cat_garden',
+        name: 'Garden',
+        rank: Rank.D,
+        description: 'Grows food.',
+        constructionTurns: 2,
+        cost: 600,
+      );
+      await c.addFacility('bastion-1', facility);
+
+      expect(discordPosts, hasLength(1));
+      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
+      expect(
+        body['message'],
+        '🏗️ **Ravencrest** has started construction on **Garden** (Rank D)!\n\n'
+            'Grows food.\n\n'
+            'Cost: 600gp • Build time: 2 turns • Required hirelings: 0',
+      );
+
+      await c.close();
+    });
+
+    test('upgradeFacility announces the rank advance', () async {
+      final c = cubit();
+      await c.loadBastions();
+      final bastion =
+          (c.state as BastionLoadedState).bastions.first;
+      final barracks = bastion.facilities
+          .firstWhere((f) => f.id == 'cat_barracks');
+      discordPosts.clear();
+
+      await c.upgradeFacility('bastion-1', barracks);
+
+      expect(discordPosts, hasLength(1));
+      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
+      expect(
+        body['message'],
+        '⬆️ **Ravencrest**\'s **Barracks** is advancing from Rank D to Rank C!\n\n'
+            'Houses the guard.\n\n'
+            'Upgrade cost: 900gp • Construction: 2 turns',
+      );
+
+      await c.close();
+    });
+
+    test('purchaseBranchUpgrade announces the activation', () async {
+      final c = cubit();
+      await c.loadBastions();
+      final bastion =
+          (c.state as BastionLoadedState).bastions.first;
+      final kitchen = bastion.facilities
+          .firstWhere((f) => f.id == 'cat_kitchen');
+      discordPosts.clear();
+
+      final upgrade = branchUpgradeFor('cat_kitchen');
+      expect(upgrade, isNotNull);
+
+      await c.purchaseBranchUpgrade('bastion-1', kitchen);
+
+      expect(discordPosts, hasLength(1));
+      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
+      expect(
+        body['message'],
+        startsWith(
+            '🌟 **Ravencrest**\'s **Kitchen** activates **Industrial Kitchen**!'),
+      );
+      expect(
+        body['message'],
+        contains('One-time purchase • Cost: 500gp • Hireling capacity: 3'),
+      );
+
+      await c.close();
+    });
+
+    test('cubit methods still succeed when the announcer throws', () async {
+      final throwingAnnouncer = _ThrowingAnnouncer(
+          discordApi: DiscordApi(
+              client: ApiClient(baseUrl: 'http://example.test')));
+      final c = BastionCubit(
+        bastionApi: BastionApi(
+            client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+        facilityApi: FacilityApi(
+            client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+        discordAnnouncer: throwingAnnouncer,
+      );
+      await c.loadBastions();
+      final bastion =
+          (c.state as BastionLoadedState).bastions.first;
+      final barracks = bastion.facilities
+          .firstWhere((f) => f.id == 'cat_barracks');
+
+      final upgraded = await c.upgradeFacility('bastion-1', barracks);
+
+      expect(upgraded, isNotNull);
+
+      await c.close();
+    });
+  });
+}
+
+class _ThrowingAnnouncer extends DiscordAnnouncer {
+  _ThrowingAnnouncer({required super.discordApi});
+
+  @override
+  Future<void> announceFacilityRankUp(
+    Bastion bastion,
+    Facility oldFacility,
+    Facility upgraded,
+  ) =>
+      throw Exception('Discord is down');
 }

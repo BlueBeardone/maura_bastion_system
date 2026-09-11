@@ -8,6 +8,7 @@ import 'package:maura_bastion_system/api/health_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/api/newspaper_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
 class DependencyInjection {
@@ -28,6 +29,8 @@ class DependencyInjection {
     GetIt.I.registerLazySingleton<BastionApi>(() => BastionApi(client: client));
     GetIt.I.registerLazySingleton<DefenderApi>(() => DefenderApi(client: client));
     GetIt.I.registerLazySingleton<DiscordApi>(() => DiscordApi(client: client));
+    GetIt.I.registerLazySingleton<DiscordAnnouncer>(
+        () => DiscordAnnouncer(discordApi: GetIt.I<DiscordApi>()));
     GetIt.I.registerLazySingleton<FacilityApi>(() => FacilityApi(client: client));
     GetIt.I.registerLazySingleton<HirelingApi>(() => HirelingApi(client: client));
     GetIt.I.registerLazySingleton<NewspaperApi>(() => NewspaperApi(client: client));

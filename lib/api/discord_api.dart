@@ -22,4 +22,30 @@ class DiscordApi {
       parser: (json) => json as Map<String, dynamic>,
     );
   }
+
+  Future<void> sendBastionCreated(String message) =>
+      _post('/maura/v1/discord/bastion-creation', message);
+
+  Future<void> sendFacilityBuilt(String message) =>
+      _post('/maura/v1/discord/facility-built', message);
+
+  Future<void> sendFacilityRankUp(String message) =>
+      _post('/maura/v1/discord/facility-rank-up', message);
+
+  Future<void> sendBranchUpgradePurchased(String message) =>
+      _post('/maura/v1/discord/branch-upgrade', message);
+
+  Future<void> sendHirelingHired(String message) =>
+      _post('/maura/v1/discord/hireling-hired', message);
+
+  Future<void> sendDefenderAcquired(String message) =>
+      _post('/maura/v1/discord/defender-acquired', message);
+
+  Future<void> _post(String path, String message) async {
+    await _client.post<Map<String, dynamic>>(
+      path,
+      {'message': message},
+      parser: (json) => json as Map<String, dynamic>,
+    );
+  }
 }

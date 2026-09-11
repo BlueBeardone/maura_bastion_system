@@ -9,8 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/defender_api.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_detail_sheet.dart';
@@ -109,6 +111,9 @@ void main() {
       }),
     );
     GetIt.I.registerSingleton<DefenderApi>(DefenderApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
   });
 
   Future<void> pumpDefendersPage(WidgetTester tester) async {

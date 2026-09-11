@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
@@ -13,12 +14,17 @@ part 'bastion_state.dart';
 class BastionCubit extends Cubit<BastionState> {
   final BastionApi _bastionApi;
   final FacilityApi _facilityApi;
+  final DiscordAnnouncer? _discordAnnouncer;
   bool _advancingTurn = false;
   bool _upgrading = false;
 
-  BastionCubit({required BastionApi bastionApi, required FacilityApi facilityApi})
-      : _bastionApi = bastionApi,
+  BastionCubit({
+    required BastionApi bastionApi,
+    required FacilityApi facilityApi,
+    DiscordAnnouncer? discordAnnouncer,
+  })  : _bastionApi = bastionApi,
         _facilityApi = facilityApi,
+        _discordAnnouncer = discordAnnouncer,
         super(BastionLoadingState());
 
   Future<void> loadBastions() async {
@@ -34,6 +40,20 @@ class BastionCubit extends Cubit<BastionState> {
     try {
       await _facilityApi.create(facility, bastionId);
       await loadBastions();
+      if (state is BastionLoadedState) {
+        final bastions = (state as BastionLoadedState).bastions;
+        final bastion = bastions.isEmpty
+            ? null
+            : bastions.firstWhere(
+                (b) => b.id == bastionId,
+                orElse: () => bastions.first,
+              );
+        if (bastion != null) {
+          try {
+            await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
+          } catch (_) {}
+        }
+      }
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to add facility'));
     }
@@ -116,6 +136,7 @@ class BastionCubit extends Cubit<BastionState> {
         .any((f) => f.constructedTurns < f.constructionTurns);
     if (anyBusy) return null;
 
+    final oldFacility = facility;
     final upgraded = facility.copyWith(
       rank: nextRank,
       constructionTurns: 2,
@@ -127,6 +148,10 @@ class BastionCubit extends Cubit<BastionState> {
       _upgrading = true;
       await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
       await loadBastions();
+      try {
+        await _discordAnnouncer
+            ?.announceFacilityRankUp(bastion, oldFacility, upgraded);
+      } catch (_) {}
       return upgraded;
     } catch (e, stackTrace) {
       emit(BastionErrorState(
@@ -171,6 +196,10 @@ class BastionCubit extends Cubit<BastionState> {
       _upgrading = true;
       await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
       await loadBastions();
+      try {
+        await _discordAnnouncer
+            ?.announceBranchUpgradePurchased(bastion, purchased, upgrade);
+      } catch (_) {}
       return purchased;
     } catch (e, stackTrace) {
       emit(BastionErrorState(
@@ -217,6 +246,9 @@ class BastionCubit extends Cubit<BastionState> {
           : <Bastion>[];
         bastions.add(newBastion);
       emit(BastionLoadedState(bastions: bastions));
+      try {
+        await _discordAnnouncer?.announceBastionCreated(newBastion);
+      } catch (_) {}
       return newBastion;
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to create bastion'));
