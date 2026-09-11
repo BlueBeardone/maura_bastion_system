@@ -9,23 +9,27 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/api/newspaper_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
 class DependencyInjection {
-  static void init() async {
+  static Future<void> init() async {
+    GetIt.I.registerLazySingleton<AuthSessionStore>(() => AuthSessionStore());
     _registerApiClient();
     _registerApiServices();
     _registerCubits();
   }
 
   static void _registerApiClient() {
-    GetIt.I.registerLazySingleton<ApiClient>(() => ApiClient());
+    GetIt.I
+        .registerLazySingleton<ApiClient>(() => ApiClient(sessionStore: GetIt.I<AuthSessionStore>()));
   }
 
   static void _registerApiServices() {
     final client = GetIt.I<ApiClient>();
     GetIt.I.registerLazySingleton<HealthApi>(() => HealthApi(client: client));
-    GetIt.I.registerLazySingleton<IdentityApi>(() => IdentityApi(client: client));
+    GetIt.I.registerLazySingleton<IdentityApi>(
+        () => IdentityApi(client: client, sessionStore: GetIt.I<AuthSessionStore>()));
     GetIt.I.registerLazySingleton<BastionApi>(() => BastionApi(client: client));
     GetIt.I.registerLazySingleton<DefenderApi>(() => DefenderApi(client: client));
     GetIt.I.registerLazySingleton<DiscordApi>(() => DiscordApi(client: client));
@@ -37,6 +41,10 @@ class DependencyInjection {
   }
 
   static void _registerCubits() {
-    GetIt.I.registerLazySingleton<AuthCubit>(() => AuthCubit(identityApi: GetIt.I<IdentityApi>()));
+    GetIt.I.registerLazySingleton<AuthCubit>(() => AuthCubit(
+          identityApi: GetIt.I<IdentityApi>(),
+          apiClient: GetIt.I<ApiClient>(),
+          sessionStore: GetIt.I<AuthSessionStore>(),
+        ));
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
@@ -11,6 +12,7 @@ import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
@@ -427,6 +429,228 @@ void main() {
       final pubBody = jsonDecode(pubPut.body) as Map<String, dynamic>;
       expect(kitchenBody['constructedTurns'], 1);
       expect(pubBody['branchUpgradeActive'], isFalse);
+      await cubit.close();
+    });
+
+    test('gate runs before the facility PUT and the turn is persisted',
+        () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/individual-bastion-turn') {
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/facilities/barracks') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      GetIt.I.registerSingleton<DiscordApi>(
+        DiscordApi(
+            client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+      );
+      addTearDown(GetIt.I.reset);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+      requests.clear();
+
+      final gateCalls = <String>[];
+      final advanced = await cubit.advanceBastionTurn(
+        'bastion-1',
+        gate: (advanced) async {
+          gateCalls.add('gate:${advanced?.name}');
+          await GetIt.I<DiscordApi>()
+              .sendIndividualBastionTurn(BastionTurnResult(
+            bastionId: 'bastion-1',
+            bastionName: 'Test Bastion',
+            quest: 'Patrol',
+          ));
+        },
+      );
+
+      expect(advanced, isNotNull);
+      expect(gateCalls, ['gate:Barracks']);
+      expect(requests[0].url.path,
+          '/maura/v1/discord/individual-bastion-turn');
+      expect(requests[1].url.path, '/maura/v1/facilities/barracks');
+
+      await cubit.close();
+    });
+
+    test('gate runs with null when no facility is under construction',
+        () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(id: 'keep', name: 'Keep', constructed: 2,
+                      total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+      requests.clear();
+
+      final gateArgs = <Facility?>[];
+      final advanced = await cubit.advanceBastionTurn(
+        'bastion-1',
+        gate: (advanced) async {
+          gateArgs.add(advanced);
+        },
+      );
+
+      expect(advanced, isNull);
+      expect(gateArgs, [null]);
+      expect(requests.where((r) => r.method == 'PUT'), isEmpty);
+      expect(cubit.state, isA<BastionLoadedState>());
+
+      await cubit.close();
+    });
+
+    test('a failing gate blocks the turn and emits an error state', () async {
+      final puts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/individual-bastion-turn') {
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+            500,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/facilities/barracks') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      GetIt.I.registerSingleton<DiscordApi>(
+        DiscordApi(
+            client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+      );
+      addTearDown(GetIt.I.reset);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      var gateRan = false;
+      final advanced = await cubit.advanceBastionTurn(
+        'bastion-1',
+        gate: (advanced) async {
+          gateRan = true;
+          await GetIt.I<DiscordApi>()
+              .sendIndividualBastionTurn(BastionTurnResult(
+            bastionId: 'bastion-1',
+            bastionName: 'Test Bastion',
+            quest: 'Patrol',
+          ));
+        },
+      );
+
+      expect(gateRan, isTrue);
+      expect(advanced, isNull);
+      expect(puts, isEmpty);
+      expect(cubit.state, isA<BastionErrorState>());
+      expect((cubit.state as BastionErrorState).message,
+          startsWith('Discord log failed'));
+
       await cubit.close();
     });
   });
@@ -952,11 +1176,22 @@ void main() {
 
   group('BastionCubit announcements', () {
     final discordPosts = <http.Request>[];
+    var discordSucceeds = true;
+    final bastionPosts = <http.Request>[];
+    final facilityCreations = <http.Request>[];
+    final facilityUpdates = <http.Request>[];
+    final allRequests = <http.Request>[];
     late MockClient mock;
 
     setUp(() {
       discordPosts.clear();
+      discordSucceeds = true;
+      bastionPosts.clear();
+      facilityCreations.clear();
+      facilityUpdates.clear();
+      allRequests.clear();
       mock = MockClient((request) async {
+        allRequests.add(request);
 const discordPaths = <String>{
         '/maura/v1/discord/bastion-creation',
         '/maura/v1/discord/facility-built',
@@ -965,13 +1200,21 @@ const discordPaths = <String>{
       };
       if (request.method == 'POST' && discordPaths.contains(request.url.path)) {
         discordPosts.add(request);
+        if (!discordSucceeds) {
           return http.Response(
-            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
-            200,
+            jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+            500,
             headers: {'content-type': 'application/json'},
           );
         }
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
         if (request.method == 'POST' && request.url.path == '/maura/v1/bastions') {
+          bastionPosts.add(request);
           return http.Response(
             jsonEncode({
               'success': true,
@@ -986,6 +1229,7 @@ const discordPaths = <String>{
           );
         }
         if (request.method == 'POST' && request.url.path == '/maura/v1/facilities') {
+          facilityCreations.add(request);
           return http.Response(
             jsonEncode({
               'success': true,
@@ -998,6 +1242,7 @@ const discordPaths = <String>{
         }
         if (request.method == 'PUT' &&
             request.url.path.startsWith('/maura/v1/facilities/')) {
+          facilityUpdates.add(request);
           return http.Response(
             jsonEncode({
               'success': true,
@@ -1158,7 +1403,7 @@ const discordPaths = <String>{
       await c.close();
     });
 
-    test('cubit methods still succeed when the announcer throws', () async {
+    test('upgradeFacility is blocked when the announcer throws', () async {
       final throwingAnnouncer = _ThrowingAnnouncer(
           discordApi: DiscordApi(
               client: ApiClient(baseUrl: 'http://example.test')));
@@ -1177,7 +1422,91 @@ const discordPaths = <String>{
 
       final upgraded = await c.upgradeFacility('bastion-1', barracks);
 
-      expect(upgraded, isNotNull);
+      expect(upgraded, isNull);
+      expect(c.state, isA<BastionErrorState>());
+      expect((c.state as BastionErrorState).message,
+          startsWith('Discord log failed'));
+
+      await c.close();
+    });
+
+    test('createBastion is blocked when the Discord log fails', () async {
+      discordSucceeds = false;
+      final c = cubit();
+
+      final result = await c.createBastion('Ravencrest', 'A keep.', null, []);
+
+      expect(result, isNull);
+      expect(bastionPosts, isEmpty);
+      expect(c.state, isA<BastionErrorState>());
+      expect((c.state as BastionErrorState).message,
+          startsWith('Discord log failed'));
+
+      await c.close();
+    });
+
+    test('addFacility is blocked when the Discord log fails', () async {
+      discordSucceeds = false;
+      final c = cubit();
+      await c.loadBastions();
+
+      const facility = Facility(
+        id: 'cat_garden',
+        name: 'Garden',
+        rank: Rank.D,
+        description: 'Grows food.',
+        constructionTurns: 2,
+        cost: 600,
+      );
+      await c.addFacility('bastion-1', facility);
+
+      expect(facilityCreations, isEmpty);
+      expect(c.state, isA<BastionErrorState>());
+      expect((c.state as BastionErrorState).message,
+          startsWith('Discord log failed'));
+
+      await c.close();
+    });
+
+    test('purchaseBranchUpgrade is blocked when the Discord log fails',
+        () async {
+      discordSucceeds = false;
+      final c = cubit();
+      await c.loadBastions();
+      final bastion =
+          (c.state as BastionLoadedState).bastions.first;
+      final kitchen = bastion.facilities
+          .firstWhere((f) => f.id == 'cat_kitchen');
+
+      final result = await c.purchaseBranchUpgrade('bastion-1', kitchen);
+
+      expect(result, isNull);
+      expect(facilityUpdates, isEmpty);
+      expect(c.state, isA<BastionErrorState>());
+
+      await c.close();
+    });
+
+    test('announcements are sent before the mutating call', () async {
+      final c = cubit();
+      await c.loadBastions();
+      allRequests.clear();
+
+      final bastion =
+          (c.state as BastionLoadedState).bastions.first;
+      final barracks = bastion.facilities
+          .firstWhere((f) => f.id == 'cat_barracks');
+
+      await c.upgradeFacility('bastion-1', barracks);
+
+      expect(allRequests.length, greaterThanOrEqualTo(2));
+      expect(allRequests[0].method, 'POST');
+      expect(allRequests[0].url.path, '/maura/v1/discord/facility-rank-up');
+      expect(allRequests[1].method, 'PUT');
+      expect(
+        allRequests[1].url.path,
+        startsWith('/maura/v1/facilities/'),
+      );
 
       await c.close();
     });

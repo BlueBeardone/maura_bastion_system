@@ -36,20 +36,31 @@ class DefendersCubit extends Cubit<DefendersState> {
     required String description,
     required String acquisitionStory,
   }) async {
+    final newDefender = Defender(
+      id: '',
+      name: name,
+      type: type,
+      description: description,
+      acquisitionStory: acquisitionStory,
+      bastionId: state.bastionId,
+    );
     try {
-      final newDefender = await _defenderApi.create(Defender(
-        id: '',
-        name: name,
-        type: type,
-        description: description,
-        acquisitionStory: acquisitionStory,
+      await _discordAnnouncer
+          ?.announceDefenderAcquired(newDefender, bastionName: _bastionName);
+    } catch (e) {
+      emit(DefendersState(
         bastionId: state.bastionId,
+        defenders: state.defenders,
+        error: e as Exception,
       ));
-      emit(state.copyWith(defenders: [...state.defenders, newDefender]));
-      try {
-        await _discordAnnouncer
-            ?.announceDefenderAcquired(newDefender, bastionName: _bastionName);
-      } catch (_) {}
+      return;
+    }
+    try {
+      final created = await _defenderApi.create(newDefender);
+      emit(DefendersState(
+        bastionId: state.bastionId,
+        defenders: [...state.defenders, created],
+      ));
     } catch (_) {}
   }
 

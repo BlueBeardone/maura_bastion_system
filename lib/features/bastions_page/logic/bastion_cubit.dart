@@ -38,8 +38,6 @@ class BastionCubit extends Cubit<BastionState> {
 
   Future<void> addFacility(String bastionId, Facility facility) async {
     try {
-      await _facilityApi.create(facility, bastionId);
-      await loadBastions();
       if (state is BastionLoadedState) {
         final bastions = (state as BastionLoadedState).bastions;
         final bastion = bastions.isEmpty
@@ -51,15 +49,27 @@ class BastionCubit extends Cubit<BastionState> {
         if (bastion != null) {
           try {
             await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
-          } catch (_) {}
+          } catch (e, stackTrace) {
+            emit(BastionErrorState(
+              error: e as Exception,
+              stackTrace: stackTrace,
+              message: 'Discord log failed — facility not built',
+            ));
+            return;
+          }
         }
       }
+      await _facilityApi.create(facility, bastionId);
+      await loadBastions();
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to add facility'));
     }
   }
 
-  Future<Facility?> advanceBastionTurn(String bastionId) async {
+  Future<Facility?> advanceBastionTurn(
+    String bastionId, {
+    Future<void> Function(Facility? advanced)? gate,
+  }) async {
     if (_advancingTurn) return null;
     if (state is! BastionLoadedState) return null;
 
@@ -76,30 +86,57 @@ class BastionCubit extends Cubit<BastionState> {
         break;
       }
     }
-    if (target == null) return null;
-
-    var advanced = target.copyWith(
-      constructedTurns: target.constructedTurns + 1,
-    );
-
-    // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance.
-    final targetPerTurnActive = target.branchUpgrade?.kind ==
-            BranchUpgradeKind.perTurn &&
-        target.branchUpgradeActive;
-    if (targetPerTurnActive) {
-      advanced = advanced.copyWith(branchUpgradeActive: false);
-    }
-    final lapsed = <Facility>[];
-    for (final facility in bastion.facilities) {
-      if (facility.id == target.id) continue;
-      final isPerTurn = facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
-      if (isPerTurn && facility.branchUpgradeActive) {
-        lapsed.add(facility.copyWith(branchUpgradeActive: false));
-      }
-    }
 
     try {
       _advancingTurn = true;
+      if (target == null) {
+        if (gate != null) {
+          try {
+            await gate(null);
+          } catch (e, stackTrace) {
+            emit(BastionErrorState(
+              error: e as Exception,
+              stackTrace: stackTrace,
+              message: 'Discord log failed — turn not advanced',
+            ));
+            return null;
+          }
+        }
+        return null;
+      }
+
+      var advanced = target.copyWith(
+        constructedTurns: target.constructedTurns + 1,
+      );
+
+      // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance.
+      final targetPerTurnActive = target.branchUpgrade?.kind ==
+              BranchUpgradeKind.perTurn &&
+          target.branchUpgradeActive;
+      if (targetPerTurnActive) {
+        advanced = advanced.copyWith(branchUpgradeActive: false);
+      }
+      final lapsed = <Facility>[];
+      for (final facility in bastion.facilities) {
+        if (facility.id == target.id) continue;
+        final isPerTurn = facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
+        if (isPerTurn && facility.branchUpgradeActive) {
+          lapsed.add(facility.copyWith(branchUpgradeActive: false));
+        }
+      }
+
+      if (gate != null) {
+        try {
+          await gate(advanced);
+        } catch (e, stackTrace) {
+          emit(BastionErrorState(
+            error: e as Exception,
+            stackTrace: stackTrace,
+            message: 'Discord log failed — turn not advanced',
+          ));
+          return null;
+        }
+      }
       await _facilityApi.update(advanced.id, advanced, bastionId: bastion.id);
       for (final facility in lapsed) {
         await _facilityApi.update(facility.id, facility, bastionId: bastion.id);
@@ -146,12 +183,19 @@ class BastionCubit extends Cubit<BastionState> {
 
     try {
       _upgrading = true;
-      await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
-      await loadBastions();
       try {
         await _discordAnnouncer
             ?.announceFacilityRankUp(bastion, oldFacility, upgraded);
-      } catch (_) {}
+      } catch (e, stackTrace) {
+        emit(BastionErrorState(
+          error: e as Exception,
+          stackTrace: stackTrace,
+          message: 'Discord log failed — facility not upgraded',
+        ));
+        return null;
+      }
+      await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
+      await loadBastions();
       return upgraded;
     } catch (e, stackTrace) {
       emit(BastionErrorState(
@@ -194,12 +238,19 @@ class BastionCubit extends Cubit<BastionState> {
 
     try {
       _upgrading = true;
-      await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
-      await loadBastions();
       try {
         await _discordAnnouncer
             ?.announceBranchUpgradePurchased(bastion, purchased, upgrade);
-      } catch (_) {}
+      } catch (e, stackTrace) {
+        emit(BastionErrorState(
+          error: e as Exception,
+          stackTrace: stackTrace,
+          message: 'Discord log failed — upgrade not purchased',
+        ));
+        return null;
+      }
+      await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
+      await loadBastions();
       return purchased;
     } catch (e, stackTrace) {
       emit(BastionErrorState(
@@ -231,24 +282,32 @@ class BastionCubit extends Cubit<BastionState> {
       cost: f.cost,
       constructedTurns: 0,
     )).toList();
+    final localBastion = Bastion(
+      id: '',
+      name: name,
+      description: description,
+      imgUrl: imgUrl,
+      facilities: builtFacilities,
+    );
 
     try {
-      final newBastion = await _bastionApi.create(Bastion(
-        id: '',
-        name: name,
-        description: description,
-        imgUrl: imgUrl,
-        facilities: builtFacilities,
-      ));
+      try {
+        await _discordAnnouncer?.announceBastionCreated(localBastion);
+      } catch (e, stackTrace) {
+        emit(BastionErrorState(
+          error: e as Exception,
+          stackTrace: stackTrace,
+          message: 'Discord log failed — bastion not created',
+        ));
+        return null;
+      }
+      final newBastion = await _bastionApi.create(localBastion);
 
-        final bastions = state is BastionLoadedState
+      final bastions = state is BastionLoadedState
           ? List<Bastion>.from((state as BastionLoadedState).bastions)
           : <Bastion>[];
-        bastions.add(newBastion);
+      bastions.add(newBastion);
       emit(BastionLoadedState(bastions: bastions));
-      try {
-        await _discordAnnouncer?.announceBastionCreated(newBastion);
-      } catch (_) {}
       return newBastion;
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to create bastion'));

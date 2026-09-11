@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
+import 'package:maura_bastion_system/api/api_exception.dart';
 import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
@@ -342,7 +343,7 @@ void main() {
       );
     });
 
-    test('swallows ApiException so Discord outages never propagate', () async {
+    test('propagates ApiException so callers can gate actions on it', () async {
       final mock = MockClient((request) async {
         return http.Response(
           jsonEncode({'success': false, 'message': 'webhook unreachable'}),
@@ -353,9 +354,11 @@ void main() {
       final announcer = announcerWith(mock);
 
       final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
-      await announcer.announceBastionCreated(bastion);
 
-      // Reaching this line without throwing is the assertion.
+      await expectLater(
+        announcer.announceBastionCreated(bastion),
+        throwsA(isA<ApiException>()),
+      );
     });
   });
 }

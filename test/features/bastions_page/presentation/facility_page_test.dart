@@ -16,7 +16,17 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+
+class _FakeSessionStore extends AuthSessionStore {
+  @override
+  Future<void> save(String token) async {}
+  @override
+  Future<String?> load() async => null;
+  @override
+  Future<void> clear() async {}
+}
 
 void main() {
   setUp(() async {
@@ -67,7 +77,12 @@ void main() {
     GetIt.I.registerSingleton<DiscordAnnouncer>(
       DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
     );
-    final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
+    final sessionStore = _FakeSessionStore();
+    final authCubit = AuthCubit(
+      identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+      apiClient: apiClient,
+      sessionStore: sessionStore,
+    );
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 
     final bastion = Bastion(

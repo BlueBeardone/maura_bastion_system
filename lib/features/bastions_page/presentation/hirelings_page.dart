@@ -273,14 +273,25 @@ class _HirelingsViewState extends State<_HirelingsView> {
                         return;
                       }
                     }
-                    context.read<HirelingsCubit>().addHireling(
-                          name: _name,
-                          role: _role.isNotEmpty ? _role : null,
-                          description:
-                              _description.isNotEmpty ? _description : null,
-                          imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
-                          acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
-                        );
+                    final cubit = context.read<HirelingsCubit>();
+                    await cubit.addHireling(
+                      name: _name,
+                      role: _role.isNotEmpty ? _role : null,
+                      description:
+                          _description.isNotEmpty ? _description : null,
+                      imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
+                      acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
+                    );
+                    if (!mounted) return;
+                    if (cubit.state.error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Could not log to Discord — hireling not recruited'),
+                        ),
+                      );
+                      return;
+                    }
                     _formKey.currentState?.reset();
                     setState(() {
                       _name = '';

@@ -54,11 +54,8 @@ class DiscordAnnouncer {
   Future<void> _announce(
     String message,
     Future<void> Function(String) transport,
-  ) async {
-    try {
-      await transport(message);
-    } catch (_) {}
-  }
+  ) =>
+      transport(message);
 }
 
 String bastionCreatedMessage(Bastion bastion) {

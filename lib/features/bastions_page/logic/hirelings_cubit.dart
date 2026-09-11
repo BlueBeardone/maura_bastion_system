@@ -36,21 +36,32 @@ class HirelingsCubit extends Cubit<HirelingsState> {
     String? imgUrl,
     String? acquisitionStory,
   }) async {
+    final newHireling = Hireling(
+      id: '',
+      name: name,
+      role: role,
+      description: description,
+      imgUrl: imgUrl,
+      bastionId: state.bastionId,
+      acquisitionStory: acquisitionStory,
+    );
     try {
-      final newHireling = await _hirelingApi.create(Hireling(
-        id: '',
-        name: name,
-        role: role,
-        description: description,
-        imgUrl: imgUrl,
+      await _discordAnnouncer
+          ?.announceHirelingHired(newHireling, bastionName: _bastionName);
+    } catch (e) {
+      emit(HirelingsState(
         bastionId: state.bastionId,
-        acquisitionStory: acquisitionStory,
+        hirelings: state.hirelings,
+        error: e as Exception,
       ));
-      emit(state.copyWith(hirelings: [...state.hirelings, newHireling]));
-      try {
-        await _discordAnnouncer
-            ?.announceHirelingHired(newHireling, bastionName: _bastionName);
-      } catch (_) {}
+      return;
+    }
+    try {
+      final created = await _hirelingApi.create(newHireling);
+      emit(HirelingsState(
+        bastionId: state.bastionId,
+        hirelings: [...state.hirelings, created],
+      ));
     } catch (_) {}
   }
 

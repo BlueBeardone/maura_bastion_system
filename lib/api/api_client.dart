@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 
 import 'api_exception.dart';
 import 'api_response.dart';
@@ -10,11 +11,13 @@ final String _baseUrl = String.fromEnvironment('KAFKA', defaultValue: 'http://lo
 class ApiClient {
   final String baseUrl;
   final http.Client _client;
+  final AuthSessionStore? _sessionStore;
   String? _authToken;
 
-  ApiClient({String? baseUrl, http.Client? client})
+  ApiClient({String? baseUrl, http.Client? client, AuthSessionStore? sessionStore})
       : baseUrl = baseUrl ?? _baseUrl,
-        _client = client ?? http.Client();
+        _client = client ?? http.Client(),
+        _sessionStore = sessionStore;
 
   void setAuthToken(String? token) {
     _authToken = token;
@@ -96,6 +99,12 @@ class ApiClient {
           statusCode: response.statusCode,
           message: apiResponse.message ?? 'Unknown error',
         );
+      }
+
+      final renewedToken = json['renewedToken'];
+      if (renewedToken is String && renewedToken.isNotEmpty && renewedToken != _authToken) {
+        setAuthToken(renewedToken);
+        await _sessionStore?.save(renewedToken);
       }
 
       return apiResponse.data as T;

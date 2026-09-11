@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/app_bar_navigation_menu.dart';
@@ -25,7 +25,8 @@ class StandardScaffold extends StatelessWidget {
           AppBarNavigationMenu(navigationItems: MainNavigation.values),
           IconButton(
             onPressed: () {
-              context.read<AuthCubit>().logout();
+              GetIt.I<AuthCubit>().logout();
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             icon: Icon(
               Icons.logout,

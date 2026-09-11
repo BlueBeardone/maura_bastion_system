@@ -268,15 +268,26 @@ class _DefendersViewState extends State<_DefendersView> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
                     _formKey.currentState?.save();
-                    context.read<DefendersCubit>().addDefender(
-                          name: _name,
-                          type: _type!,
-                          description: _description,
-                          acquisitionStory: _acquisitionStory,
-                        );
+                    final cubit = context.read<DefendersCubit>();
+                    await cubit.addDefender(
+                      name: _name,
+                      type: _type!,
+                      description: _description,
+                      acquisitionStory: _acquisitionStory,
+                    );
+                    if (!mounted) return;
+                    if (cubit.state.error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Could not log to Discord — defender not enlisted'),
+                        ),
+                      );
+                      return;
+                    }
                     _formKey.currentState?.reset();
                     setState(() {
                       _name = '';

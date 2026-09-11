@@ -16,7 +16,17 @@ import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+
+class _FakeSessionStore extends AuthSessionStore {
+  @override
+  Future<void> save(String token) async {}
+  @override
+  Future<String?> load() async => null;
+  @override
+  Future<void> clear() async {}
+}
 
 void main() {
   setUp(() {
@@ -65,7 +75,12 @@ void main() {
         DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
       );
 
-      final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
+      final sessionStore = _FakeSessionStore();
+      final authCubit = AuthCubit(
+        identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+        apiClient: apiClient,
+        sessionStore: sessionStore,
+      );
       GetIt.I.registerSingleton<AuthCubit>(authCubit);
 
       await tester.pumpWidget(
@@ -112,7 +127,9 @@ void main() {
       };
 
   MockClient bastionTurnMockClient(List<Map<String, dynamic>> facilities,
-      {List<Map<String, dynamic>> hirelings = const []}) {
+      {List<Map<String, dynamic>> hirelings = const [],
+      List<http.Request>? capturedPuts,
+      bool discordTurnSucceeds = true}) {
     return MockClient((request) async {
       if (request.method == 'GET' &&
           request.url.path == '/maura/v1/bastions') {
@@ -137,12 +154,29 @@ void main() {
       }
       if (request.method == 'PUT' &&
           request.url.path.startsWith('/maura/v1/facilities/')) {
+        capturedPuts?.add(request);
         return http.Response(
           jsonEncode({
             'success': true,
             'message': 'ok',
             'data': jsonDecode(request.body),
           }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'POST' &&
+          request.url.path ==
+              '/maura/v1/discord/individual-bastion-turn') {
+        if (!discordTurnSucceeds) {
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+            500,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
           200,
           headers: {'content-type': 'application/json'},
         );
@@ -164,7 +198,12 @@ void main() {
     GetIt.I.registerSingleton<DiscordAnnouncer>(
       DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
     );
-    final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
+    final sessionStore = _FakeSessionStore();
+    final authCubit = AuthCubit(
+      identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+      apiClient: apiClient,
+      sessionStore: sessionStore,
+    );
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 
     await tester.pumpWidget(
@@ -269,6 +308,46 @@ void main() {
     );
   });
 
+  testWidgets(
+      'FAB turn with a failing Discord log shows the error snackbar and does not open the dialog',
+      (tester) async {
+    final puts = <http.Request>[];
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient(
+        [
+          turnFacilityJson(
+              id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+        ],
+        capturedPuts: puts,
+        discordTurnSucceeds: false,
+      ),
+    );
+
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quest:'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Cleared the crypt');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Could not log the turn — turn not advanced'),
+      findsOneWidget,
+    );
+    expect(find.text('Bastion Turn'), findsNothing);
+    expect(
+      find.textContaining('Construction advanced'),
+      findsNothing,
+    );
+    expect(puts, isEmpty);
+  });
+
   testWidgets('FAB turn is aborted when the quest dialog is cancelled',
       (tester) async {
     await pumpBastionPage(
@@ -351,6 +430,14 @@ void main() {
           headers: {'content-type': 'application/json'},
         );
       }
+      if (request.method == 'POST' &&
+          request.url.path == '/maura/v1/discord/facility-rank-up') {
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
       return http.Response(
         jsonEncode({'success': false, 'message': 'not found'}),
         404,
@@ -366,7 +453,12 @@ void main() {
     GetIt.I.registerSingleton<DiscordAnnouncer>(
       DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
     );
-    final authCubit = AuthCubit(identityApi: IdentityApi(client: apiClient));
+    final sessionStore = _FakeSessionStore();
+    final authCubit = AuthCubit(
+      identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+      apiClient: apiClient,
+      sessionStore: sessionStore,
+    );
     GetIt.I.registerSingleton<AuthCubit>(authCubit);
 
     await tester.pumpWidget(

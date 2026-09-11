@@ -30,11 +30,20 @@ void main() {
     void Function(http.Request)? onDelete,
     bool deleteSucceeds = true,
     List<http.Request>? discordPosts,
+    bool discordSucceeds = true,
+    List<http.Request>? defenderPosts,
   }) {
     return MockClient((request) async {
       if (request.method == 'POST' &&
           request.url.path == '/maura/v1/discord/defender-acquired') {
         discordPosts?.add(request);
+        if (!discordSucceeds) {
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+            500,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
           200,
@@ -43,6 +52,7 @@ void main() {
       }
       if (request.method == 'POST' &&
           request.url.path == '/maura/v1/defenders') {
+        defenderPosts?.add(request);
         return http.Response(
           jsonEncode({
             'success': true,
@@ -171,7 +181,38 @@ void main() {
       await cubit.close();
     });
 
-    test('addDefender still succeeds when the announcer throws', () async {
+    test('does not create the defender when the Discord log fails', () async {
+      final defenderPosts = <http.Request>[];
+      final mock = defendersMockClient(
+        discordSucceeds: false,
+        defenderPosts: defenderPosts,
+      );
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = DefendersCubit(
+        bastionId: 'bastion-1',
+        defenderApi: DefenderApi(client: apiClient),
+        discordAnnouncer: DiscordAnnouncer(
+            discordApi: DiscordApi(client: apiClient)),
+        bastionName: 'Ravencrest',
+      );
+      await cubit.loadDefenders();
+
+      await cubit.addDefender(
+        name: 'Sergeant Aldric',
+        type: DefenderType.knight,
+        description: 'A stern veteran.',
+        acquisitionStory: 'Won in a duel.',
+      );
+
+      expect(defenderPosts, isEmpty);
+      expect(cubit.state.defenders.length, 2);
+      expect(cubit.state.error, isA<ApiException>());
+
+      await cubit.close();
+    });
+
+    test('does not create the defender when the announcer throws', () async {
       final mock = defendersMockClient();
 
       final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
@@ -191,7 +232,76 @@ void main() {
         acquisitionStory: 'Won in a duel.',
       );
 
-      expect(cubit.state.defenders.length, 3);
+      expect(cubit.state.defenders.length, 2);
+      expect(cubit.state.error, isNotNull);
+
+      await cubit.close();
+    });
+
+    test('logs to Discord before creating the defender', () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/defender-acquired') {
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/defenders') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/defenders') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [defenderJson(id: 'd1')],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = DefendersCubit(
+        bastionId: 'bastion-1',
+        defenderApi: DefenderApi(client: apiClient),
+        discordAnnouncer: DiscordAnnouncer(
+            discordApi: DiscordApi(client: apiClient)),
+        bastionName: 'Ravencrest',
+      );
+      await cubit.loadDefenders();
+      requests.clear();
+
+      await cubit.addDefender(
+        name: 'Sergeant Aldric',
+        type: DefenderType.knight,
+        description: 'A stern veteran.',
+        acquisitionStory: 'Won in a duel.',
+      );
+
+      expect(requests.length, 2);
+      expect(requests[0].url.path, '/maura/v1/discord/defender-acquired');
+      expect(requests[1].url.path, '/maura/v1/defenders');
 
       await cubit.close();
     });

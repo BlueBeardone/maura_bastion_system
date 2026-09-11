@@ -2,11 +2,15 @@ import 'api_client.dart';
 import 'dto/login_request.dart';
 import 'dto/register_request.dart';
 import 'package:maura_bastion_system/data/models/user/user.dart';
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 
 class IdentityApi {
   final ApiClient _client;
+  final AuthSessionStore _sessionStore;
 
-  IdentityApi({required ApiClient client}) : _client = client;
+  IdentityApi({required ApiClient client, required AuthSessionStore sessionStore})
+      : _client = client,
+        _sessionStore = sessionStore;
 
   Future<User> login(LoginRequest request) async {
     final data = await _client.post<Map<String, dynamic>>(
@@ -15,7 +19,9 @@ class IdentityApi {
       parser: (json) => json as Map<String, dynamic>,
     );
     if (data['token'] != null) {
-      _client.setAuthToken(data['token'] as String);
+      final token = data['token'] as String;
+      _client.setAuthToken(token);
+      await _sessionStore.save(token);
     }
     return User.fromJson(data['user'] as Map<String, dynamic>);
   }

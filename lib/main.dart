@@ -6,9 +6,11 @@ import 'package:maura_bastion_system/core/themes/main_theme.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:maura_bastion_system/features/login/presentation/auth_gate.dart';
 
-void main() {
-  DependencyInjection.init();
-  
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DependencyInjection.init();
+  GetIt.I<AuthCubit>().restoreSession();
+
   runApp(const MyApp());
 }
 

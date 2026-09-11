@@ -3,10 +3,12 @@ part of 'defenders_cubit.dart';
 class DefendersState extends Equatable {
   final String bastionId;
   final List<Defender> defenders;
+  final Exception? error;
 
   const DefendersState({
     required this.bastionId,
     this.defenders = const [],
+    this.error,
   });
 
   DefendersState copyWith({
@@ -16,9 +18,10 @@ class DefendersState extends Equatable {
     return DefendersState(
       bastionId: bastionId ?? this.bastionId,
       defenders: defenders ?? this.defenders,
+      error: error,
     );
   }
 
   @override
-  List<Object?> get props => [bastionId, defenders];
+  List<Object?> get props => [bastionId, defenders, error];
 }

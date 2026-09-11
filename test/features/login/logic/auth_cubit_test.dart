@@ -3,11 +3,21 @@ import 'package:maura_bastion_system/api/dto/login_request.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/data/models/user/user.dart';
+import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 
+class _FakeSessionStore extends AuthSessionStore {
+  @override
+  Future<void> save(String token) async {}
+  @override
+  Future<String?> load() async => null;
+  @override
+  Future<void> clear() async {}
+}
+
 class _RecordingIdentityApi extends IdentityApi {
-  _RecordingIdentityApi(ApiClient client) : super(client: client);
+  _RecordingIdentityApi(ApiClient client) : super(client: client, sessionStore: _FakeSessionStore());
 
   final List<LoginRequest> requests = [];
 
@@ -24,7 +34,11 @@ void main() {
 
   setUp(() {
     api = _RecordingIdentityApi(ApiClient());
-    cubit = AuthCubit(identityApi: api);
+    cubit = AuthCubit(
+      identityApi: api,
+      apiClient: ApiClient(),
+      sessionStore: _FakeSessionStore(),
+    );
   });
 
   tearDown(() => cubit.close());

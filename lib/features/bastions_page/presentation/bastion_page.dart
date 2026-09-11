@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -49,6 +47,10 @@ class BastionPage extends StatelessWidget {
         discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
       )..loadBastions(),
       child: BlocBuilder<BastionCubit, BastionState>(
+        // Error states (e.g. a failed Discord gate) must not blank the page —
+        // the Scaffold has to stay mounted for the failure snackbar to show.
+        buildWhen: (_, current) =>
+            current is BastionLoadingState || current is BastionLoadedState,
         builder: (context, state) {
           if (state is! BastionLoadedState) return const SizedBox.shrink();
 
@@ -122,39 +124,49 @@ class BastionPage extends StatelessWidget {
     if (quest == null) return;
     if (!context.mounted) return;
     final cubit = context.read<BastionCubit>();
-    final advanced = await cubit.advanceBastionTurn(bastion.id);
-    if (!context.mounted) return;
     final event = rollIndividualBastionEvent();
-    final result = BastionTurnResult(
-      bastionId: bastion.id,
-      bastionName: bastion.name,
-      quest: quest,
-      advancedFacility: advanced == null
-          ? null
-          : BastionTurnAdvancedFacility(
-              name: advanced.name,
-              rankTitle: advanced.rank.title,
-              constructedTurns: advanced.constructedTurns,
-              constructionTurns: advanced.constructionTurns,
-            ),
-      event: BastionTurnEventResult(
-        name: event.name,
-        description: event.description,
-        rolledRow:
-            event.table == null ? null : rollTableResult(event.table!),
-      ),
+    final eventResult = BastionTurnEventResult(
+      name: event.name,
+      description: event.description,
+      rolledRow: event.table == null ? null : rollTableResult(event.table!),
     );
-    unawaited(
-      GetIt.I<DiscordApi>()
-          .sendIndividualBastionTurn(result)
-          .catchError((_) {}),
+    BastionTurnResult? loggedResult;
+    final advanced = await cubit.advanceBastionTurn(
+      bastion.id,
+      gate: (advancedFacility) async {
+        final result = BastionTurnResult(
+          bastionId: bastion.id,
+          bastionName: bastion.name,
+          quest: quest,
+          advancedFacility: advancedFacility == null
+              ? null
+              : BastionTurnAdvancedFacility(
+                  name: advancedFacility.name,
+                  rankTitle: advancedFacility.rank.title,
+                  constructedTurns: advancedFacility.constructedTurns,
+                  constructionTurns: advancedFacility.constructionTurns,
+                ),
+          event: eventResult,
+        );
+        await GetIt.I<DiscordApi>().sendIndividualBastionTurn(result);
+        loggedResult = result;
+      },
     );
+    if (!context.mounted) return;
+    if (loggedResult == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not log the turn — turn not advanced'),
+        ),
+      );
+      return;
+    }
     await BastionTurnDialog.show(
       context,
       advancedFacility: advanced,
       bastion: bastion,
       event: event,
-      result: result,
+      result: loggedResult!,
     );
   }
 
