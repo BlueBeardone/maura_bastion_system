@@ -9,7 +9,7 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';

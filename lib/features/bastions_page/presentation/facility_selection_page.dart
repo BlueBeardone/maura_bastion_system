@@ -9,7 +9,7 @@ import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';

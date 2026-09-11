@@ -5,7 +5,7 @@ import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 
 part 'bastion_state.dart';
 

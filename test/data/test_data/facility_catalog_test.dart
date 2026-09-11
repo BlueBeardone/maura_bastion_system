@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
-import 'package:maura_bastion_system/data/test_data/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 
 void main() {
   group('baseCostByRank', () {
