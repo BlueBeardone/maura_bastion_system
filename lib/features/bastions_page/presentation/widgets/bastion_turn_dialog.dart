@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/individual_bastion_event.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
@@ -13,11 +14,15 @@ class BastionTurnDialog extends StatelessWidget {
   final Bastion bastion;
   final IndividualBastionEvent? event;
 
+  /// API payload for the future Bastion turn API call; not rendered.
+  final BastionTurnResult? result;
+
   const BastionTurnDialog({
     super.key,
     required this.advancedFacility,
     required this.bastion,
     this.event,
+    this.result,
   });
 
   static Future<void> show(
@@ -25,6 +30,7 @@ class BastionTurnDialog extends StatelessWidget {
     required Facility? advancedFacility,
     required Bastion bastion,
     IndividualBastionEvent? event,
+    BastionTurnResult? result,
   }) {
     return showDialog(
       context: context,
@@ -32,6 +38,7 @@ class BastionTurnDialog extends StatelessWidget {
         advancedFacility: advancedFacility,
         bastion: bastion,
         event: event,
+        result: result,
       ),
     );
   }

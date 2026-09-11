@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/bastion/table.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/data/models/bastion/individual_bastion_events_catalog.dart';
@@ -118,11 +123,36 @@ class BastionPage extends StatelessWidget {
     final advanced = await cubit.advanceBastionTurn(bastion.id);
     if (!context.mounted) return;
     final event = rollIndividualBastionEvent();
+    final result = BastionTurnResult(
+      bastionId: bastion.id,
+      bastionName: bastion.name,
+      quest: quest,
+      advancedFacility: advanced == null
+          ? null
+          : BastionTurnAdvancedFacility(
+              name: advanced.name,
+              rankTitle: advanced.rank.title,
+              constructedTurns: advanced.constructedTurns,
+              constructionTurns: advanced.constructionTurns,
+            ),
+      event: BastionTurnEventResult(
+        name: event.name,
+        description: event.description,
+        rolledRow:
+            event.table == null ? null : rollTableResult(event.table!),
+      ),
+    );
+    unawaited(
+      GetIt.I<DiscordApi>()
+          .sendIndividualBastionTurn(result)
+          .catchError((_) {}),
+    );
     await BastionTurnDialog.show(
       context,
       advancedFacility: advanced,
       bastion: bastion,
       event: event,
+      result: result,
     );
   }
 
