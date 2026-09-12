@@ -8,7 +8,7 @@ class BastionApi {
 
   Future<List<Bastion>> getAll() async {
     final data = await _client.get<List<dynamic>>(
-      '/maura/v1/bastions',
+      '/maura/v1/bastions?all=true',
       parser: (json) => json as List<dynamic>,
     );
     return data

@@ -70,6 +70,7 @@ void main() {
     required bool isUserBastion,
     VoidCallback? onUpgrade,
     VoidCallback? onPurchaseBranchUpgrade,
+    VoidCallback? onRemove,
   }) async {
     final apiClient =
         ApiClient(baseUrl: 'http://example.test', client: hirelingMock());
@@ -102,6 +103,7 @@ void main() {
             isUserBastion: isUserBastion,
             onUpgrade: onUpgrade,
             onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+            onRemove: onRemove,
           ),
         ),
       ),
@@ -320,6 +322,94 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('/ 3 hirelings'), findsOneWidget);
+    });
+  });
+
+  group('FacilityPage remove', () {
+    testWidgets('shows the Remove button for the user bastion', (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: true,
+        onRemove: () {},
+      );
+
+      expect(find.text('Remove Facility'), findsOneWidget);
+    });
+
+    testWidgets('hides the Remove button for a non-user bastion',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: false,
+        onRemove: () {},
+      );
+
+      expect(find.text('Remove Facility'), findsNothing);
+    });
+
+    testWidgets('hides the Remove button when no callback is provided',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: true,
+      );
+
+      expect(find.text('Remove Facility'), findsNothing);
+    });
+
+    testWidgets('confirm invokes onRemove', (tester) async {
+      var removeCalled = false;
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: true,
+        onRemove: () {
+          removeCalled = true;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Remove Facility'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove Facility'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('This cannot be undone.'), findsOneWidget);
+
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(removeCalled, isTrue);
+    });
+
+    testWidgets('cancel keeps the page and does not invoke onRemove',
+        (tester) async {
+      var removeCalled = false;
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: true,
+        onRemove: () {
+          removeCalled = true;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Remove Facility'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove Facility'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(removeCalled, isFalse);
+      expect(find.text('Remove Facility'), findsOneWidget);
     });
   });
 }

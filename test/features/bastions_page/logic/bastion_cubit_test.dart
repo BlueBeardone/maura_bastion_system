@@ -9,6 +9,7 @@ import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -1509,6 +1510,271 @@ const discordPaths = <String>{
       );
 
       await c.close();
+    });
+  });
+  group('BastionCubit.removeFacility', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      String rank = 'd',
+      int constructed = 2,
+      int total = 2,
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank,
+          'description': 'desc',
+          'constructionTurns': total,
+          'constructedTurns': constructed,
+          'minimumRequiredHirelings': 0,
+          'cost': 600,
+        };
+
+    Map<String, dynamic> hirelingJson({
+      required String id,
+      required String name,
+      String? facilityId,
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'bastionId': 'bastion-1',
+          'facilityId': facilityId,
+        };
+
+    Map<String, dynamic> bastionJson(
+      List<Map<String, dynamic>> facilities,
+      List<Map<String, dynamic>> hirelings,
+    ) =>
+        {
+          'id': 'bastion-1',
+          'userId': 'user_1',
+          'name': 'Ravencrest',
+          'description': 'desc',
+          'facilities': facilities,
+          'hirelings': hirelings,
+        };
+
+    late List<http.Request> discordPosts;
+    late List<http.Request> hirelingPuts;
+    late List<http.Request> facilityDeletes;
+    late bool discordSucceeds;
+    final deletedFacilityIds = <String>{};
+    late MockClient mock;
+
+    setUp(() {
+      discordPosts = [];
+      hirelingPuts = [];
+      facilityDeletes = [];
+      discordSucceeds = true;
+      deletedFacilityIds.clear();
+      mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/facility-removed') {
+          discordPosts.add(request);
+          if (!discordSucceeds) {
+            return http.Response(
+              jsonEncode({'success': false, 'message': 'webhook unreachable'}),
+              500,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/hirelings/')) {
+          hirelingPuts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'DELETE' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          facilityDeletes.add(request);
+          deletedFacilityIds.add(
+              request.url.pathSegments.last);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  ...bastionJson(
+                    [
+                      facilityJson(id: 'cat_barracks', name: 'Barracks'),
+                      facilityJson(id: 'cat_kitchen', name: 'Kitchen'),
+                    ],
+                    [
+                      hirelingJson(
+                          id: 'h1', name: 'Tom', facilityId: 'cat_barracks'),
+                      hirelingJson(
+                          id: 'h2', name: 'Anna', facilityId: 'cat_kitchen'),
+                      hirelingJson(id: 'h3', name: 'Ben'),
+                    ],
+                  ),
+                  'facilities': [
+                    facilityJson(id: 'cat_barracks', name: 'Barracks'),
+                    facilityJson(id: 'cat_kitchen', name: 'Kitchen'),
+                  ]
+                      .where((f) => !deletedFacilityIds.contains(f['id']))
+                      .toList(),
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+    });
+
+    BastionCubit cubit() => BastionCubit(
+          bastionApi: BastionApi(
+              client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+          facilityApi: FacilityApi(
+              client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+          hirelingApi: HirelingApi(
+              client: ApiClient(baseUrl: 'http://example.test', client: mock)),
+          discordAnnouncer: DiscordAnnouncer(
+              discordApi: DiscordApi(
+                  client:
+                      ApiClient(baseUrl: 'http://example.test', client: mock))),
+        );
+
+    test('announces, unassigns the facility hirelings, deletes, and reloads',
+        () async {
+      final c = cubit();
+      await c.loadBastions();
+      final bastion = (c.state as BastionLoadedState).bastions.first;
+      final barracks =
+          bastion.facilities.firstWhere((f) => f.id == 'cat_barracks');
+
+      await c.removeFacility('bastion-1', barracks);
+
+      expect(discordPosts, hasLength(1));
+      expect(hirelingPuts, hasLength(1));
+      expect(hirelingPuts.first.url.path, '/maura/v1/hirelings/h1');
+      expect(
+        (jsonDecode(hirelingPuts.first.body)
+            as Map<String, dynamic>)['facilityId'],
+        isNull,
+      );
+      expect(facilityDeletes, hasLength(1));
+      expect(
+          facilityDeletes.first.url.path, '/maura/v1/facilities/cat_barracks');
+      final reloaded = (c.state as BastionLoadedState).bastions.first;
+      expect(reloaded.facilities.any((f) => f.id == 'cat_barracks'), isFalse);
+      expect(reloaded.facilities.any((f) => f.id == 'cat_kitchen'), isTrue);
+
+      await c.close();
+    });
+
+    test('is blocked when the Discord log fails', () async {
+      discordSucceeds = false;
+      final c = cubit();
+      await c.loadBastions();
+      final bastion = (c.state as BastionLoadedState).bastions.first;
+      final barracks =
+          bastion.facilities.firstWhere((f) => f.id == 'cat_barracks');
+
+      await c.removeFacility('bastion-1', barracks);
+
+      expect(hirelingPuts, isEmpty);
+      expect(facilityDeletes, isEmpty);
+      expect(c.state, isA<BastionErrorState>());
+      expect((c.state as BastionErrorState).message,
+          startsWith('Discord log failed'));
+
+      await c.close();
+    });
+
+    test('emits an error state when the delete fails', () async {
+      final failingMock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/facility-removed') {
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'DELETE') {
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'db error'}),
+            500,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson(
+                  [facilityJson(id: 'cat_barracks', name: 'Barracks')],
+                  [],
+                ),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+      final failingCubit = BastionCubit(
+        bastionApi: BastionApi(
+            client:
+                ApiClient(baseUrl: 'http://example.test', client: failingMock)),
+        facilityApi: FacilityApi(
+            client:
+                ApiClient(baseUrl: 'http://example.test', client: failingMock)),
+        hirelingApi: HirelingApi(
+            client:
+                ApiClient(baseUrl: 'http://example.test', client: failingMock)),
+      );
+      await failingCubit.loadBastions();
+      final fb = (failingCubit.state as BastionLoadedState).bastions.first;
+      final f = fb.facilities.first;
+
+      await failingCubit.removeFacility('bastion-1', f);
+
+      expect(failingCubit.state, isA<BastionErrorState>());
+      expect((failingCubit.state as BastionErrorState).message,
+          'Failed to remove facility');
+      expect(hirelingPuts, isEmpty);
+
+      await failingCubit.close();
     });
   });
 }

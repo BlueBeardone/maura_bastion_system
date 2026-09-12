@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
+import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -14,6 +15,7 @@ part 'bastion_state.dart';
 class BastionCubit extends Cubit<BastionState> {
   final BastionApi _bastionApi;
   final FacilityApi _facilityApi;
+  final HirelingApi? _hirelingApi;
   final DiscordAnnouncer? _discordAnnouncer;
   bool _advancingTurn = false;
   bool _upgrading = false;
@@ -21,9 +23,11 @@ class BastionCubit extends Cubit<BastionState> {
   BastionCubit({
     required BastionApi bastionApi,
     required FacilityApi facilityApi,
+    HirelingApi? hirelingApi,
     DiscordAnnouncer? discordAnnouncer,
   })  : _bastionApi = bastionApi,
         _facilityApi = facilityApi,
+        _hirelingApi = hirelingApi,
         _discordAnnouncer = discordAnnouncer,
         super(BastionLoadingState());
 
@@ -63,6 +67,43 @@ class BastionCubit extends Cubit<BastionState> {
       await loadBastions();
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to add facility'));
+    }
+  }
+
+  Future<void> removeFacility(String bastionId, Facility facility) async {
+    if (state is! BastionLoadedState) return;
+
+    final loaded = state as BastionLoadedState;
+    final bastion = loaded.bastions.firstWhere(
+      (b) => b.id == bastionId,
+      orElse: () => loaded.bastions.first,
+    );
+
+    try {
+      try {
+        await _discordAnnouncer?.announceFacilityRemoved(bastion, facility);
+      } catch (e, stackTrace) {
+        emit(BastionErrorState(
+          error: e as Exception,
+          stackTrace: stackTrace,
+          message: 'Discord log failed — facility not removed',
+        ));
+        return;
+      }
+      for (final hireling in bastion.getFacilityHirelings(facility.id)) {
+        await _hirelingApi?.update(
+          hireling.id,
+          hireling.copyWith(facilityId: null),
+        );
+      }
+      await _facilityApi.delete(facility.id);
+      await loadBastions();
+    } catch (e, stackTrace) {
+      emit(BastionErrorState(
+        error: e as Exception,
+        stackTrace: stackTrace,
+        message: 'Failed to remove facility',
+      ));
     }
   }
 

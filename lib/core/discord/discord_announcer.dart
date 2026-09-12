@@ -39,6 +39,12 @@ class DiscordAnnouncer {
         _discordApi.sendBranchUpgradePurchased,
       );
 
+  Future<void> announceFacilityRemoved(Bastion bastion, Facility facility) =>
+      _announce(
+        facilityRemovedMessage(bastion, facility),
+        _discordApi.sendFacilityRemoved,
+      );
+
   Future<void> announceHirelingHired(Hireling hireling, {String? bastionName}) =>
       _announce(
         hirelingHiredMessage(hireling, bastionName: bastionName),
@@ -126,6 +132,15 @@ String branchUpgradePurchasedMessage(
   var details = '$kind • Cost: ${upgrade.costFor(facility.rank)}gp';
   if (upgrade.hirelingCapacity != null) details += ' • Hireling capacity: ${upgrade.hirelingCapacity}';
   lines.addAll(['', details]);
+  return lines.join('\n');
+}
+
+String facilityRemovedMessage(Bastion bastion, Facility facility) {
+  final lines = <String>[
+    '🏚️ **${bastion.name}** has torn down **${facility.name}** (Rank ${facility.rank.title}).',
+  ];
+  final description = _optionalLine(facility.description);
+  if (description != null) lines.addAll(['', description]);
   return lines.join('\n');
 }
 

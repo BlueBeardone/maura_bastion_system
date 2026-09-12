@@ -71,6 +71,7 @@ void main() {
       );
       GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
       GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+      GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
       GetIt.I.registerSingleton<DiscordAnnouncer>(
         DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
       );
@@ -194,6 +195,7 @@ void main() {
     final apiClient = ApiClient(baseUrl: 'http://example.test', client: mockClient);
     GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
     GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
     GetIt.I.registerSingleton<DiscordApi>(DiscordApi(client: apiClient));
     GetIt.I.registerSingleton<DiscordAnnouncer>(
       DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),

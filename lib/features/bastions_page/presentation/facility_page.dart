@@ -24,6 +24,7 @@ class FacilityPage extends StatelessWidget {
   final VoidCallback? onConstruct;
   final VoidCallback? onUpgrade;
   final VoidCallback? onPurchaseBranchUpgrade;
+  final VoidCallback? onRemove;
 
   const FacilityPage({
     super.key,
@@ -33,6 +34,7 @@ class FacilityPage extends StatelessWidget {
     this.onConstruct,
     this.onUpgrade,
     this.onPurchaseBranchUpgrade,
+    this.onRemove,
   });
 
   @override
@@ -49,6 +51,7 @@ class FacilityPage extends StatelessWidget {
         isSelectionMode: false,
         onUpgrade: onUpgrade,
         onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+        onRemove: onRemove,
       );
     }
 
@@ -63,6 +66,7 @@ class FacilityPage extends StatelessWidget {
         onConstruct: onConstruct,
         onUpgrade: onUpgrade,
         onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+        onRemove: onRemove,
       );
     }
 
@@ -90,6 +94,7 @@ class FacilityPage extends StatelessWidget {
             isSelectionMode: false,
             onUpgrade: onUpgrade,
             onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+            onRemove: onRemove,
           );
         },
       ),
@@ -107,6 +112,7 @@ class _FacilityView extends StatelessWidget {
   final VoidCallback? onConstruct;
   final VoidCallback? onUpgrade;
   final VoidCallback? onPurchaseBranchUpgrade;
+  final VoidCallback? onRemove;
 
   const _FacilityView({
     required this.facility,
@@ -118,6 +124,7 @@ class _FacilityView extends StatelessWidget {
     this.onConstruct,
     this.onUpgrade,
     this.onPurchaseBranchUpgrade,
+    this.onRemove,
   });
 
   @override
@@ -242,6 +249,64 @@ class _FacilityView extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (_shouldShowRemoveButton()) ...[
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) => AlertDialog(
+                              title: Text(
+                                'Remove ${facility.name}?',
+                                style: GoogleFonts.cinzel(
+                                  fontWeight: FontWeight.bold,
+                                  color: MedievalColors.vermillion,
+                                ),
+                              ),
+                              content: Text(
+                                'This cannot be undone.',
+                                style: GoogleFonts.imFellEnglish(
+                                  color: MedievalColors.sepiaInk,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(true),
+                                  child: const Text('Remove'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            onRemove!();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MedievalColors.vermillion,
+                          foregroundColor: MedievalColors.goldPale,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Remove Facility',
+                          style: GoogleFonts.cinzel(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -260,6 +325,12 @@ class _FacilityView extends StatelessWidget {
     final anyBusy = bastion.facilities
         .any((f) => f.constructedTurns < f.constructionTurns);
     return !anyBusy;
+  }
+
+  bool _shouldShowRemoveButton() {
+    if (onRemove == null) return false;
+    if (!isUserBastion || isSelectionMode) return false;
+    return true;
   }
 
   bool _shouldShowBranchUpgradePurchase() {

@@ -35,6 +35,9 @@ class DiscordApi {
   Future<void> sendBranchUpgradePurchased(String message) =>
       _post('/maura/v1/discord/branch-upgrade', message);
 
+  Future<void> sendFacilityRemoved(String message) =>
+      _post('/maura/v1/discord/facility-removed', message);
+
   Future<void> sendHirelingHired(String message) =>
       _post('/maura/v1/discord/hireling-hired', message);
 

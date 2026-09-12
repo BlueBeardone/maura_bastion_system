@@ -245,6 +245,36 @@ void main() {
         '🛡️ **Ravencrest** gains a new defender: **Unnamed Defender** (Beast)!',
       );
     });
+    test('facilityRemovedMessage shows torn-down facility and description', () {
+      final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
+      const facility = Facility(
+        id: 'cat_barracks',
+        name: 'Barracks',
+        rank: Rank.D,
+        description: 'Houses the guard.',
+      );
+
+      expect(
+        facilityRemovedMessage(bastion, facility),
+        '🏚️ **Ravencrest** has torn down **Barracks** (Rank D).\n\n'
+        'Houses the guard.',
+      );
+    });
+
+    test('facilityRemovedMessage omits the description when blank', () {
+      final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
+      const facility = Facility(
+        id: 'cat_barracks',
+        name: 'Barracks',
+        rank: Rank.D,
+        description: '   ',
+      );
+
+      expect(
+        facilityRemovedMessage(bastion, facility),
+        '🏚️ **Ravencrest** has torn down **Barracks** (Rank D).',
+      );
+    });
   });
 
   group('DiscordAnnouncer transport', () {
@@ -339,6 +369,34 @@ void main() {
               '🏗️ **Ravencrest** has started construction on **Kitchen** (Rank D)!\n\n'
                   'Cooks food.\n\n'
                   'Cost: 600gp • Build time: 2 turns • Required hirelings: 0',
+        }),
+      );
+    });
+
+    test('announceFacilityRemoved POSTs the built message', () async {
+      late http.Request captured;
+      final mock = capturingMock((request) => captured = request);
+      final announcer = announcerWith(mock);
+
+      final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
+      const facility = Facility(
+        id: 'cat_barracks',
+        name: 'Barracks',
+        rank: Rank.D,
+        description: 'Houses the guard.',
+      );
+      await announcer.announceFacilityRemoved(bastion, facility);
+
+      expect(
+        captured.url.toString(),
+        'http://example.test/maura/v1/discord/facility-removed',
+      );
+      expect(
+        captured.body,
+        jsonEncode({
+          'message':
+              '🏚️ **Ravencrest** has torn down **Barracks** (Rank D).\n\n'
+                  'Houses the guard.',
         }),
       );
     });
