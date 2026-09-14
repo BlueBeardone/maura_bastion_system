@@ -17,6 +17,9 @@ import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 class AppBarNavigationMenu extends StatefulWidget {
   final List<MainNavigation> navigationItems;
 
+  /// Route names of nav pages currently on the navigator stack.
+  static final Set<String> activeRouteNames = <String>{};
+
   const AppBarNavigationMenu({super.key, required this.navigationItems});
 
   @override
@@ -105,6 +108,29 @@ class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
     );
   }
 
+  Future<void> _pushOrPopTo(
+    BuildContext context,
+    MainNavigation item,
+    WidgetBuilder builder,
+  ) async {
+    final name = item.name;
+    if (AppBarNavigationMenu.activeRouteNames.contains(name)) {
+      Navigator.of(context).popUntil((route) => route.settings.name == name);
+      return;
+    }
+    AppBarNavigationMenu.activeRouteNames.add(name);
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: builder,
+          settings: RouteSettings(name: name),
+        ),
+      );
+    } finally {
+      AppBarNavigationMenu.activeRouteNames.remove(name);
+    }
+  }
+
   Future<void> _handleNavigation(
     BuildContext context,
     MainNavigation buttonItem,
@@ -114,33 +140,35 @@ class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
     _navigationInProgress = true;
     try {
       switch (buttonItem) {
+        case MainNavigation.newspaper:
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          break;
         case MainNavigation.about:
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AboutPage()),
-          );
+          await _pushOrPopTo(context, buttonItem, (context) => AboutPage());
           break;
         case MainNavigation.myBastion:
-          await Navigator.push(
+          await _pushOrPopTo(
             context,
-            MaterialPageRoute(builder: (context) => const BastionMainScreen()),
+            buttonItem,
+            (context) => const BastionMainScreen(),
           );
           break;
         case MainNavigation.facility:
           if (userBastion == null) break;
-          await Navigator.push(
+          await _pushOrPopTo(
             context,
-            MaterialPageRoute(
-              builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
+            buttonItem,
+            (context) => BastionPage(
+              bastionId: userBastion.id,
+              isUserBastion: true,
             ),
           );
           break;
         case MainNavigation.hirelings:
-          await Navigator.push(
+          await _pushOrPopTo(
             context,
-            MaterialPageRoute(
-              builder: (context) => HirelingsPage(bastion: userBastion),
-            ),
+            buttonItem,
+            (context) => HirelingsPage(bastion: userBastion),
           );
           break;
       }
