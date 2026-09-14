@@ -14,7 +14,7 @@ import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubi
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 class HirelingsPage extends StatelessWidget {
-  final Bastion bastion;
+  final Bastion? bastion;
 
   const HirelingsPage({
     super.key,
@@ -25,10 +25,10 @@ class HirelingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => HirelingsCubit(
-        bastionId: bastion.id,
+        bastionId: bastion?.id ?? '',
         hirelingApi: GetIt.I<HirelingApi>(),
         discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
-        bastionName: bastion.name,
+        bastionName: bastion?.name,
       )..loadHirelings(),
       child: _HirelingsView(bastion: bastion),
     );
@@ -36,7 +36,7 @@ class HirelingsPage extends StatelessWidget {
 }
 
 class _HirelingsView extends StatefulWidget {
-  final Bastion bastion;
+  final Bastion? bastion;
 
   const _HirelingsView({required this.bastion});
 
@@ -65,7 +65,9 @@ class _HirelingsViewState extends State<_HirelingsView> {
         shadowColor: MedievalColors.sepiaInk,
         iconTheme: const IconThemeData(color: MedievalColors.goldPale),
         title: Text(
-          'Hirelings of ${widget.bastion.name}',
+          widget.bastion != null
+              ? 'Hirelings of ${widget.bastion!.name}'
+              : 'Your Hirelings',
           style: GoogleFonts.cinzelDecorative(
             color: MedievalColors.goldBright,
           ),
@@ -94,7 +96,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
         child: BlocBuilder<HirelingsCubit, HirelingsState>(
           builder: (context, state) {
             final facilityNames = <String, String>{};
-            for (final f in widget.bastion.facilities) {
+            for (final f in widget.bastion?.facilities ?? const []) {
               facilityNames[f.id] = f.name;
             }
 

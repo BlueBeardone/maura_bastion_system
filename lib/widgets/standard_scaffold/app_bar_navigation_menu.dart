@@ -26,59 +26,89 @@ class AppBarNavigationMenu extends StatefulWidget {
 class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
   bool _navigationInProgress = false;
 
+  Bastion? _findUserBastion(List<Bastion> bastions) {
+    final authState = GetIt.I<AuthCubit>().state;
+    if (authState is! AuthAuthenticatedState) return null;
+    final currentUserId = authState.user.id;
+    for (final bastion in bastions) {
+      if (bastion.belongsTo(currentUserId)) return bastion;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
-    if (!isMobile) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: widget.navigationItems.map((buttonItem) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: InkWell(
-              hoverColor: Theme.of(context).hoverColor,
-              onTap: () => _handleNavigation(context, buttonItem),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  buttonItem.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      );
-    }
+    return BlocProvider(
+      create: (_) => BastionCubit(
+        bastionApi: GetIt.I<BastionApi>(),
+        facilityApi: GetIt.I<FacilityApi>(),
+        discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
+      )..loadBastions(),
+      child: BlocBuilder<BastionCubit, BastionState>(
+        builder: (context, state) {
+          final bastions =
+              state is BastionLoadedState ? state.bastions : const <Bastion>[];
+          final userBastion = _findUserBastion(bastions);
+          final hasUserBastion = userBastion != null;
+          final items = widget.navigationItems
+              .where((item) => item != MainNavigation.facility || hasUserBastion)
+              .toList();
 
-    return PopupMenuButton<MainNavigation>(
-      icon: Icon(
-        Icons.menu,
-        color: Theme.of(context).appBarTheme.iconTheme?.color,
-      ),
-      color: Theme.of(context).appBarTheme.backgroundColor,
-      itemBuilder: (context) {
-        return widget.navigationItems.map((buttonItem) {
-          return PopupMenuItem<MainNavigation>(
-            value: buttonItem,
-            child: Text(
-              buttonItem.title,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).appBarTheme.foregroundColor),
+          if (!isMobile) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: items.map((buttonItem) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InkWell(
+                    hoverColor: Theme.of(context).hoverColor,
+                    onTap: () => _handleNavigation(context, buttonItem, userBastion),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                        buttonItem.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }
+
+          return PopupMenuButton<MainNavigation>(
+            icon: Icon(
+              Icons.menu,
+              color: Theme.of(context).appBarTheme.iconTheme?.color,
             ),
+            color: Theme.of(context).appBarTheme.backgroundColor,
+            itemBuilder: (context) {
+              return items.map((buttonItem) {
+                return PopupMenuItem<MainNavigation>(
+                  value: buttonItem,
+                  child: Text(
+                    buttonItem.title,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).appBarTheme.foregroundColor),
+                  ),
+                );
+              }).toList();
+            },
+            onSelected: (buttonItem) => _handleNavigation(context, buttonItem, userBastion),
           );
-        }).toList();
-      },
-      onSelected: (buttonItem) => _handleNavigation(context, buttonItem),
+        },
+      ),
     );
   }
 
   Future<void> _handleNavigation(
     BuildContext context,
     MainNavigation buttonItem,
+    Bastion? userBastion,
   ) async {
     if (_navigationInProgress) return;
     _navigationInProgress = true;
@@ -97,76 +127,28 @@ class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
           );
           break;
         case MainNavigation.facility:
-          await _navigateToUserBastion(context);
+          if (userBastion == null) break;
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
+            ),
+          );
           break;
         case MainNavigation.hirelings:
-          await _navigateToHirelings(context);
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HirelingsPage(bastion: userBastion),
+            ),
+          );
           break;
+      }
+      if (context.mounted) {
+        context.read<BastionCubit>().loadBastions();
       }
     } finally {
       _navigationInProgress = false;
-    }
-  }
-
-  Future<Bastion?> _fetchUserBastion() async {
-    final cubit = BastionCubit(
-      bastionApi: GetIt.I<BastionApi>(),
-      facilityApi: GetIt.I<FacilityApi>(),
-      discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
-    );
-    Bastion? result;
-    try {
-      await cubit.loadBastions();
-      final authState = GetIt.I<AuthCubit>().state;
-      if (authState is AuthAuthenticatedState) {
-        final currentUserId = authState.user.id;
-        try {
-          result = cubit.state is BastionLoadedState
-              ? (cubit.state as BastionLoadedState).bastions
-                  .firstWhere((b) => b.belongsTo(currentUserId))
-              : null;
-        } catch (_) {
-          result = null;
-        }
-      } else {
-        result = cubit.state is BastionLoadedState &&
-                (cubit.state as BastionLoadedState).bastions.isNotEmpty
-            ? (cubit.state as BastionLoadedState).bastions.first
-            : null;
-      }
-    } finally {
-      await cubit.close();
-    }
-    return result;
-  }
-
-  Future<void> _navigateToUserBastion(BuildContext context) async {
-    final userBastion = await _fetchUserBastion();
-    if (userBastion == null || !context.mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BastionPage(bastionId: userBastion.id, isUserBastion: true),
-      ),
-    );
-    if (context.mounted) {
-      final underlying = context.read<BastionCubit?>();
-      underlying?.loadBastions();
-    }
-  }
-
-  Future<void> _navigateToHirelings(BuildContext context) async {
-    final userBastion = await _fetchUserBastion();
-    if (userBastion == null || !context.mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HirelingsPage(bastion: userBastion),
-      ),
-    );
-    if (context.mounted) {
-      final underlying = context.read<BastionCubit?>();
-      underlying?.loadBastions();
     }
   }
 }
