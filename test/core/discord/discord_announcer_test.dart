@@ -419,6 +419,83 @@ void main() {
       );
     });
   });
+
+  Defender defender(String? name, DefenderType type) => Defender(
+        id: '',
+        name: name,
+        type: type,
+        bastionId: 'bastion-1',
+      );
+
+  group('defendersRecruitedMessage', () {
+    test('lists all names under a single header with the shared type', () {
+      final message = defendersRecruitedMessage(
+        [
+          defender('Aldric Vane', DefenderType.knight),
+          defender('Bram Oakfist', DefenderType.knight),
+        ],
+        bastionName: 'Ravencrest',
+      );
+      expect(
+        message,
+        '🛡️ **Ravencrest** recruits 2 new defenders (Knight):\n'
+        '• **Aldric Vane**\n'
+        '• **Bram Oakfist**',
+      );
+    });
+
+    test('handles mixed types by omitting the type label', () {
+      final message = defendersRecruitedMessage(
+        [
+          defender('Aldric Vane', DefenderType.knight),
+          defender('Growler', DefenderType.beast),
+        ],
+        bastionName: 'Ravencrest',
+      );
+      expect(message, startsWith('🛡️ **Ravencrest** recruits 2 new defenders:'));
+    });
+
+    test('uses a generic name when no bastion name is given', () {
+      final message = defendersRecruitedMessage(
+        [defender('Aldric Vane', DefenderType.knight)],
+      );
+      expect(message, startsWith('🛡️ A new bastion recruits 1 new defender (Knight):'));
+    });
+
+    test('shows Unnamed Defender for null names', () {
+      final message = defendersRecruitedMessage(
+        [defender(null, DefenderType.knight)],
+        bastionName: 'Ravencrest',
+      );
+      expect(message, contains('• **Unnamed Defender**'));
+    });
+  });
+
+  group('announceDefendersRecruited', () {
+    test('sends the summary via the defender-acquired transport', () async {
+      final sent = <String>[];
+      final announcer = DiscordAnnouncer(
+        discordApi: DiscordApi(
+          client: ApiClient(
+            client: MockClient((request) async {
+              sent.add(jsonDecode(request.body)['message'] as String);
+              return http.Response(
+                jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }),
+          ),
+        ),
+      );
+      await announcer.announceDefendersRecruited(
+        [defender('Aldric Vane', DefenderType.knight)],
+        bastionName: 'Ravencrest',
+      );
+      expect(sent, hasLength(1));
+      expect(sent.single, contains('**Aldric Vane**'));
+    });
+  });
 }
 
 // Helper fixtures used by the branch-upgrade builder tests.

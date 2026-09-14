@@ -14,10 +14,17 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/hirelin
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 
-class AppBarNavigationMenu extends StatelessWidget {
+class AppBarNavigationMenu extends StatefulWidget {
   final List<MainNavigation> navigationItems;
 
   const AppBarNavigationMenu({super.key, required this.navigationItems});
+
+  @override
+  State<AppBarNavigationMenu> createState() => _AppBarNavigationMenuState();
+}
+
+class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
+  bool _navigationInProgress = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +34,7 @@ class AppBarNavigationMenu extends StatelessWidget {
     if (!isMobile) {
       return Row(
         mainAxisSize: MainAxisSize.min,
-        children: navigationItems.map((buttonItem) {
+        children: widget.navigationItems.map((buttonItem) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: InkWell(
@@ -55,7 +62,7 @@ class AppBarNavigationMenu extends StatelessWidget {
       ),
       color: Theme.of(context).appBarTheme.backgroundColor,
       itemBuilder: (context) {
-        return navigationItems.map((buttonItem) {
+        return widget.navigationItems.map((buttonItem) {
           return PopupMenuItem<MainNavigation>(
             value: buttonItem,
             child: Text(
@@ -69,26 +76,35 @@ class AppBarNavigationMenu extends StatelessWidget {
     );
   }
 
-  void _handleNavigation(BuildContext context, MainNavigation buttonItem) {
-    switch (buttonItem) {
-      case MainNavigation.about:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AboutPage()),
-        );
-        break;
-      case MainNavigation.myBastion:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BastionMainScreen()),
-        );
-        break;
-      case MainNavigation.facility:
-        _navigateToUserBastion(context);
-        break;
-      case MainNavigation.hirelings:
-        _navigateToHirelings(context);
-        break;
+  Future<void> _handleNavigation(
+    BuildContext context,
+    MainNavigation buttonItem,
+  ) async {
+    if (_navigationInProgress) return;
+    _navigationInProgress = true;
+    try {
+      switch (buttonItem) {
+        case MainNavigation.about:
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AboutPage()),
+          );
+          break;
+        case MainNavigation.myBastion:
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const BastionMainScreen()),
+          );
+          break;
+        case MainNavigation.facility:
+          await _navigateToUserBastion(context);
+          break;
+        case MainNavigation.hirelings:
+          await _navigateToHirelings(context);
+          break;
+      }
+    } finally {
+      _navigationInProgress = false;
     }
   }
 

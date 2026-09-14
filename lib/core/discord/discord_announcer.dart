@@ -57,6 +57,15 @@ class DiscordAnnouncer {
         _discordApi.sendDefenderAcquired,
       );
 
+  Future<void> announceDefendersRecruited(
+    List<Defender> defenders, {
+    String? bastionName,
+  }) =>
+      _announce(
+        defendersRecruitedMessage(defenders, bastionName: bastionName),
+        _discordApi.sendDefenderAcquired,
+      );
+
   Future<void> _announce(
     String message,
     Future<void> Function(String) transport,
@@ -175,6 +184,25 @@ String defenderAcquiredMessage(Defender defender, {String? bastionName}) {
   if (story != null) lines.addAll(['', 'How they were gained: $story']);
   final imgUrl = _optionalLine(defender.imgUrl);
   if (imgUrl != null) lines.addAll(['', imgUrl]);
+  return lines.join('\n');
+}
+
+String defendersRecruitedMessage(
+  List<Defender> defenders, {
+  String? bastionName,
+}) {
+  final whoName = _optionalLine(bastionName);
+  final who = whoName == null ? 'A new bastion' : '**$whoName**';
+  final count = defenders.length;
+  final typeTitles = defenders.map((d) => d.type.title).toSet();
+  final typeLabel = typeTitles.length == 1 ? ' (${typeTitles.first})' : '';
+  final lines = <String>[
+    '🛡️ $who recruits $count new defender${count == 1 ? '' : 's'}$typeLabel:',
+  ];
+  for (final defender in defenders) {
+    final name = _optionalLine(defender.name) ?? 'Unnamed Defender';
+    lines.add('• **$name**');
+  }
   return lines.join('\n');
 }
 

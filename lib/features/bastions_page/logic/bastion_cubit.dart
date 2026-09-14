@@ -40,38 +40,39 @@ class BastionCubit extends Cubit<BastionState> {
     }
   }
 
-  Future<void> addFacility(String bastionId, Facility facility) async {
-    try {
-      if (state is BastionLoadedState) {
-        final bastions = (state as BastionLoadedState).bastions;
-        final bastion = bastions.isEmpty
-            ? null
-            : bastions.firstWhere(
-                (b) => b.id == bastionId,
-                orElse: () => bastions.first,
-              );
-        if (bastion != null) {
-          try {
-            await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
-          } catch (e, stackTrace) {
-            emit(BastionErrorState(
-              error: e as Exception,
-              stackTrace: stackTrace,
-              message: 'Discord log failed — facility not built',
-            ));
-            return;
-          }
-        }
-      }
-      await _facilityApi.create(facility, bastionId);
-      await loadBastions();
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to add facility'));
+  void _setMutating(bool mutating) {
+    if (state is BastionLoadedState) {
+      emit((state as BastionLoadedState).copyWith(isMutating: mutating));
     }
   }
 
-  Future<void> removeFacility(String bastionId, Facility facility) async {
-    if (state is! BastionLoadedState) return;
+  Future<bool> addFacility(String bastionId, Facility facility) async {
+    if (state is! BastionLoadedState) return false;
+
+    final loaded = state as BastionLoadedState;
+    final bastion = loaded.bastions.isEmpty
+        ? null
+        : loaded.bastions.firstWhere(
+            (b) => b.id == bastionId,
+            orElse: () => loaded.bastions.first,
+          );
+    if (bastion == null) return false;
+    if (bastion.facilities.length >= maxFacilitiesPerBastion) return false;
+
+    try {
+      await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
+      _setMutating(true);
+      await _facilityApi.create(facility, bastionId);
+      await loadBastions();
+      return true;
+    } catch (e) {
+      _setMutating(false);
+      return false;
+    }
+  }
+
+  Future<bool> removeFacility(String bastionId, Facility facility) async {
+    if (state is! BastionLoadedState) return false;
 
     final loaded = state as BastionLoadedState;
     final bastion = loaded.bastions.firstWhere(
@@ -80,16 +81,8 @@ class BastionCubit extends Cubit<BastionState> {
     );
 
     try {
-      try {
-        await _discordAnnouncer?.announceFacilityRemoved(bastion, facility);
-      } catch (e, stackTrace) {
-        emit(BastionErrorState(
-          error: e as Exception,
-          stackTrace: stackTrace,
-          message: 'Discord log failed — facility not removed',
-        ));
-        return;
-      }
+      _setMutating(true);
+      await _discordAnnouncer?.announceFacilityRemoved(bastion, facility);
       for (final hireling in bastion.getFacilityHirelings(facility.id)) {
         await _hirelingApi?.update(
           hireling.id,
@@ -98,12 +91,10 @@ class BastionCubit extends Cubit<BastionState> {
       }
       await _facilityApi.delete(facility.id);
       await loadBastions();
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(
-        error: e as Exception,
-        stackTrace: stackTrace,
-        message: 'Failed to remove facility',
-      ));
+      return true;
+    } catch (e) {
+      _setMutating(false);
+      return false;
     }
   }
 
@@ -130,16 +121,12 @@ class BastionCubit extends Cubit<BastionState> {
 
     try {
       _advancingTurn = true;
+      _setMutating(true);
       if (target == null) {
         if (gate != null) {
           try {
             await gate(null);
-          } catch (e, stackTrace) {
-            emit(BastionErrorState(
-              error: e as Exception,
-              stackTrace: stackTrace,
-              message: 'Discord log failed — turn not advanced',
-            ));
+          } catch (e) {
             return null;
           }
         }
@@ -169,12 +156,7 @@ class BastionCubit extends Cubit<BastionState> {
       if (gate != null) {
         try {
           await gate(advanced);
-        } catch (e, stackTrace) {
-          emit(BastionErrorState(
-            error: e as Exception,
-            stackTrace: stackTrace,
-            message: 'Discord log failed — turn not advanced',
-          ));
+        } catch (e) {
           return null;
         }
       }
@@ -184,15 +166,11 @@ class BastionCubit extends Cubit<BastionState> {
       }
       await loadBastions();
       return advanced;
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(
-        error: e as Exception,
-        stackTrace: stackTrace,
-        message: 'Failed to advance bastion turn',
-      ));
+    } catch (e) {
       return null;
     } finally {
       _advancingTurn = false;
+      _setMutating(false);
     }
   }
 
@@ -224,29 +202,21 @@ class BastionCubit extends Cubit<BastionState> {
 
     try {
       _upgrading = true;
+      _setMutating(true);
       try {
         await _discordAnnouncer
             ?.announceFacilityRankUp(bastion, oldFacility, upgraded);
-      } catch (e, stackTrace) {
-        emit(BastionErrorState(
-          error: e as Exception,
-          stackTrace: stackTrace,
-          message: 'Discord log failed — facility not upgraded',
-        ));
+      } catch (e) {
         return null;
       }
       await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
       await loadBastions();
       return upgraded;
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(
-        error: e as Exception,
-        stackTrace: stackTrace,
-        message: 'Failed to upgrade facility',
-      ));
+    } catch (e) {
       return null;
     } finally {
       _upgrading = false;
+      _setMutating(false);
     }
   }
 
@@ -279,29 +249,21 @@ class BastionCubit extends Cubit<BastionState> {
 
     try {
       _upgrading = true;
+      _setMutating(true);
       try {
         await _discordAnnouncer
             ?.announceBranchUpgradePurchased(bastion, purchased, upgrade);
-      } catch (e, stackTrace) {
-        emit(BastionErrorState(
-          error: e as Exception,
-          stackTrace: stackTrace,
-          message: 'Discord log failed — upgrade not purchased',
-        ));
+      } catch (e) {
         return null;
       }
       await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
       await loadBastions();
       return purchased;
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(
-        error: e as Exception,
-        stackTrace: stackTrace,
-        message: 'Failed to purchase branch upgrade',
-      ));
+    } catch (e) {
       return null;
     } finally {
       _upgrading = false;
+      _setMutating(false);
     }
   }
 
@@ -311,6 +273,8 @@ class BastionCubit extends Cubit<BastionState> {
     String? imgUrl,
     List<Facility> facilities,
   ) async {
+    if (facilities.length > maxFacilitiesPerBastion) return null;
+
     final builtFacilities = facilities.map((f) => Facility(
       id: f.id,
       name: f.name,
@@ -334,12 +298,7 @@ class BastionCubit extends Cubit<BastionState> {
     try {
       try {
         await _discordAnnouncer?.announceBastionCreated(localBastion);
-      } catch (e, stackTrace) {
-        emit(BastionErrorState(
-          error: e as Exception,
-          stackTrace: stackTrace,
-          message: 'Discord log failed — bastion not created',
-        ));
+      } catch (e) {
         return null;
       }
       final newBastion = await _bastionApi.create(localBastion);
@@ -350,8 +309,7 @@ class BastionCubit extends Cubit<BastionState> {
       bastions.add(newBastion);
       emit(BastionLoadedState(bastions: bastions));
       return newBastion;
-    } catch (e, stackTrace) {
-      emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to create bastion'));
+    } catch (e) {
       return null;
     }
   }

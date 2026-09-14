@@ -25,7 +25,12 @@ class NewspaperLayout extends StatelessWidget {
             return MyErrorWidget(message: state.message);
           }
 
-          return const SizedBox();
+          return Scaffold(
+            backgroundColor: MedievalColors.leatherDark,
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         },
       ),
     );

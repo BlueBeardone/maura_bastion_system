@@ -24,6 +24,26 @@ void main() {
         () async {
       late http.Request captured;
       final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  'id': 'bastion-1',
+                  'userId': 'user_1',
+                  'name': 'Test Bastion',
+                  'description': 'desc',
+                  'facilities': [],
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         if (request.url.path == '/maura/v1/facilities') {
           captured = request;
           return http.Response(
@@ -58,6 +78,7 @@ void main() {
         cost: 100,
       );
 
+      await cubit.loadBastions();
       await cubit.addFacility('bastion-1', facility);
 
       expect(captured, isNotNull);
@@ -66,6 +87,199 @@ void main() {
       final body = jsonDecode(captured.body) as Map<String, dynamic>;
       expect(body['bastionId'], 'bastion-1');
       expect(body['id'], 'barracks');
+
+      await cubit.close();
+    });
+  });
+
+  group('BastionCubit facility cap', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      String rank = 'd',
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank,
+          'description': 'desc',
+          'constructionTurns': 2,
+          'constructedTurns': 2,
+          'minimumRequiredHirelings': 0,
+          'cost': 600,
+        };
+
+    Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
+        {
+          'id': 'bastion-1',
+          'userId': 'user_1',
+          'name': 'Test Bastion',
+          'description': 'desc',
+          'facilities': facilities,
+        };
+
+    test('addFacility rejects a 17th facility without any API call', () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson(List.generate(
+                  maxFacilitiesPerBastion,
+                  (i) => facilityJson(id: 'f$i', name: 'F$i'),
+                )),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final facility = Facility(
+        id: 'barracks',
+        name: 'Barracks',
+        rank: Rank.D,
+        description: 'Houses the guard.',
+        constructionTurns: 2,
+        cost: 100,
+      );
+
+      final ok = await cubit.addFacility('bastion-1', facility);
+
+      expect(ok, isFalse);
+      expect(posts, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('addFacility allows a 16th facility', () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson(List.generate(
+                  maxFacilitiesPerBastion - 1,
+                  (i) => facilityJson(id: 'f$i', name: 'F$i'),
+                )),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/facilities') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final facility = Facility(
+        id: 'barracks',
+        name: 'Barracks',
+        rank: Rank.D,
+        description: 'Houses the guard.',
+        constructionTurns: 2,
+        cost: 100,
+      );
+
+      final ok = await cubit.addFacility('bastion-1', facility);
+
+      expect(ok, isTrue);
+      expect(posts, hasLength(1));
+
+      await cubit.close();
+    });
+
+    test('createBastion rejects more than 16 selected facilities', () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/bastions') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+
+      final facilities = List.generate(maxFacilitiesPerBastion + 1, (i) =>
+          Facility(
+            id: 'f$i',
+            name: 'F$i',
+            rank: Rank.D,
+            description: 'desc',
+            constructionTurns: 2,
+            cost: 600,
+          ));
+
+      final result = await cubit.createBastion('Name', 'desc', null, facilities);
+
+      expect(result, isNull);
+      expect(posts, isEmpty);
 
       await cubit.close();
     });
@@ -571,7 +785,7 @@ void main() {
       await cubit.close();
     });
 
-    test('a failing gate blocks the turn and emits an error state', () async {
+    test('a failing gate blocks the turn and returns null', () async {
       final puts = <http.Request>[];
       final mock = MockClient((request) async {
         if (request.method == 'POST' &&
@@ -648,9 +862,7 @@ void main() {
       expect(gateRan, isTrue);
       expect(advanced, isNull);
       expect(puts, isEmpty);
-      expect(cubit.state, isA<BastionErrorState>());
-      expect((cubit.state as BastionErrorState).message,
-          startsWith('Discord log failed'));
+      expect(cubit.state, isA<BastionLoadedState>());
 
       await cubit.close();
     });
@@ -1424,9 +1636,7 @@ const discordPaths = <String>{
       final upgraded = await c.upgradeFacility('bastion-1', barracks);
 
       expect(upgraded, isNull);
-      expect(c.state, isA<BastionErrorState>());
-      expect((c.state as BastionErrorState).message,
-          startsWith('Discord log failed'));
+      expect(c.state, isA<BastionLoadedState>());
 
       await c.close();
     });
@@ -1439,9 +1649,7 @@ const discordPaths = <String>{
 
       expect(result, isNull);
       expect(bastionPosts, isEmpty);
-      expect(c.state, isA<BastionErrorState>());
-      expect((c.state as BastionErrorState).message,
-          startsWith('Discord log failed'));
+      expect(c.state, isA<BastionLoadingState>());
 
       await c.close();
     });
@@ -1462,9 +1670,7 @@ const discordPaths = <String>{
       await c.addFacility('bastion-1', facility);
 
       expect(facilityCreations, isEmpty);
-      expect(c.state, isA<BastionErrorState>());
-      expect((c.state as BastionErrorState).message,
-          startsWith('Discord log failed'));
+      expect(c.state, isA<BastionLoadedState>());
 
       await c.close();
     });
@@ -1483,7 +1689,7 @@ const discordPaths = <String>{
 
       expect(result, isNull);
       expect(facilityUpdates, isEmpty);
-      expect(c.state, isA<BastionErrorState>());
+      expect(c.state, isA<BastionLoadedState>());
 
       await c.close();
     });
@@ -1705,14 +1911,12 @@ const discordPaths = <String>{
 
       expect(hirelingPuts, isEmpty);
       expect(facilityDeletes, isEmpty);
-      expect(c.state, isA<BastionErrorState>());
-      expect((c.state as BastionErrorState).message,
-          startsWith('Discord log failed'));
+      expect(c.state, isA<BastionLoadedState>());
 
       await c.close();
     });
 
-    test('emits an error state when the delete fails', () async {
+    test('returns false when the delete fails', () async {
       final failingMock = MockClient((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/discord/facility-removed') {
@@ -1769,9 +1973,7 @@ const discordPaths = <String>{
 
       await failingCubit.removeFacility('bastion-1', f);
 
-      expect(failingCubit.state, isA<BastionErrorState>());
-      expect((failingCubit.state as BastionErrorState).message,
-          'Failed to remove facility');
+      expect(failingCubit.state, isA<BastionLoadedState>());
       expect(hirelingPuts, isEmpty);
 
       await failingCubit.close();

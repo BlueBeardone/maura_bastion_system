@@ -11,11 +11,19 @@ class BastionLoadingState extends BastionState {
 
 class BastionLoadedState extends BastionState {
   final List<Bastion> bastions;
+  final bool isMutating;
 
-  const BastionLoadedState({required this.bastions});
+  const BastionLoadedState({required this.bastions, this.isMutating = false});
+
+  BastionLoadedState copyWith({List<Bastion>? bastions, bool? isMutating}) {
+    return BastionLoadedState(
+      bastions: bastions ?? this.bastions,
+      isMutating: isMutating ?? this.isMutating,
+    );
+  }
 
   @override
-  List<Object?> get props => [bastions];
+  List<Object?> get props => [bastions, isMutating];
 }
 
 class BastionErrorState extends BastionState {
@@ -26,5 +34,5 @@ class BastionErrorState extends BastionState {
   const BastionErrorState({required this.error, required this.stackTrace, required this.message});
 
   @override
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [error, stackTrace, message];
 }

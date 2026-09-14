@@ -339,7 +339,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Could not log the turn — turn not advanced'),
+      find.text('Turn could not be advanced'),
       findsOneWidget,
     );
     expect(find.text('Bastion Turn'), findsNothing);

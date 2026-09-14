@@ -68,9 +68,17 @@ class BastionPage extends StatelessWidget {
           return StandardScaffold(
             floatingActionButton: isUserBastion
                 ? FloatingActionButton(
-                    onPressed: () => _takeBastionTurn(context, bastion),
+                    onPressed: state.isMutating
+                        ? null
+                        : () => _takeBastionTurn(context, bastion),
                     tooltip: 'Bastion Turn',
-                    child: const Icon(Icons.auto_awesome),
+                    child: state.isMutating
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.auto_awesome),
                   )
                 : null,
             body: Padding(
@@ -132,6 +140,8 @@ class BastionPage extends StatelessWidget {
       description: event.description,
       rolledRow: event.table == null ? null : rollTableResult(event.table!),
     );
+    final hadTarget = bastion.facilities
+        .any((f) => f.constructedTurns < f.constructionTurns);
     BastionTurnResult? loggedResult;
     final advanced = await cubit.advanceBastionTurn(
       bastion.id,
@@ -155,10 +165,10 @@ class BastionPage extends StatelessWidget {
       },
     );
     if (!context.mounted) return;
-    if (loggedResult == null) {
+    if (loggedResult == null || (advanced == null && hadTarget)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not log the turn — turn not advanced'),
+          content: Text('Turn could not be advanced'),
         ),
       );
       return;
@@ -248,35 +258,66 @@ class BastionPage extends StatelessWidget {
           onTap: () {
             final cubit = context.read<BastionCubit>();
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => FacilityPage(
-                facility: facility,
-                bastion: bastion,
-                isUserBastion: isUserBastion,
-                onUpgrade: isUserBastion
-                    ? () async {
-                        await cubit.upgradeFacility(bastion.id, facility);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
+              MaterialPageRoute(
+                builder: (_) => FacilityPage(
+                  facility: facility,
+                  bastion: bastion,
+                  isUserBastion: isUserBastion,
+                  bastionCubit: cubit,
+                  onUpgrade: isUserBastion
+                      ? () async {
+                          final upgraded = await cubit.upgradeFacility(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (upgraded == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to upgrade facility'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                      }
-                    : null,
-                onPurchaseBranchUpgrade: isUserBastion
-                    ? () async {
-                        await cubit.purchaseBranchUpgrade(bastion.id, facility);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
+                      : null,
+                  onPurchaseBranchUpgrade: isUserBastion
+                      ? () async {
+                          final purchased =
+                              await cubit.purchaseBranchUpgrade(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (purchased == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to purchase upgrade'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                      }
-                    : null,
-                onRemove: isUserBastion
-                    ? () async {
-                        await cubit.removeFacility(bastion.id, facility);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
+                      : null,
+                  onRemove: isUserBastion
+                      ? () async {
+                          final removed = await cubit.removeFacility(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (!removed) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to remove facility'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                      }
-                    : null,
-              )),
+                      : null,
+                ),
+              ),
             ).then((_) {
               if (context.mounted) cubit.loadBastions();
             });
@@ -414,7 +455,10 @@ class BastionPage extends StatelessWidget {
           onTap: () {
             final cubit = context.read<BastionCubit>();
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => FacilitySelectionPage(bastion: bastion)),
+              MaterialPageRoute(builder: (_) => FacilitySelectionPage(
+                bastion: bastion,
+                bastionCubit: cubit,
+              )),
             ).then((_) {
               if (context.mounted) cubit.loadBastions();
             });
@@ -669,6 +713,7 @@ class BastionPage extends StatelessWidget {
             builder: (_) => DefendersPage(
               bastionId: bastion.id,
               bastionName: bastion.name,
+              canManage: isUserBastion,
             ),
           ),
         ).then((_) {
@@ -798,9 +843,19 @@ class BastionPage extends StatelessWidget {
                   facility: facility,
                   bastion: bastion,
                   isUserBastion: isUserBastion,
+                  bastionCubit: cubit,
                   onUpgrade: isUserBastion
                       ? () async {
-                          await cubit.upgradeFacility(bastion.id, facility);
+                          final upgraded = await cubit.upgradeFacility(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (upgraded == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to upgrade facility'),
+                              ),
+                            );
+                            return;
+                          }
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
@@ -808,8 +863,17 @@ class BastionPage extends StatelessWidget {
                       : null,
                   onPurchaseBranchUpgrade: isUserBastion
                       ? () async {
-                          await cubit
-                              .purchaseBranchUpgrade(bastion.id, facility);
+                          final purchased =
+                              await cubit.purchaseBranchUpgrade(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (purchased == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to purchase upgrade'),
+                              ),
+                            );
+                            return;
+                          }
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
@@ -817,7 +881,16 @@ class BastionPage extends StatelessWidget {
                       : null,
                   onRemove: isUserBastion
                       ? () async {
-                          await cubit.removeFacility(bastion.id, facility);
+                          final removed = await cubit.removeFacility(bastion.id, facility);
+                          if (!context.mounted) return;
+                          if (!removed) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to remove facility'),
+                              ),
+                            );
+                            return;
+                          }
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }

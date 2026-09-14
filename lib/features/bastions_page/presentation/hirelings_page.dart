@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/core/utils/url_validator.dart';
+import 'package:maura_bastion_system/core/widgets/busy_button.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
@@ -80,83 +81,98 @@ class _HirelingsViewState extends State<_HirelingsView> {
         },
         child: const Icon(Icons.person_add),
       ),
-      body: BlocBuilder<HirelingsCubit, HirelingsState>(
-        builder: (context, state) {
-          final facilityNames = <String, String>{};
-          for (final f in widget.bastion.facilities) {
-            facilityNames[f.id] = f.name;
-          }
-
-          final facilityHirelings = <String, List<Hireling>>{};
-          final unassigned = <Hireling>[];
-          for (final h in state.hirelings) {
-            if (h.facilityId != null) {
-              facilityHirelings.putIfAbsent(h.facilityId!, () => []).add(h);
-            } else {
-              unassigned.add(h);
-            }
-          }
-
-          if (state.hirelings.isEmpty) {
-            return _buildEmptyState();
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...facilityHirelings.entries.map((entry) {
-                    final facilityName = facilityNames[entry.key] ?? entry.key;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            facilityName,
-                            style: GoogleFonts.cinzel(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: MedievalColors.vermillion,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: entry.value
-                                .map((h) => _buildHirelingCard(context, h))
-                                .toList(),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  if (unassigned.isNotEmpty) ...[
-                    Text(
-                      'Unassigned',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: MedievalColors.vermillion,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: unassigned
-                          .map((h) => _buildHirelingCard(context, h))
-                          .toList(),
-                    ),
-                  ],
-                ],
+      body: BlocListener<HirelingsCubit, HirelingsState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Something went wrong — please try again'),
               ),
-            ),
-          );
+            );
+          }
         },
+        child: BlocBuilder<HirelingsCubit, HirelingsState>(
+          builder: (context, state) {
+            final facilityNames = <String, String>{};
+            for (final f in widget.bastion.facilities) {
+              facilityNames[f.id] = f.name;
+            }
+
+            final facilityHirelings = <String, List<Hireling>>{};
+            final unassigned = <Hireling>[];
+            for (final h in state.hirelings) {
+              if (h.facilityId != null) {
+                facilityHirelings.putIfAbsent(h.facilityId!, () => []).add(h);
+              } else {
+                unassigned.add(h);
+              }
+            }
+
+            if (state.isLoading && state.hirelings.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.hirelings.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...facilityHirelings.entries.map((entry) {
+                      final facilityName = facilityNames[entry.key] ?? entry.key;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              facilityName,
+                              style: GoogleFonts.cinzel(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: MedievalColors.vermillion,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: entry.value
+                                  .map((h) => _buildHirelingCard(context, h))
+                                  .toList(),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    if (unassigned.isNotEmpty) ...[
+                      Text(
+                        'Unassigned',
+                        style: GoogleFonts.cinzel(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: MedievalColors.vermillion,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: unassigned
+                            .map((h) => _buildHirelingCard(context, h))
+                            .toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -257,56 +273,53 @@ class _HirelingsViewState extends State<_HirelingsView> {
                 onSaved: (value) => _acquisitionStory = value?.trim() ?? '',
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    _formKey.currentState?.save();
-                    if (_imgUrl.isNotEmpty) {
-                      final result = await UrlValidator.check(_imgUrl);
-                      if (!mounted) return;
-                      if (result == UrlCheckResult.unreachable) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Image URL is unreachable'),
-                          ),
+              BlocBuilder<HirelingsCubit, HirelingsState>(
+                builder: (btnContext, state) {
+                  return BusyButton(
+                    busy: state.isMutating,
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        _formKey.currentState?.save();
+                        if (_imgUrl.isNotEmpty) {
+                          final result = await UrlValidator.check(_imgUrl);
+                          if (!btnContext.mounted) return;
+                          if (result == UrlCheckResult.unreachable) {
+                            ScaffoldMessenger.of(btnContext).showSnackBar(
+                              const SnackBar(
+                                content: Text('Image URL is unreachable'),
+                              ),
+                            );
+                            return;
+                          }
+                        }
+                        final cubit = btnContext.read<HirelingsCubit>();
+                        final ok = await cubit.addHireling(
+                          name: _name,
+                          role: _role.isNotEmpty ? _role : null,
+                          description:
+                              _description.isNotEmpty ? _description : null,
+                          imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
+                          acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
                         );
-                        return;
+                        if (!btnContext.mounted) return;
+                        if (!ok) return;
+                        _formKey.currentState?.reset();
+                        setState(() {
+                          _name = '';
+                          _role = '';
+                          _description = '';
+                          _imgUrl = '';
+                          _acquisitionStory = '';
+                        });
+                        Navigator.of(btnContext).pop();
+                        ScaffoldMessenger.of(btnContext).showSnackBar(
+                          const SnackBar(content: Text('Hireling recruited!')),
+                        );
                       }
-                    }
-                    final cubit = context.read<HirelingsCubit>();
-                    await cubit.addHireling(
-                      name: _name,
-                      role: _role.isNotEmpty ? _role : null,
-                      description:
-                          _description.isNotEmpty ? _description : null,
-                      imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
-                      acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
-                    );
-                    if (!mounted) return;
-                    if (cubit.state.error != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Could not log to Discord — hireling not recruited'),
-                        ),
-                      );
-                      return;
-                    }
-                    _formKey.currentState?.reset();
-                    setState(() {
-                      _name = '';
-                      _role = '';
-                      _description = '';
-                      _imgUrl = '';
-                      _acquisitionStory = '';
-                    });
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Hireling recruited!')),
-                    );
-                  }
+                    },
+                    child: const Text('Recruit Hireling'),
+                  );
                 },
-                child: const Text('Recruit Hireling'),
               ),
             ],
           ),
@@ -405,15 +418,18 @@ class _HirelingsViewState extends State<_HirelingsView> {
                       top: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: () {
-                          context
-                              .read<HirelingsCubit>()
-                              .removeHireling(hireling.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${hireling.name} dismissed'),
-                            ),
-                          );
+                        onTap: () async {
+                          final cubit = context.read<HirelingsCubit>();
+                          if (cubit.state.isMutating) return;
+                          final ok = await cubit.removeHireling(hireling.id);
+                          if (!context.mounted) return;
+                          if (ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${hireling.name} dismissed'),
+                              ),
+                            );
+                          }
                         },
                         child: Container(
                           width: 24,

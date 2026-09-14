@@ -126,7 +126,8 @@ void main() {
       await cubit.close();
     });
 
-    test('rethrows on API failure and leaves state unchanged', () async {
+    test('returns false and sets error on API failure, leaves state unchanged',
+        () async {
       final mock = defendersMockClient(deleteSucceeds: false);
 
       final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
@@ -136,10 +137,9 @@ void main() {
       );
       await cubit.loadDefenders();
 
-      await expectLater(
-        cubit.removeDefender('d1'),
-        throwsA(isA<ApiException>()),
-      );
+      final ok = await cubit.removeDefender('d1');
+      expect(ok, isFalse);
+      expect(cubit.state.error, isNotNull);
       expect(cubit.state.defenders.length, 2);
 
       await cubit.close();
@@ -302,6 +302,156 @@ void main() {
       expect(requests.length, 2);
       expect(requests[0].url.path, '/maura/v1/discord/defender-acquired');
       expect(requests[1].url.path, '/maura/v1/defenders');
+
+      await cubit.close();
+    });
+  });
+
+  group('DefendersCubit.bulkAddDefenders', () {
+    test('sends one summary announcement and creates every defender',
+        () async {
+      final discordPosts = <http.Request>[];
+      final defenderPosts = <http.Request>[];
+      final mock = defendersMockClient(
+        discordPosts: discordPosts,
+        defenderPosts: defenderPosts,
+      );
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = DefendersCubit(
+        bastionId: 'bastion-1',
+        defenderApi: DefenderApi(client: apiClient),
+        discordAnnouncer: DiscordAnnouncer(
+            discordApi: DiscordApi(client: apiClient)),
+        bastionName: 'Ravencrest',
+      );
+      await cubit.loadDefenders();
+      final before = cubit.state.defenders.length;
+
+      final created = await cubit.bulkAddDefenders(
+        type: DefenderType.bastionDefender,
+        names: ['Aldric Vane', 'Bram Oakfist', 'Cedric Hale'],
+        description: 'Sworn to the bastion.',
+        acquisitionStory: 'Recruited after the harvest feast.',
+      );
+
+      expect(created, 3);
+      expect(discordPosts, hasLength(1));
+      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
+      expect(
+        body['message'],
+        '🛡️ **Ravencrest** recruits 3 new defenders (Bastion Defender):\n'
+            '• **Aldric Vane**\n'
+            '• **Bram Oakfist**\n'
+            '• **Cedric Hale**',
+      );
+      expect(defenderPosts, hasLength(3));
+      expect(cubit.state.defenders.length, before + 3);
+      expect(cubit.state.error, isNull);
+
+      await cubit.close();
+    });
+
+    test('creates nothing when the Discord announcement fails', () async {
+      final defenderPosts = <http.Request>[];
+      final mock = defendersMockClient(
+        discordSucceeds: false,
+        defenderPosts: defenderPosts,
+      );
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = DefendersCubit(
+        bastionId: 'bastion-1',
+        defenderApi: DefenderApi(client: apiClient),
+        discordAnnouncer: DiscordAnnouncer(
+            discordApi: DiscordApi(client: apiClient)),
+        bastionName: 'Ravencrest',
+      );
+      await cubit.loadDefenders();
+      final before = cubit.state.defenders.length;
+
+      final created = await cubit.bulkAddDefenders(
+        type: DefenderType.knight,
+        names: ['Aldric Vane', 'Bram Oakfist'],
+        description: '',
+        acquisitionStory: '',
+      );
+
+      expect(created, 0);
+      expect(defenderPosts, isEmpty);
+      expect(cubit.state.defenders.length, before);
+      expect(cubit.state.error, isA<ApiException>());
+
+      await cubit.close();
+    });
+
+    test('skips a defender whose create fails and enlists the rest',
+        () async {
+      final mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/defender-acquired') {
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/defenders') {
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          if (body['name'] == 'Bram Oakfist') {
+            return http.Response(
+              jsonEncode({'success': false, 'message': 'boom'}),
+              500,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': body,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/defenders') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [defenderJson(id: 'd1')],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = DefendersCubit(
+        bastionId: 'bastion-1',
+        defenderApi: DefenderApi(client: apiClient),
+      );
+      await cubit.loadDefenders();
+      final before = cubit.state.defenders.length;
+
+      final created = await cubit.bulkAddDefenders(
+        type: DefenderType.knight,
+        names: ['Aldric Vane', 'Bram Oakfist', 'Cedric Hale'],
+        description: '',
+        acquisitionStory: '',
+      );
+
+      expect(created, 2);
+      expect(cubit.state.defenders.length, before + 2);
 
       await cubit.close();
     });

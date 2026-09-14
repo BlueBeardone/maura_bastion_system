@@ -3,6 +3,8 @@ import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 
+const int maxFacilitiesPerBastion = 16;
+
 const Map<Rank, int> baseCostByRank = {
   Rank.D: 600,
   Rank.C: 1500,

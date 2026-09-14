@@ -10,8 +10,13 @@ import 'package:maura_bastion_system/features/news_paper/presentation/widgets/pa
 
 class DefenderDetailSheet extends StatelessWidget {
   final Defender defender;
+  final bool canRemove;
 
-  const DefenderDetailSheet({super.key, required this.defender});
+  const DefenderDetailSheet({
+    super.key,
+    required this.defender,
+    this.canRemove = false,
+  });
 
   Future<void> _confirmRemove(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -49,17 +54,12 @@ class DefenderDetailSheet extends StatelessWidget {
 
     if (confirmed != true) return;
 
-    try {
-      await cubit.removeDefender(defender.id);
-      navigator.pop();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Defender removed')),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Failed to remove defender')),
-      );
-    }
+    final ok = await cubit.removeDefender(defender.id);
+    if (!ok) return;
+    navigator.pop();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Defender removed')),
+    );
   }
 
   @override
@@ -140,18 +140,20 @@ class DefenderDetailSheet extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MedievalColors.vermillion,
-                    foregroundColor: Colors.white,
+              if (canRemove) ...[
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MedievalColors.vermillion,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _confirmRemove(context),
+                    child: const Text('Remove from Bastion'),
                   ),
-                  onPressed: () => _confirmRemove(context),
-                  child: const Text('Remove from Bastion'),
                 ),
-              ),
+              ],
             ],
           ),
         ),

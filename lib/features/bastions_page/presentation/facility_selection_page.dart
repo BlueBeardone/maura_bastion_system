@@ -21,11 +21,13 @@ class FacilitySelectionPage extends StatelessWidget {
 
   final Bastion? bastion;
   final Set<String>? initialSelectedIds;
+  final BastionCubit? bastionCubit;
 
   const FacilitySelectionPage({
     super.key,
     required this.bastion,
     this.initialSelectedIds,
+    this.bastionCubit,
   });
 
   @override
@@ -38,14 +40,21 @@ class FacilitySelectionPage extends StatelessWidget {
       available = List.from(catalog);
     } else {
       final builtIds = bastion!.facilities.map((f) => f.id).toSet();
-      available = catalog.where((f) => !builtIds.contains(f.id)).toList();
+      available = catalog
+          .where((f) =>
+              !builtIds.contains(f.id) &&
+              bastion!.facilities.length < maxFacilitiesPerBastion)
+          .toList();
     }
 
-    if (available.isEmpty && !isPickMode) {
+    if (available.isEmpty) {
+      final message = isPickMode
+          ? 'All facilities have been constructed'
+          : 'Your bastion is at its maximum of 16 facilities';
       return StandardScaffold(
         body: Center(
           child: Text(
-            'All facilities have been constructed',
+            message,
             style: GoogleFonts.imFellEnglish(
               fontSize: 18,
               fontStyle: FontStyle.italic,
@@ -66,6 +75,14 @@ class FacilitySelectionPage extends StatelessWidget {
 
     if (isPickMode) {
       return _buildPickMode(context, catalog, ranks, grouped);
+    } else if (bastionCubit != null) {
+      return BlocProvider<BastionCubit>.value(
+        value: bastionCubit!,
+        child: Builder(
+          builder: (innerContext) =>
+              _buildConstructionMode(innerContext, ranks, grouped),
+        ),
+      );
     } else {
       return BlocProvider(
         create: (_) => BastionCubit(
@@ -123,13 +140,21 @@ class FacilitySelectionPage extends StatelessWidget {
                   isPickMode: true,
                   isSelected: isSelected,
                   onTap: () {
-                    setInnerState(() {
-                      if (selectedIds.contains(facility.id)) {
-                        selectedIds.remove(facility.id);
-                      } else {
-                        selectedIds.add(facility.id);
-                      }
-                    });
+                    if (selectedIds.contains(facility.id)) {
+                      setInnerState(() => selectedIds.remove(facility.id));
+                      return;
+                    }
+                    if (selectedIds.length >= maxFacilitiesPerBastion) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'A bastion can hold at most 16 facilities',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    setInnerState(() => selectedIds.add(facility.id));
                   },
                 );
               }).toList(),
@@ -248,8 +273,20 @@ class FacilitySelectionPage extends StatelessWidget {
                       facility: facility,
                       bastion: bastion!,
                       isUserBastion: true,
-                      onConstruct: () {
-                        context.read<BastionCubit>().addFacility(bastion!.id, facility);
+                      bastionCubit: context.read<BastionCubit>(),
+                      onConstruct: () async {
+                        final ok = await context
+                            .read<BastionCubit>()
+                            .addFacility(bastion!.id, facility);
+                        if (!context.mounted) return;
+                        if (!ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to construct facility'),
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                       },

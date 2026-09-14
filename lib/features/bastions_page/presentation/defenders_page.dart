@@ -5,21 +5,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/defender_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/core/widgets/busy_button.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_detail_sheet.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_type_icon.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bulk_recruit_form.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 class DefendersPage extends StatelessWidget {
   final String bastionId;
   final String bastionName;
+  final bool canManage;
 
   const DefendersPage({
     super.key,
     required this.bastionId,
     required this.bastionName,
+    this.canManage = false,
   });
 
   @override
@@ -31,15 +35,16 @@ class DefendersPage extends StatelessWidget {
         discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
         bastionName: bastionName,
       )..loadDefenders(),
-      child: _DefendersView(bastionName: bastionName),
+      child: _DefendersView(bastionName: bastionName, canManage: canManage),
     );
   }
 }
 
 class _DefendersView extends StatefulWidget {
   final String bastionName;
+  final bool canManage;
 
-  const _DefendersView({required this.bastionName});
+  const _DefendersView({required this.bastionName, required this.canManage});
 
   @override
   State<_DefendersView> createState() => _DefendersViewState();
@@ -71,18 +76,61 @@ class _DefendersViewState extends State<_DefendersView> {
           ),
         ),
       ),
-      endDrawer: Drawer(
-        width: 360,
-        child: _buildAddDefenderForm(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _scaffoldKey.currentState?.openEndDrawer();
+      endDrawer: widget.canManage
+          ? Drawer(
+              width: 360,
+              child: DefaultTabController(
+                length: 2,
+                child: Column(
+                  children: [
+                    Material(
+                      color: MedievalColors.leatherDark,
+                      child: TabBar(
+                        labelColor: MedievalColors.goldBright,
+                        unselectedLabelColor: MedievalColors.sepiaMuted,
+                        indicatorColor: MedievalColors.goldBright,
+                        tabs: const [
+                          Tab(text: 'Enlist One'),
+                          Tab(text: 'Bulk Recruit'),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _buildAddDefenderForm(),
+                          const BulkRecruitForm(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
+      floatingActionButton: widget.canManage
+          ? FloatingActionButton(
+              onPressed: () {
+                _scaffoldKey.currentState?.openEndDrawer();
+              },
+              child: const Icon(Icons.shield),
+            )
+          : null,
+      body: BlocListener<DefendersCubit, DefendersState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Something went wrong — please try again'),
+              ),
+            );
+          }
         },
-        child: const Icon(Icons.shield),
-      ),
-      body: BlocBuilder<DefendersCubit, DefendersState>(
+        child: BlocBuilder<DefendersCubit, DefendersState>(
         builder: (context, state) {
+          if (state.isLoading && state.defenders.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
           final knights = state.defenders
               .where((d) => d.type == DefenderType.knight)
               .toList();
@@ -164,6 +212,7 @@ class _DefendersViewState extends State<_DefendersView> {
             ),
           );
         },
+        ),
       ),
     );
   }
@@ -224,7 +273,6 @@ class _DefendersViewState extends State<_DefendersView> {
                 initialValue: _type,
                 decoration: const InputDecoration(
                   labelText: 'Type',
-                  prefixIcon: Icon(Icons.castle),
                 ),
                 items: DefenderType.values.map((type) {
                   return DropdownMenuItem(
@@ -267,41 +315,38 @@ class _DefendersViewState extends State<_DefendersView> {
                 onSaved: (value) => _acquisitionStory = value?.trim() ?? '',
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    _formKey.currentState?.save();
-                    final cubit = context.read<DefendersCubit>();
-                    await cubit.addDefender(
-                      name: _name,
-                      type: _type!,
-                      description: _description,
-                      acquisitionStory: _acquisitionStory,
-                    );
-                    if (!mounted) return;
-                    if (cubit.state.error != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Could not log to Discord — defender not enlisted'),
-                        ),
-                      );
-                      return;
-                    }
-                    _formKey.currentState?.reset();
-                    setState(() {
-                      _name = '';
-                      _type = null;
-                      _description = '';
-                      _acquisitionStory = '';
-                    });
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Defender enlisted!')),
-                    );
-                  }
+              BlocBuilder<DefendersCubit, DefendersState>(
+                builder: (btnContext, state) {
+                  return BusyButton(
+                    busy: state.isMutating,
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        _formKey.currentState?.save();
+                        final cubit = btnContext.read<DefendersCubit>();
+                        final ok = await cubit.addDefender(
+                          name: _name,
+                          type: _type!,
+                          description: _description,
+                          acquisitionStory: _acquisitionStory,
+                        );
+                        if (!btnContext.mounted) return;
+                        if (!ok) return;
+                        _formKey.currentState?.reset();
+                        setState(() {
+                          _name = '';
+                          _type = null;
+                          _description = '';
+                          _acquisitionStory = '';
+                        });
+                        Navigator.of(btnContext).pop();
+                        ScaffoldMessenger.of(btnContext).showSnackBar(
+                          const SnackBar(content: Text('Defender enlisted!')),
+                        );
+                      }
+                    },
+                    child: const Text('Enlist Defender'),
+                  );
                 },
-                child: const Text('Enlist Defender'),
               ),
             ],
           ),
@@ -362,7 +407,10 @@ class _DefendersViewState extends State<_DefendersView> {
           context: context,
           builder: (_) => BlocProvider<DefendersCubit>.value(
             value: cubit,
-            child: DefenderDetailSheet(defender: defender),
+            child: DefenderDetailSheet(
+              defender: defender,
+              canRemove: widget.canManage,
+            ),
           ),
         );
       },

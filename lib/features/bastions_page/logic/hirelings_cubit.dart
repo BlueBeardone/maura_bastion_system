@@ -22,14 +22,25 @@ class HirelingsCubit extends Cubit<HirelingsState> {
         super(HirelingsState(bastionId: bastionId));
 
   Future<void> loadHirelings() async {
+    emit(state.copyWith(isLoading: true, error: null));
     try {
       final allHirelings = await _hirelingApi.getAll();
-      final bastionHirelings = allHirelings.where((h) => h.bastionId == state.bastionId).toList();
-      emit(state.copyWith(hirelings: bastionHirelings));
-    } catch (_) {}
+      final bastionHirelings =
+          allHirelings.where((h) => h.bastionId == state.bastionId).toList();
+      emit(state.copyWith(
+        hirelings: bastionHirelings,
+        isLoading: false,
+        error: null,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        error: e is Exception ? e : Exception(e.toString()),
+      ));
+    }
   }
 
-  Future<void> addHireling({
+  Future<bool> addHireling({
     required String name,
     String? role,
     String? description,
@@ -45,52 +56,99 @@ class HirelingsCubit extends Cubit<HirelingsState> {
       bastionId: state.bastionId,
       acquisitionStory: acquisitionStory,
     );
+    emit(HirelingsState(
+      bastionId: state.bastionId,
+      hirelings: state.hirelings,
+      isMutating: true,
+    ));
     try {
       await _discordAnnouncer
           ?.announceHirelingHired(newHireling, bastionName: _bastionName);
-    } catch (e) {
-      emit(HirelingsState(
-        bastionId: state.bastionId,
-        hirelings: state.hirelings,
-        error: e as Exception,
-      ));
-      return;
-    }
-    try {
       final created = await _hirelingApi.create(newHireling);
       emit(HirelingsState(
         bastionId: state.bastionId,
         hirelings: [...state.hirelings, created],
       ));
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      emit(HirelingsState(
+        bastionId: state.bastionId,
+        hirelings: state.hirelings,
+        error: e is Exception ? e : Exception(e.toString()),
+      ));
+      return false;
+    }
   }
 
-  Future<void> removeHireling(String id) async {
+  Future<bool> removeHireling(String id) async {
+    emit(HirelingsState(
+      bastionId: state.bastionId,
+      hirelings: state.hirelings,
+      isMutating: true,
+    ));
     try {
       await _hirelingApi.delete(id);
-      emit(state.copyWith(
-        hirelings: state.hirelings.where((h) => h.id != id).toList(),
+      emit(HirelingsState(
+        bastionId: state.bastionId,
+        hirelings:
+            state.hirelings.where((h) => h.id != id).toList(),
       ));
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      emit(HirelingsState(
+        bastionId: state.bastionId,
+        hirelings: state.hirelings,
+        error: e is Exception ? e : Exception(e.toString()),
+      ));
+      return false;
+    }
   }
 
-  Future<void> assignHireling(String hirelingId, String facilityId) async {
+  Future<bool> assignHireling(String hirelingId, String facilityId) async {
+    emit(state.copyWith(isMutating: true, error: null));
     try {
       final hireling = state.hirelings.firstWhere((h) => h.id == hirelingId);
-      final updated = await _hirelingApi.update(hirelingId, hireling.copyWith(facilityId: facilityId));
+      final updated = await _hirelingApi.update(
+          hirelingId, hireling.copyWith(facilityId: facilityId));
       emit(state.copyWith(
-        hirelings: state.hirelings.map((h) => h.id == hirelingId ? updated : h).toList(),
+        isLoading: false,
+        isMutating: false,
+        error: null,
+        hirelings: state.hirelings
+            .map((h) => h.id == hirelingId ? updated : h)
+            .toList(),
       ));
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      emit(state.copyWith(
+        isMutating: false,
+        error: e is Exception ? e : Exception(e.toString()),
+      ));
+      return false;
+    }
   }
 
-  Future<void> dismissHireling(String hirelingId) async {
+  Future<bool> dismissHireling(String hirelingId) async {
+    emit(state.copyWith(isMutating: true, error: null));
     try {
       final hireling = state.hirelings.firstWhere((h) => h.id == hirelingId);
-      final updated = await _hirelingApi.update(hirelingId, hireling.copyWith(facilityId: null));
+      final updated = await _hirelingApi
+          .update(hirelingId, hireling.copyWith(facilityId: null));
       emit(state.copyWith(
-        hirelings: state.hirelings.map((h) => h.id == hirelingId ? updated : h).toList(),
+        isLoading: false,
+        isMutating: false,
+        error: null,
+        hirelings: state.hirelings
+            .map((h) => h.id == hirelingId ? updated : h)
+            .toList(),
       ));
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      emit(state.copyWith(
+        isMutating: false,
+        error: e is Exception ? e : Exception(e.toString()),
+      ));
+      return false;
+    }
   }
 }

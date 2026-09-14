@@ -28,6 +28,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
   final _descriptionController = TextEditingController();
   final _imageUrlController = TextEditingController();
   List<Facility> _selectedFacilities = [];
+  bool _creating = false;
 
   @override
   void dispose() {
@@ -50,6 +51,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
   }
 
   Future<void> _createBastion() async {
+    if (_creating) return;
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
@@ -67,6 +69,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
       }
     }
 
+    setState(() => _creating = true);
     final cubit = BastionCubit(
       bastionApi: GetIt.I<BastionApi>(),
       facilityApi: GetIt.I<FacilityApi>(),
@@ -84,11 +87,20 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
       await cubit.close();
     }
 
-    if (newBastion == null || !mounted) return;
+    if (!mounted) return;
+    setState(() => _creating = false);
+
+    final createdBastion = newBastion;
+    if (createdBastion == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not create bastion')),
+      );
+      return;
+    }
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => BastionPage(
-        bastionId: newBastion!.id,
+        bastionId: createdBastion.id,
         isUserBastion: true,
       )),
     );
@@ -268,7 +280,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: _createBastion,
+                  onTap: _creating ? null : _createBastion,
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -284,14 +296,20 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                       ],
                     ),
                     child: Center(
-                      child: Text(
-                        'Establish Bastion',
-                        style: GoogleFonts.cinzel(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: MedievalColors.goldPale,
-                        ),
-                      ),
+                      child: _creating
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              'Establish Bastion',
+                              style: GoogleFonts.cinzel(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: MedievalColors.goldPale,
+                              ),
+                            ),
                     ),
                   ),
                 ),

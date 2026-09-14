@@ -15,6 +15,7 @@ import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bulk_recruit_form.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_detail_sheet.dart';
 
 Defender testDefender() => Defender(
@@ -26,7 +27,7 @@ Defender testDefender() => Defender(
       acquisitionStory: 'Won at a card game.',
     );
 
-Future<void> pumpSheet(WidgetTester tester) async {
+Future<void> pumpSheet(WidgetTester tester, {bool canRemove = true}) async {
   await tester.pumpWidget(
     BlocProvider<DefendersCubit>(
       create: (_) => DefendersCubit(
@@ -40,7 +41,10 @@ Future<void> pumpSheet(WidgetTester tester) async {
               child: TextButton(
                 onPressed: () => showModalBottomSheet(
                   context: sheetContext,
-                  builder: (_) => DefenderDetailSheet(defender: testDefender()),
+                  builder: (_) => DefenderDetailSheet(
+                    defender: testDefender(),
+                    canRemove: canRemove,
+                  ),
                 ),
                 child: const Text('open'),
               ),
@@ -116,10 +120,17 @@ void main() {
     );
   });
 
-  Future<void> pumpDefendersPage(WidgetTester tester) async {
+  Future<void> pumpDefendersPage(
+    WidgetTester tester, {
+    bool canManage = true,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: DefendersPage(bastionId: 'bastion-1', bastionName: 'Test Bastion'),
+        home: DefendersPage(
+          bastionId: 'bastion-1',
+          bastionName: 'Test Bastion',
+          canManage: canManage,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -192,9 +203,135 @@ void main() {
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Failed to remove defender'), findsOneWidget);
+    expect(find.text('Something went wrong — please try again'),
+        findsOneWidget);
     // The name appears on both the card and the still-open sheet.
     expect(find.text('Sir Cadogan'), findsWidgets);
     expect(find.text('Remove from Bastion'), findsOneWidget);
+  });
+
+  testWidgets(
+      'read-only page (another player\'s bastion) hides add FAB, '
+      'add drawer and remove button', (tester) async {
+    await pumpDefendersPage(tester, canManage: false);
+    expect(find.text('Sir Cadogan'), findsOneWidget);
+
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.text('Enlist a New Defender'), findsNothing);
+
+    await tester.tap(find.text('Sir Cadogan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove from Bastion'), findsNothing);
+  });
+
+  testWidgets('read-only detail sheet offers no remove control',
+      (tester) async {
+    await pumpSheet(tester, canRemove: false);
+
+    expect(find.text('Sir Cadogan'), findsOneWidget);
+    expect(find.text('Remove from Bastion'), findsNothing);
+  });
+
+  testWidgets('end drawer shows Enlist One and Bulk Recruit tabs and the '
+      'bulk form enlists the requested defenders', (tester) async {
+    final defenderPosts = <http.Request>[];
+    final discordPosts = <http.Request>[];
+    await GetIt.I.reset();
+    final apiClient = ApiClient(
+      baseUrl: 'http://example.test',
+      client: MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/discord/defender-acquired') {
+          discordPosts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/defenders') {
+          defenderPosts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/defenders') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  'id': 'd1',
+                  'name': 'Sir Cadogan',
+                  'type': 'knight',
+                  'description': 'A brave but reckless knight.',
+                  'bastionId': 'bastion-1',
+                  'acquisitionStory': 'Won at a card game.',
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+    GetIt.I.registerSingleton<DefenderApi>(DefenderApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
+
+    await pumpDefendersPage(tester);
+    // The FlutterTest font uses fixed-advance glyphs, which overflow the
+    // 360-wide drawer's dropdowns; scale text down to mimic device metrics.
+    tester.platformDispatcher.textScaleFactorTestValue = 0.8;
+    await tester.pump();
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enlist One'), findsOneWidget);
+    expect(find.text('Bulk Recruit'), findsOneWidget);
+
+    await tester.tap(find.text('Bulk Recruit'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bulk Recruit Defenders'), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(BulkRecruitForm),
+        matching: find.byType(DropdownButtonFormField<DefenderType>),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Knight').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Enlist 1 Defender'));
+    await tester.pumpAndSettle();
+
+    expect(discordPosts, hasLength(1));
+    expect(defenderPosts, hasLength(1));
+    final body = jsonDecode(defenderPosts.first.body) as Map<String, dynamic>;
+    expect(body['type'], 'knight');
+    expect(find.text('1 defender enlisted!'), findsOneWidget);
   });
 }

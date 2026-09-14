@@ -6,12 +6,14 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
+import 'package:maura_bastion_system/core/widgets/busy_button.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
@@ -21,10 +23,11 @@ class FacilityPage extends StatelessWidget {
   final Facility facility;
   final Bastion bastion;
   final bool isUserBastion;
-  final VoidCallback? onConstruct;
+  final Future<void> Function()? onConstruct;
   final VoidCallback? onUpgrade;
   final VoidCallback? onPurchaseBranchUpgrade;
   final VoidCallback? onRemove;
+  final BastionCubit? bastionCubit;
 
   const FacilityPage({
     super.key,
@@ -35,6 +38,7 @@ class FacilityPage extends StatelessWidget {
     this.onUpgrade,
     this.onPurchaseBranchUpgrade,
     this.onRemove,
+    this.bastionCubit,
   });
 
   @override
@@ -52,6 +56,7 @@ class FacilityPage extends StatelessWidget {
         onUpgrade: onUpgrade,
         onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
         onRemove: onRemove,
+        bastionCubit: bastionCubit,
       );
     }
 
@@ -67,6 +72,7 @@ class FacilityPage extends StatelessWidget {
         onUpgrade: onUpgrade,
         onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
         onRemove: onRemove,
+        bastionCubit: bastionCubit,
       );
     }
 
@@ -77,26 +83,38 @@ class FacilityPage extends StatelessWidget {
         discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
         bastionName: bastion.name,
       )..loadHirelings(),
-      child: BlocBuilder<HirelingsCubit, HirelingsState>(
-        builder: (context, state) {
-          final assigned = state.hirelings
-              .where((h) => h.facilityId == facility.id)
-              .toList();
-          final unassigned = state.hirelings
-              .where((h) => h.facilityId == null)
-              .toList();
-          return _FacilityView(
-            facility: facility,
-            bastion: bastion,
-            assigned: assigned,
-            unassigned: unassigned,
-            isUserBastion: true,
-            isSelectionMode: false,
-            onUpgrade: onUpgrade,
-            onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
-            onRemove: onRemove,
-          );
+      child: BlocListener<HirelingsCubit, HirelingsState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Something went wrong — please try again'),
+              ),
+            );
+          }
         },
+        child: BlocBuilder<HirelingsCubit, HirelingsState>(
+          builder: (context, state) {
+            final assigned = state.hirelings
+                .where((h) => h.facilityId == facility.id)
+                .toList();
+            final unassigned = state.hirelings
+                .where((h) => h.facilityId == null)
+                .toList();
+            return _FacilityView(
+              facility: facility,
+              bastion: bastion,
+              assigned: assigned,
+              unassigned: unassigned,
+              isUserBastion: true,
+              isSelectionMode: false,
+              onUpgrade: onUpgrade,
+              onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+              onRemove: onRemove,
+              bastionCubit: bastionCubit,
+            );
+          },
+        ),
       ),
     );
   }
@@ -109,10 +127,11 @@ class _FacilityView extends StatelessWidget {
   final List<Hireling> unassigned;
   final bool isUserBastion;
   final bool isSelectionMode;
-  final VoidCallback? onConstruct;
+  final Future<void> Function()? onConstruct;
   final VoidCallback? onUpgrade;
   final VoidCallback? onPurchaseBranchUpgrade;
   final VoidCallback? onRemove;
+  final BastionCubit? bastionCubit;
 
   const _FacilityView({
     required this.facility,
@@ -125,10 +144,12 @@ class _FacilityView extends StatelessWidget {
     this.onUpgrade,
     this.onPurchaseBranchUpgrade,
     this.onRemove,
+    this.bastionCubit,
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBastionCubit = bastionCubit ?? _maybeBastionCubit(context);
     return StandardScaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -181,7 +202,7 @@ class _FacilityView extends StatelessWidget {
                   if (branchUpgradeFor(facility.id) != null &&
                       !isSelectionMode) ...[
                     const SizedBox(height: 24),
-                    _buildBranchUpgradeCard(),
+                    _buildBranchUpgradeCard(resolvedBastionCubit),
                   ],
                   if (!isSelectionMode) ...[
                     const SizedBox(height: 24),
@@ -205,7 +226,8 @@ class _FacilityView extends StatelessWidget {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: _busyButton(
+                        cubit: resolvedBastionCubit,
                         onPressed: onConstruct,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: MedievalColors.vermillion,
@@ -229,7 +251,8 @@ class _FacilityView extends StatelessWidget {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: _busyButton(
+                        cubit: resolvedBastionCubit,
                         onPressed: onUpgrade,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: MedievalColors.vermillion,
@@ -253,7 +276,8 @@ class _FacilityView extends StatelessWidget {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: _busyButton(
+                        cubit: resolvedBastionCubit,
                         onPressed: () async {
                           final confirmed = await showDialog<bool>(
                             context: context,
@@ -316,6 +340,47 @@ class _FacilityView extends StatelessWidget {
     );
   }
 
+  // FacilityPage is pushed onto the root navigator, so it is not always below
+  // a BlocProvider<BastionCubit>. Resolve the cubit only when one exists.
+  static BastionCubit? _maybeBastionCubit(BuildContext context) {
+    try {
+      return context.watch<BastionCubit>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Widget _busyButton({
+    required BastionCubit? cubit,
+    required VoidCallback? onPressed,
+    required ButtonStyle style,
+    required Widget child,
+  }) {
+    if (cubit == null) {
+      return BusyButton(
+        busy: false,
+        onPressed: onPressed,
+        style: style,
+        child: child,
+      );
+    }
+    return BlocProvider<BastionCubit>.value(
+      value: cubit,
+      child: BlocBuilder<BastionCubit, BastionState>(
+        builder: (context, bastionState) {
+          final busy =
+              bastionState is BastionLoadedState && bastionState.isMutating;
+          return BusyButton(
+            busy: busy,
+            onPressed: onPressed,
+            style: style,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   bool _shouldShowUpgradeButton() {
     if (onUpgrade == null) return false;
     if (!isUserBastion || isSelectionMode) return false;
@@ -342,7 +407,7 @@ class _FacilityView extends StatelessWidget {
     return !anyBusy;
   }
 
-  Widget _buildBranchUpgradeCard() {
+  Widget _buildBranchUpgradeCard(BastionCubit? cubit) {
     final upgrade = branchUpgradeFor(facility.id)!;
     final owned = facility.hasActiveBranchUpgrade;
     final isLapsed = facility.branchUpgradeId != null &&
@@ -419,7 +484,8 @@ class _FacilityView extends StatelessWidget {
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: _busyButton(
+                cubit: cubit,
                 onPressed: onPurchaseBranchUpgrade,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MedievalColors.vermillion,
@@ -744,12 +810,13 @@ class _FacilityView extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: isUserBastion
-              ? () {
+              ? () async {
                   final cubit = context.read<HirelingsCubit>();
+                  if (cubit.state.isMutating) return;
                   if (isAssigned) {
-                    cubit.dismissHireling(hireling.id);
+                    await cubit.dismissHireling(hireling.id);
                   } else {
-                    cubit.assignHireling(hireling.id, facility.id);
+                    await cubit.assignHireling(hireling.id, facility.id);
                   }
                 }
               : null,
