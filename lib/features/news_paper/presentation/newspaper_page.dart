@@ -141,7 +141,7 @@ class NewspaperPage extends StatelessWidget {
               'Printed by The Guild in the City of Maura',
               textAlign: TextAlign.center,
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: MedievalColors.sepiaSecondary,
                 letterSpacing: 0.5,
@@ -156,7 +156,7 @@ class NewspaperPage extends StatelessWidget {
           'Postal Press',
           textAlign: TextAlign.center,
           style: GoogleFonts.imFellEnglish(
-            fontSize: 10,
+            fontSize: 12,
             fontStyle: FontStyle.italic,
             color: MedievalColors.sepiaSecondary,
           ),

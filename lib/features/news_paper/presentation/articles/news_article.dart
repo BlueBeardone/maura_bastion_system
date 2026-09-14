@@ -38,7 +38,7 @@ class _NewsArticleState extends State<NewsArticle> {
             Text(
               widget.article.title.toUpperCase(),
               style: GoogleFonts.cinzel(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: MedievalColors.vermillion,
                 height: 1.15,
@@ -57,7 +57,7 @@ class _NewsArticleState extends State<NewsArticle> {
             Text(
               widget.date,
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: MedievalColors.sepiaSecondary,
               ),
@@ -71,7 +71,7 @@ class _NewsArticleState extends State<NewsArticle> {
             Text(
               widget.article.content,
               style: GoogleFonts.imFellEnglish(
-                fontSize: 14,
+                fontSize: 16,
                 height: 1.45,
                 color: MedievalColors.sepiaInk,
               ),
@@ -86,7 +86,7 @@ class _NewsArticleState extends State<NewsArticle> {
               Text(
                 'Written by ${widget.article.author}',
                 style: GoogleFonts.imFellEnglish(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontStyle: FontStyle.italic,
                   color: MedievalColors.sepiaSecondary,
                 ),
@@ -98,7 +98,7 @@ class _NewsArticleState extends State<NewsArticle> {
                 child: Text(
                   'Read the full account...',
                   style: GoogleFonts.imFellEnglish(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontStyle: FontStyle.italic,
                     color: MedievalColors.goldLeaf,
                   ),
@@ -186,7 +186,7 @@ class _NewsArticleState extends State<NewsArticle> {
           Text(
             'No Engraving',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 10,
+              fontSize: 12,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),

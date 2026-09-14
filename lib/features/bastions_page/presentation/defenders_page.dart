@@ -106,7 +106,7 @@ class _DefendersViewState extends State<_DefendersView> {
                       Text(
                         'Knights',
                         style: GoogleFonts.cinzel(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: MedievalColors.vermillion,
                         ),
@@ -125,7 +125,7 @@ class _DefendersViewState extends State<_DefendersView> {
                       Text(
                         'Bastion Defenders',
                         style: GoogleFonts.cinzel(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: MedievalColors.vermillion,
                         ),
@@ -144,7 +144,7 @@ class _DefendersViewState extends State<_DefendersView> {
                       Text(
                         'Beasts',
                         style: GoogleFonts.cinzel(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: MedievalColors.vermillion,
                         ),
@@ -196,7 +196,7 @@ class _DefendersViewState extends State<_DefendersView> {
                     child: Text(
                       'Enlist a New Defender',
                       style: GoogleFonts.cinzel(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
                       ),
@@ -342,7 +342,7 @@ class _DefendersViewState extends State<_DefendersView> {
               Text(
                 'No defenders stationed at this bastion',
                 style: GoogleFonts.imFellEnglish(
-                  fontSize: 15,
+                  fontSize: 17,
                   fontStyle: FontStyle.italic,
                   color: MedievalColors.sepiaMuted,
                 ),
@@ -398,7 +398,7 @@ class _DefendersViewState extends State<_DefendersView> {
                 Text(
                   defender.name ?? 'Unnamed Defender',
                   style: GoogleFonts.cinzel(
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: defender.name != null
                         ? MedievalColors.vermillion

@@ -66,7 +66,7 @@ class _QuestInputDialogState extends State<QuestInputDialog> {
                   'Quest:',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.cinzel(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -77,13 +77,13 @@ class _QuestInputDialogState extends State<QuestInputDialog> {
                   maxLines: 3,
                   autofocus: true,
                   style: GoogleFonts.imFellEnglish(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: MedievalColors.sepiaInk,
                   ),
                   decoration: InputDecoration(
                     hintText: 'Describe the quest the party undertook…',
                     hintStyle: GoogleFonts.imFellEnglish(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaMuted,
                     ),

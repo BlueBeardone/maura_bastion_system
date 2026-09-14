@@ -28,7 +28,7 @@ class MainNewsArticle extends StatelessWidget {
               Text(
                 article.title.toUpperCase(),
                 style: GoogleFonts.cinzel(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: MedievalColors.vermillion,
                   height: 1.1,
@@ -52,7 +52,7 @@ class MainNewsArticle extends StatelessWidget {
           child: Text(
             'Written by ${article.author}',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 12,
+              fontSize: 14,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaSecondary,
             ),
@@ -151,7 +151,7 @@ class MainNewsArticle extends StatelessWidget {
           Text(
             'Engraving Unavailable',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 13,
+              fontSize: 15,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
@@ -174,7 +174,7 @@ class MainNewsArticle extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           style: GoogleFonts.imFellEnglish(
-            fontSize: 16,
+            fontSize: 18,
             height: 1.5,
             color: MedievalColors.sepiaInk,
           ),
@@ -184,7 +184,7 @@ class MainNewsArticle extends StatelessWidget {
             TextSpan(
               text: firstChar,
               style: GoogleFonts.cinzelDecorative(
-                fontSize: 48,
+                fontSize: 50,
                 fontWeight: FontWeight.w700,
                 height: 0.8,
                 color: MedievalColors.goldLeaf,

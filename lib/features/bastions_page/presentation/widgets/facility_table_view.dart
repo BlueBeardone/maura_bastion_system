@@ -29,7 +29,7 @@ class FacilityTableView extends StatelessWidget {
           child: Text(
             'Facility Table',
             style: GoogleFonts.cinzel(
-              fontSize: 15,
+              fontSize: 17,
               fontWeight: FontWeight.bold,
               color: MedievalColors.vermillion,
             ),
@@ -90,12 +90,12 @@ class FacilityTableView extends StatelessWidget {
                             rowIndex == 0 ? TextAlign.center : TextAlign.start,
                         style: rowIndex == 0
                             ? GoogleFonts.cinzel(
-                                fontSize: 13,
+                                fontSize: 15,
                                 color: MedievalColors.goldPale,
                                 fontWeight: FontWeight.bold,
                               )
                             : GoogleFonts.imFellEnglish(
-                                fontSize: 14,
+                                fontSize: 16,
                                 color: MedievalColors.sepiaInk,
                               ),
                       ),

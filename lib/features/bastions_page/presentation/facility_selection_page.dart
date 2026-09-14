@@ -47,7 +47,7 @@ class FacilitySelectionPage extends StatelessWidget {
           child: Text(
             'All facilities have been constructed',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 16,
+              fontSize: 18,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
@@ -103,7 +103,7 @@ class FacilitySelectionPage extends StatelessWidget {
               child: Text(
                 'Rank: ${rank.title}',
                 style: GoogleFonts.cinzel(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: MedievalColors.vermillion,
                 ),
@@ -142,7 +142,7 @@ class FacilitySelectionPage extends StatelessWidget {
             title: Text(
               'Select Facilities',
               style: GoogleFonts.cinzel(
-                fontSize: 18,
+                fontSize: 20,
                 color: MedievalColors.goldPale,
               ),
             ),
@@ -157,7 +157,7 @@ class FacilitySelectionPage extends StatelessWidget {
                 child: Text(
                   'Done (${selectedIds.length})',
                   style: GoogleFonts.cinzel(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: MedievalColors.goldPale,
                   ),
                 ),
@@ -195,7 +195,7 @@ class FacilitySelectionPage extends StatelessWidget {
           child: Text(
             'Rank: ${rank.title}',
             style: GoogleFonts.cinzel(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: MedievalColors.vermillion,
             ),
@@ -292,7 +292,7 @@ class FacilitySelectionPage extends StatelessWidget {
                         Text(
                           facility.name,
                           style: GoogleFonts.cinzel(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: MedievalColors.vermillion,
                           ),
@@ -305,7 +305,7 @@ class FacilitySelectionPage extends StatelessWidget {
                         Text(
                           facility.description,
                           style: GoogleFonts.imFellEnglish(
-                            fontSize: 13,
+                            fontSize: 15,
                             height: 1.4,
                             color: MedievalColors.sepiaInk,
                           ),
@@ -356,7 +356,7 @@ class FacilitySelectionPage extends StatelessWidget {
             Text(
               'Rank ${facility.rank.title}',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -366,7 +366,7 @@ class FacilitySelectionPage extends StatelessWidget {
             Text(
               '${facility.constructionTurns} turns',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -380,7 +380,7 @@ class FacilitySelectionPage extends StatelessWidget {
             Text(
               '${facility.minimumRequiredHirelings} req',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -390,7 +390,7 @@ class FacilitySelectionPage extends StatelessWidget {
             Text(
               '${facility.cost} GP',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -444,7 +444,7 @@ class FacilitySelectionPage extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 11,
+              fontSize: 13,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),

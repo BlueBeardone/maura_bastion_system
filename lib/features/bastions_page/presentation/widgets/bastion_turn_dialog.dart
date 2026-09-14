@@ -97,7 +97,7 @@ class BastionTurnDialog extends StatelessWidget {
                   'Bastion Turn',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.cinzel(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -116,7 +116,7 @@ class BastionTurnDialog extends StatelessWidget {
                       Text(
                         header,
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 14,
+                          fontSize: 16,
                           height: 1.4,
                           color: MedievalColors.sepiaInk,
                         ),
@@ -128,7 +128,7 @@ class BastionTurnDialog extends StatelessWidget {
                     header,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 14,
+                      fontSize: 16,
                       height: 1.4,
                       color: MedievalColors.sepiaInk,
                     ),
@@ -148,7 +148,7 @@ class BastionTurnDialog extends StatelessWidget {
                             'No facilities ready to grant buffs this turn.',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.imFellEnglish(
-                              fontSize: 13,
+                              fontSize: 15,
                               fontStyle: FontStyle.italic,
                               color: MedievalColors.sepiaMuted,
                             ),
@@ -182,7 +182,7 @@ class BastionTurnDialog extends StatelessWidget {
         'No individual event this turn.',
         textAlign: TextAlign.center,
         style: GoogleFonts.imFellEnglish(
-          fontSize: 13,
+          fontSize: 15,
           fontStyle: FontStyle.italic,
           color: MedievalColors.sepiaMuted,
         ),
@@ -194,7 +194,7 @@ class BastionTurnDialog extends StatelessWidget {
         Text(
           'Individual Event',
           style: GoogleFonts.imFellEnglish(
-            fontSize: 12,
+            fontSize: 14,
             color: MedievalColors.sepiaSecondary,
           ),
         ),
@@ -202,7 +202,7 @@ class BastionTurnDialog extends StatelessWidget {
         Text(
           e.name,
           style: GoogleFonts.cinzel(
-            fontSize: 15,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: MedievalColors.vermillion,
           ),
@@ -211,7 +211,7 @@ class BastionTurnDialog extends StatelessWidget {
         Text(
           e.description,
           style: GoogleFonts.imFellEnglish(
-            fontSize: 13,
+            fontSize: 15,
             height: 1.4,
             color: MedievalColors.sepiaInk,
           ),
@@ -244,7 +244,7 @@ class BastionTurnDialog extends StatelessWidget {
             Text(
               'Rolled',
               style: GoogleFonts.cinzel(
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: MedievalColors.vermillion,
               ),
@@ -253,7 +253,7 @@ class BastionTurnDialog extends StatelessWidget {
             Text(
               rolledRow,
               style: GoogleFonts.imFellEnglish(
-                fontSize: 13,
+                fontSize: 15,
                 height: 1.4,
                 color: MedievalColors.sepiaInk,
               ),
@@ -298,7 +298,7 @@ class BastionTurnDialog extends StatelessWidget {
             title: Text(
               facility.name,
               style: GoogleFonts.cinzel(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: MedievalColors.vermillion,
               ),
@@ -306,7 +306,7 @@ class BastionTurnDialog extends StatelessWidget {
             subtitle: Text(
               'Rank ${facility.rank.title}',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 12,
+                fontSize: 14,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -316,7 +316,7 @@ class BastionTurnDialog extends StatelessWidget {
                 child: Text(
                   facility.description,
                   style: GoogleFonts.imFellEnglish(
-                    fontSize: 13,
+                    fontSize: 15,
                     height: 1.4,
                     color: MedievalColors.sepiaInk,
                   ),

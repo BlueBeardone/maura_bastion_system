@@ -107,7 +107,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
               Text(
                 'Establish Your Bastion',
                 style: GoogleFonts.cinzel(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: MedievalColors.vermillion,
                 ),
@@ -147,7 +147,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                   Text(
                     'Selected Facilities',
                     style: GoogleFonts.cinzel(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: MedievalColors.vermillion,
                     ),
@@ -157,7 +157,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                     Text(
                       '${_selectedFacilities.length}',
                       style: GoogleFonts.cinzel(
-                        fontSize: 14,
+                        fontSize: 16,
                         color: MedievalColors.goldLeaf,
                       ),
                     ),
@@ -170,7 +170,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                   child: Text(
                     'No facilities chosen yet',
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaMuted,
                     ),
@@ -185,7 +185,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                       label: Text(
                         facility.name,
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 12,
+                          fontSize: 14,
                           color: MedievalColors.sepiaInk,
                         ),
                       ),
@@ -254,7 +254,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                         Text(
                           'Add Facility',
                           style: GoogleFonts.cinzel(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: MedievalColors.goldLeaf,
                           ),
@@ -287,7 +287,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
                       child: Text(
                         'Establish Bastion',
                         style: GoogleFonts.cinzel(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: MedievalColors.goldPale,
                         ),
@@ -317,7 +317,7 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
         Text(
           label,
           style: GoogleFonts.cinzel(
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
             color: MedievalColors.sepiaSecondary,
           ),
@@ -351,13 +351,13 @@ class _BastionCreationPageState extends State<BastionCreationPage> {
               maxLines: maxLines,
               validator: validator,
               style: GoogleFonts.imFellEnglish(
-                fontSize: 14,
+                fontSize: 16,
                 color: MedievalColors.sepiaInk,
               ),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: GoogleFonts.imFellEnglish(
-                  fontSize: 14,
+                  fontSize: 16,
                   fontStyle: FontStyle.italic,
                   color: MedievalColors.sepiaMuted,
                 ),

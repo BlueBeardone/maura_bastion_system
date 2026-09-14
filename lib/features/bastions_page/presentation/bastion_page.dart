@@ -82,7 +82,7 @@ class BastionPage extends StatelessWidget {
                     Text(
                       bastion.name,
                       style: GoogleFonts.cinzel(
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
                       ),
@@ -94,7 +94,7 @@ class BastionPage extends StatelessWidget {
                             child: Text(
                               bastion.description,
                               style: GoogleFonts.imFellEnglish(
-                                fontSize: 15,
+                                fontSize: 17,
                                 height: 1.4,
                                 color: MedievalColors.sepiaInk,
                               ),
@@ -194,7 +194,7 @@ class BastionPage extends StatelessWidget {
           child: Text(
             'Rank: ${rank.title}',
             style: GoogleFonts.cinzel(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: MedievalColors.vermillion,
             ),
@@ -314,7 +314,7 @@ class BastionPage extends StatelessWidget {
                       Text(
                         facility.name,
                         style: GoogleFonts.cinzel(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: MedievalColors.vermillion,
                         ),
@@ -327,7 +327,7 @@ class BastionPage extends StatelessWidget {
                       Text(
                         facility.description,
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 13,
+                          fontSize: 15,
                           height: 1.4,
                           color: MedievalColors.sepiaInk,
                         ),
@@ -359,7 +359,7 @@ class BastionPage extends StatelessWidget {
             Text(
               'Rank ${facility.rank.title}',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -369,7 +369,7 @@ class BastionPage extends StatelessWidget {
             Text(
               '${bastion.facilityHirelingCount(facility.id)}',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 11,
+                fontSize: 13,
                 color: MedievalColors.sepiaSecondary,
               ),
             ),
@@ -385,7 +385,7 @@ class BastionPage extends StatelessWidget {
                     if(isConstructing) Text(
                       '${facility.constructedTurns}/${facility.constructionTurns}t',
                       style: GoogleFonts.imFellEnglish(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: MedievalColors.sepiaSecondary,
                       ),
                     ),
@@ -466,7 +466,7 @@ class BastionPage extends StatelessWidget {
                   Text(
                     'Construct Facility',
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 13,
+                      fontSize: 15,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaMuted,
                     ),
@@ -524,7 +524,7 @@ class BastionPage extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 11,
+              fontSize: 13,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
@@ -603,7 +603,7 @@ class BastionPage extends StatelessWidget {
               Text(
                 'Hirelings of ${bastion.name}',
                 style: GoogleFonts.cinzel(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: MedievalColors.vermillion,
                 ),
@@ -615,7 +615,7 @@ class BastionPage extends StatelessWidget {
                   child: Text(
                     'No hirelings recruited yet',
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 13,
+                      fontSize: 15,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaMuted,
                     ),
@@ -631,7 +631,7 @@ class BastionPage extends StatelessWidget {
                       Text(
                         entry.key?.name ?? 'Unassigned',
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: MedievalColors.sepiaSecondary,
                         ),
@@ -721,7 +721,7 @@ class BastionPage extends StatelessWidget {
                         child: Text(
                           'Defenders of ${bastion.name}',
                           style: GoogleFonts.cinzel(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: MedievalColors.vermillion,
                           ),
@@ -737,7 +737,7 @@ class BastionPage extends StatelessWidget {
                       child: Text(
                         'No defenders stationed at this bastion',
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 13,
+                          fontSize: 15,
                           fontStyle: FontStyle.italic,
                           color: MedievalColors.sepiaMuted,
                         ),
@@ -779,7 +779,7 @@ class BastionPage extends StatelessWidget {
           Text(
             '$label: $count',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 13,
+              fontSize: 15,
               color: MedievalColors.sepiaSecondary,
             ),
           ),
@@ -857,7 +857,7 @@ class BastionPage extends StatelessWidget {
                 Text(
                   hireling.name,
                   style: GoogleFonts.cinzel(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: MedievalColors.vermillion,
                   ),
@@ -866,7 +866,7 @@ class BastionPage extends StatelessWidget {
                   Text(
                     hireling.role!,
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 10,
+                      fontSize: 12,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaSecondary,
                     ),

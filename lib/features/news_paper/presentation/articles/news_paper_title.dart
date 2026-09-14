@@ -30,7 +30,7 @@ class NewsPaperTitle extends StatelessWidget {
                 child: Text(
                   newspaperData.newspaperName.toUpperCase(),
                   style: GoogleFonts.cinzelDecorative(
-                    fontSize: 38,
+                    fontSize: 40,
                     fontWeight: FontWeight.w700,
                     color: MedievalColors.vermillion,
                     letterSpacing: 4,
@@ -56,7 +56,7 @@ class NewsPaperTitle extends StatelessWidget {
               Text(
                 newspaperData.date,
                 style: GoogleFonts.imFellEnglish(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontStyle: FontStyle.italic,
                   color: MedievalColors.sepiaSecondary,
                 ),
@@ -65,7 +65,7 @@ class NewsPaperTitle extends StatelessWidget {
               Text(
                 '\u2726',
                 style: TextStyle(
-                  fontSize: 8,
+                  fontSize: 10,
                   color: MedievalColors.goldPale,
                 ),
               ),
@@ -73,7 +73,7 @@ class NewsPaperTitle extends StatelessWidget {
               Text(
                 'PRICE: TWO COPPER',
                 style: GoogleFonts.imFellEnglish(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontStyle: FontStyle.italic,
                   color: MedievalColors.sepiaSecondary,
                 ),
@@ -86,7 +86,7 @@ class NewsPaperTitle extends StatelessWidget {
           Text(
             '\u201cYe Olde Reliable Newes\u201d',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 11,
+              fontSize: 13,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaSecondary,
               letterSpacing: 1,

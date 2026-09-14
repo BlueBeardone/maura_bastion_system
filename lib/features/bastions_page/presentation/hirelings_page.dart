@@ -117,7 +117,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                           Text(
                             facilityName,
                             style: GoogleFonts.cinzel(
-                              fontSize: 18,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: MedievalColors.vermillion,
                             ),
@@ -138,7 +138,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                     Text(
                       'Unassigned',
                       style: GoogleFonts.cinzel(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
                       ),
@@ -189,7 +189,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                     child: Text(
                       'Recruit a Hireling',
                       style: GoogleFonts.cinzel(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
                       ),
@@ -353,7 +353,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                       'No hirelings recruited yet',
                       style: TextStyle(
                         fontFamily: 'IMFellEnglish',
-                        fontSize: 15,
+                        fontSize: 17,
                         fontStyle: FontStyle.italic,
                         color: MedievalColors.sepiaMuted,
                       ),
@@ -436,7 +436,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                 Text(
                   hireling.name,
                   style: GoogleFonts.cinzel(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -449,7 +449,7 @@ class _HirelingsViewState extends State<_HirelingsView> {
                   Text(
                     hireling.role!,
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaSecondary,
                     ),

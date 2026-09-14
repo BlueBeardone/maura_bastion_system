@@ -160,7 +160,7 @@ class ThemeReferenceView extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600))),
-            Text(_hex(color), style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 12)),
+            Text(_hex(color), style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 14)),
           ],
         ),
       ),
@@ -227,7 +227,7 @@ class ThemeReferenceView extends StatelessWidget {
         children: [
           const Icon(Icons.check_circle_outline, size: 18),
           const SizedBox(width: 8),
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
         ],
       ),
     );

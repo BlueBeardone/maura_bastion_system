@@ -218,7 +218,7 @@ class _FacilityView extends StatelessWidget {
                         child: Text(
                           'Construct Facility — ${facility.cost} GP',
                           style: GoogleFonts.cinzel(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -242,7 +242,7 @@ class _FacilityView extends StatelessWidget {
                         child: Text(
                           'Upgrade to Rank ${facility.rank.next!.title} — ${facilityUpgradeCost(facility.rank)} GP',
                           style: GoogleFonts.cinzel(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -300,7 +300,7 @@ class _FacilityView extends StatelessWidget {
                         child: Text(
                           'Remove Facility',
                           style: GoogleFonts.cinzel(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -369,7 +369,7 @@ class _FacilityView extends StatelessWidget {
                 child: Text(
                   upgrade.name,
                   style: GoogleFonts.cinzel(
-                    fontSize: 15,
+                    fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -386,7 +386,7 @@ class _FacilityView extends StatelessWidget {
                   child: Text(
                     'Owned',
                     style: GoogleFonts.cinzel(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: MedievalColors.parchment,
                     ),
@@ -398,7 +398,7 @@ class _FacilityView extends StatelessWidget {
           Text(
             upgrade.description,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 13,
+              fontSize: 15,
               height: 1.3,
               color: MedievalColors.sepiaInk,
             ),
@@ -408,7 +408,7 @@ class _FacilityView extends StatelessWidget {
             Text(
               'Holds up to ${upgrade.hirelingCapacity} hirelings',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 13,
+                fontSize: 15,
                 fontStyle: FontStyle.italic,
                 color: MedievalColors.sepiaSecondary,
               ),
@@ -434,7 +434,7 @@ class _FacilityView extends StatelessWidget {
                       ? 'Renew ${upgrade.name} — ${upgrade.costFor(facility.rank)} GP'
                       : '${upgrade.name} — ${upgrade.costFor(facility.rank)} GP',
                   style: GoogleFonts.cinzel(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -448,7 +448,7 @@ class _FacilityView extends StatelessWidget {
             Text(
               'Per-play upgrade — pay ${upgrade.costFor(facility.rank)} GP each time you host a play.',
               style: GoogleFonts.imFellEnglish(
-                fontSize: 13,
+                fontSize: 15,
                 fontStyle: FontStyle.italic,
                 color: MedievalColors.sepiaSecondary,
               ),
@@ -466,7 +466,7 @@ class _FacilityView extends StatelessWidget {
           child: Text(
             facility.name,
             style: GoogleFonts.cinzel(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: MedievalColors.vermillion,
             ),
@@ -482,7 +482,7 @@ class _FacilityView extends StatelessWidget {
           child: Text(
             'Rank ${facility.rank.title}',
             style: GoogleFonts.cinzel(
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: MedievalColors.goldPale,
             ),
@@ -536,7 +536,7 @@ class _FacilityView extends StatelessWidget {
           Text(
             'No Engraving',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 13,
+              fontSize: 15,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),
@@ -579,7 +579,7 @@ class _FacilityView extends StatelessWidget {
           Text(
             '${facility.minimumRequiredHirelings} Hirelings Required',
             style: GoogleFonts.imFellEnglish(
-              fontSize: 16,
+              fontSize: 18,
               color: MedievalColors.sepiaSecondary,
             ),
           ),
@@ -593,7 +593,7 @@ class _FacilityView extends StatelessWidget {
         Text(
           '${assigned.length} Hirelings',
           style: GoogleFonts.imFellEnglish(
-            fontSize: 16,
+            fontSize: 18,
             color: MedievalColors.sepiaSecondary,
           ),
         ),
@@ -609,7 +609,7 @@ class _FacilityView extends StatelessWidget {
         Text(
           '${assigned.length} / ${facility.hirelingCapacity} hirelings required',
           style: GoogleFonts.imFellEnglish(
-            fontSize: 14,
+            fontSize: 16,
             fontStyle: FontStyle.italic,
             color: assigned.length >= facility.hirelingCapacity
                 ? MedievalColors.sepiaSecondary
@@ -628,7 +628,7 @@ class _FacilityView extends StatelessWidget {
         Text(
           '${facility.constructionTurns} turns',
           style: GoogleFonts.imFellEnglish(
-            fontSize: 14,
+            fontSize: 16,
             color: MedievalColors.sepiaSecondary,
           ),
         ),
@@ -638,7 +638,7 @@ class _FacilityView extends StatelessWidget {
         Text(
           '${facility.cost} GP',
           style: GoogleFonts.imFellEnglish(
-            fontSize: 14,
+            fontSize: 16,
             color: MedievalColors.sepiaSecondary,
           ),
         ),
@@ -650,7 +650,7 @@ class _FacilityView extends StatelessWidget {
     return Text(
       facility.description,
       style: GoogleFonts.imFellEnglish(
-        fontSize: 15,
+        fontSize: 17,
         height: 1.4,
         color: MedievalColors.sepiaInk,
       ),
@@ -684,7 +684,7 @@ class _FacilityView extends StatelessWidget {
           child: Text(
             header,
             style: GoogleFonts.cinzel(
-              fontSize: 15,
+              fontSize: 17,
               fontWeight: FontWeight.bold,
               color: MedievalColors.vermillion,
             ),
@@ -713,7 +713,7 @@ class _FacilityView extends StatelessWidget {
                       Text(
                         'No hirelings assigned to this facility',
                         style: GoogleFonts.imFellEnglish(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontStyle: FontStyle.italic,
                           color: MedievalColors.sepiaMuted,
                         ),
@@ -768,7 +768,7 @@ class _FacilityView extends StatelessWidget {
                 Text(
                   hireling.name,
                   style: GoogleFonts.cinzel(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -781,7 +781,7 @@ class _FacilityView extends StatelessWidget {
                   Text(
                     hireling.role!,
                     style: GoogleFonts.imFellEnglish(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontStyle: FontStyle.italic,
                       color: MedievalColors.sepiaSecondary,
                     ),

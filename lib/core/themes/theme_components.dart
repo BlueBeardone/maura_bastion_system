@@ -14,7 +14,7 @@ class MedievalComponents {
         shadowColor: MedievalColors.sepiaInk,
         titleTextStyle: GoogleFonts.cinzelDecorative(
           fontWeight: FontWeight.w700,
-          fontSize: 20,
+          fontSize: 22,
           color: MedievalColors.goldBright,
           letterSpacing: 1.5,
         ),
@@ -38,12 +38,12 @@ class MedievalComponents {
         unselectedItemColor: MedievalColors.sepiaMuted,
         selectedLabelStyle: TextStyle(
           fontFamily: 'Cinzel',
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
         ),
         unselectedLabelStyle: TextStyle(
           fontFamily: 'IMFellEnglish',
-          fontSize: 12,
+          fontSize: 14,
         ),
         type: BottomNavigationBarType.fixed,
         elevation: 4,
@@ -55,13 +55,13 @@ class MedievalComponents {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.cinzel(
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: MedievalColors.goldBright,
             );
           }
           return GoogleFonts.imFellEnglish(
-            fontSize: 12,
+            fontSize: 14,
             color: MedievalColors.sepiaMuted,
           );
         }),
@@ -89,12 +89,12 @@ class MedievalComponents {
         unselectedIconTheme:
             const IconThemeData(color: MedievalColors.sepiaMuted),
         selectedLabelTextStyle: GoogleFonts.cinzel(
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
           color: MedievalColors.goldBright,
         ),
         unselectedLabelTextStyle: GoogleFonts.imFellEnglish(
-          fontSize: 12,
+          fontSize: 14,
           color: MedievalColors.sepiaMuted,
         ),
         groupAlignment: -1,
@@ -108,12 +108,12 @@ class MedievalComponents {
         dividerColor: MedievalColors.parchmentMuted,
         labelStyle: TextStyle(
           fontFamily: 'Cinzel',
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
           fontFamily: 'IMFellEnglish',
-          fontSize: 14,
+          fontSize: 16,
         ),
         indicatorSize: TabBarIndicatorSize.tab,
       );
@@ -131,7 +131,7 @@ class MedievalComponents {
               const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: GoogleFonts.cinzel(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 16,
             letterSpacing: 0.8,
           ),
           disabledBackgroundColor: MedievalColors.parchmentMuted,
@@ -153,7 +153,7 @@ class MedievalComponents {
           padding:
               const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: GoogleFonts.cinzel(
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -163,7 +163,7 @@ class MedievalComponents {
         style: TextButton.styleFrom(
           foregroundColor: MedievalColors.vermillion,
           textStyle: GoogleFonts.cinzel(
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -177,7 +177,7 @@ class MedievalComponents {
         shape: CircleBorder(),
         extendedTextStyle: TextStyle(
           fontFamily: 'Cinzel',
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
       );
@@ -202,11 +202,11 @@ class MedievalComponents {
         selectedColor: MedievalColors.goldLeaf,
         secondarySelectedColor: MedievalColors.vermillion,
         labelStyle: GoogleFonts.imFellEnglish(
-          fontSize: 12,
+          fontSize: 14,
           color: MedievalColors.sepiaInk,
         ),
         secondaryLabelStyle: GoogleFonts.imFellEnglish(
-          fontSize: 12,
+          fontSize: 14,
           color: MedievalColors.parchmentLight,
         ),
         brightness: Brightness.light,
@@ -233,12 +233,12 @@ class MedievalComponents {
           ),
         ),
         titleTextStyle: GoogleFonts.cinzel(
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: MedievalColors.vermillion,
         ),
         contentTextStyle: GoogleFonts.imFellEnglish(
-          fontSize: 15,
+          fontSize: 17,
           color: MedievalColors.sepiaInk,
         ),
         elevation: 8,
@@ -283,11 +283,11 @@ class MedievalComponents {
           ),
         ),
         labelStyle: GoogleFonts.imFellEnglish(
-          fontSize: 15,
+          fontSize: 17,
           color: MedievalColors.sepiaSecondary,
         ),
         hintStyle: GoogleFonts.imFellEnglish(
-          fontSize: 15,
+          fontSize: 17,
           color: MedievalColors.sepiaMuted,
         ),
         prefixIconColor: MedievalColors.goldLeaf,
@@ -388,7 +388,7 @@ class MedievalComponents {
           ),
         ),
         textStyle: GoogleFonts.imFellEnglish(
-          fontSize: 12,
+          fontSize: 14,
           color: MedievalColors.parchmentLight,
         ),
         preferBelow: true,
@@ -406,7 +406,7 @@ class MedievalComponents {
           ),
         ),
         textStyle: GoogleFonts.imFellEnglish(
-          fontSize: 14,
+          fontSize: 16,
           color: MedievalColors.sepiaInk,
         ),
       );
@@ -414,7 +414,7 @@ class MedievalComponents {
   static SnackBarThemeData get snackBarTheme => SnackBarThemeData(
         backgroundColor: MedievalColors.leatherDark,
         contentTextStyle: GoogleFonts.imFellEnglish(
-          fontSize: 14,
+          fontSize: 16,
           color: MedievalColors.parchmentLight,
         ),
         shape: RoundedRectangleBorder(
@@ -440,7 +440,7 @@ class MedievalComponents {
         headerBackgroundColor: MedievalColors.leather,
         headerForegroundColor: MedievalColors.goldBright,
         dayStyle: GoogleFonts.imFellEnglish(
-          fontSize: 14,
+          fontSize: 16,
           color: MedievalColors.sepiaInk,
         ),
         shape: RoundedRectangleBorder(

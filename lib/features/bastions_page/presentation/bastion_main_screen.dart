@@ -85,7 +85,7 @@ class BastionMainScreen extends StatelessWidget {
             Text(
               'Your Bastion',
               style: GoogleFonts.cinzel(
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: MedievalColors.goldLeaf,
               ),
@@ -98,7 +98,7 @@ class BastionMainScreen extends StatelessWidget {
             Text(
               'Other Bastions',
               style: GoogleFonts.cinzel(
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: MedievalColors.goldLeaf,
               ),
@@ -241,7 +241,7 @@ class _BastionCardState extends State<_BastionCard> {
       text: TextSpan(
         text: widget.bastion.description,
         style: GoogleFonts.imFellEnglish(
-          fontSize: 13,
+          fontSize: 15,
           height: 1.4,
           color: MedievalColors.sepiaInk,
         ),
@@ -307,7 +307,7 @@ class _BastionCardState extends State<_BastionCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.cinzel(
-                        fontSize: 15,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: MedievalColors.vermillion,
                       ),
@@ -329,7 +329,7 @@ class _BastionCardState extends State<_BastionCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.imFellEnglish(
-                              fontSize: 12,
+                              fontSize: 14,
                               fontStyle: FontStyle.italic,
                               color: MedievalColors.sepiaSecondary,
                             ),
@@ -361,7 +361,7 @@ class _BastionCardState extends State<_BastionCard> {
                           child: Text(
                             widget.bastion.description,
                             style: GoogleFonts.imFellEnglish(
-                              fontSize: 13,
+                              fontSize: 15,
                               height: 1.4,
                               color: MedievalColors.sepiaInk,
                             ),
@@ -377,7 +377,7 @@ class _BastionCardState extends State<_BastionCard> {
                               child: Text(
                                 'Read more...',
                                 style: GoogleFonts.imFellEnglish(
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   fontStyle: FontStyle.italic,
                                   color: MedievalColors.goldLeaf,
                                 ),
@@ -405,7 +405,7 @@ class _BastionCardState extends State<_BastionCard> {
                               Text(
                                 '$facilitiesCount Facilities',
                                 style: GoogleFonts.imFellEnglish(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: MedievalColors.sepiaSecondary,
                                 ),
                               ),
@@ -426,7 +426,7 @@ class _BastionCardState extends State<_BastionCard> {
                               Text(
                                 '$totalHirelings Hirelings',
                                 style: GoogleFonts.imFellEnglish(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: MedievalColors.sepiaSecondary,
                                 ),
                               ),
@@ -447,7 +447,7 @@ class _BastionCardState extends State<_BastionCard> {
                               Text(
                                 '$totalDefenders Defenders',
                                 style: GoogleFonts.imFellEnglish(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: MedievalColors.sepiaSecondary,
                                 ),
                               ),
@@ -515,7 +515,7 @@ class _BastionCardState extends State<_BastionCard> {
           Text(
             label,
             style: GoogleFonts.imFellEnglish(
-              fontSize: 10,
+              fontSize: 12,
               fontStyle: FontStyle.italic,
               color: MedievalColors.sepiaMuted,
             ),

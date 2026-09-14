@@ -25,7 +25,7 @@ class DefenderDetailSheet extends StatelessWidget {
         title: Text(
           'Remove ${defender.name ?? 'Unnamed Defender'}?',
           style: GoogleFonts.cinzel(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: MedievalColors.vermillion,
           ),
@@ -92,7 +92,7 @@ class DefenderDetailSheet extends StatelessWidget {
                     child: Text(
                       defender.name ?? 'Unnamed Defender',
                       style: GoogleFonts.cinzel(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
                       ),
@@ -104,7 +104,7 @@ class DefenderDetailSheet extends StatelessWidget {
               Text(
                 defender.type.title,
                 style: GoogleFonts.cinzel(
-                  fontSize: 13,
+                  fontSize: 15,
                   color: MedievalColors.sepiaMuted,
                 ),
               ),
@@ -114,7 +114,7 @@ class DefenderDetailSheet extends StatelessWidget {
                 Text(
                   defender.description!,
                   style: GoogleFonts.imFellEnglish(
-                    fontSize: 15,
+                    fontSize: 17,
                     color: MedievalColors.sepiaInk,
                   ),
                 ),
@@ -125,7 +125,7 @@ class DefenderDetailSheet extends StatelessWidget {
                 Text(
                   'How they came to serve',
                   style: GoogleFonts.cinzel(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: MedievalColors.vermillion,
                   ),
@@ -134,7 +134,7 @@ class DefenderDetailSheet extends StatelessWidget {
                 Text(
                   defender.acquisitionStory!,
                   style: GoogleFonts.imFellEnglish(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontStyle: FontStyle.italic,
                     color: MedievalColors.sepiaInk,
                   ),
