@@ -297,15 +297,22 @@ void main() {
     expect(find.descendant(of: dialogFinder, matching: find.text('Kitchen')),
         findsNothing);
 
-    // Expanding reveals the description and the table.
+    // Expanding reveals the description and the table. Scope the assertions to
+    // the Keep tile: the randomly-rolled individual event can itself carry a
+    // table, which would add a second "Facility Table" header elsewhere in the
+    // dialog.
     await tester.tap(find.descendant(of: dialogFinder, matching: find.text('Keep')));
     await tester.pumpAndSettle();
+    final keepTile = find.descendant(
+      of: dialogFinder,
+      matching: find.widgetWithText(ExpansionTile, 'Keep'),
+    );
     expect(
-      find.descendant(of: dialogFinder, matching: find.text('A sturdy keep.')),
+      find.descendant(of: keepTile, matching: find.text('A sturdy keep.')),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: dialogFinder, matching: find.text('Facility Table')),
+      find.descendant(of: keepTile, matching: find.text('Facility Table')),
       findsOneWidget,
     );
   });

@@ -113,12 +113,14 @@ class BastionTurnDialog extends StatelessWidget {
                         color: MedievalColors.sepiaSecondary,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        header,
-                        style: GoogleFonts.imFellEnglish(
-                          fontSize: 16,
-                          height: 1.4,
-                          color: MedievalColors.sepiaInk,
+                      Flexible(
+                        child: Text(
+                          header,
+                          style: GoogleFonts.imFellEnglish(
+                            fontSize: 16,
+                            height: 1.4,
+                            color: MedievalColors.sepiaInk,
+                          ),
                         ),
                       ),
                     ],

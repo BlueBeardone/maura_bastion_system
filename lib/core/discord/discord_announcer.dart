@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -70,13 +69,8 @@ class DiscordAnnouncer {
   Future<void> _announce(
     String message,
     Future<void> Function(String) transport,
-  ) async {
-    try {
-      await transport(message);
-    } catch (e) {
-      debugPrint('Discord announcement failed: $e');
-    }
-  }
+  ) =>
+      transport(message);
 }
 
 String bastionCreatedMessage(Bastion bastion) {

@@ -123,6 +123,13 @@ void main() {
       GetIt.I.registerSingleton<AuthCubit>(authCubit);
       await authCubit.login('admin', 'secret');
 
+      // The test fonts render every glyph as a fontSize-wide square, making
+      // the app bar menu wider than in production; use a desktop-sized surface
+      // so the menu items are not clipped.
+      tester.view.physicalSize = const Size(1600, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
       await tester.pumpWidget(
         MaterialApp(
           home: BlocProvider<AuthCubit>.value(
@@ -140,10 +147,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Facilities'));
-      await tester.tap(find.text('Facilities'));
-      await tester.tap(find.text('Facilities'));
-
+      // The Facilities item is only visible once bastions have loaded and the
+      // user owns one (see 15f633c), so complete the gated fetch first.
       bastionApi.completeWith([
         Bastion(
           id: 'bastion_1',
@@ -155,10 +160,17 @@ void main() {
       ]);
       await tester.pumpAndSettle();
 
-      expect(bastionApi.getAllCalls, 2,
+      await tester.tap(find.text('Facilities'));
+      await tester.tap(find.text('Facilities'));
+      await tester.tap(find.text('Facilities'));
+
+      await tester.pumpAndSettle();
+
+      expect(bastionApi.getAllCalls, 3,
           reason:
-              'one fetch for navigation + one from the pushed BastionPage itself; '
-              'spamming the menu item must not trigger repeated navigation fetches');
+              'one initial fetch + one menu reload after navigation + one from '
+              'the pushed BastionPage itself; spamming the menu item must not '
+              'trigger repeated navigation fetches');
       expect(
         find.byType(BastionPage, skipOffstage: false),
         findsOneWidget,

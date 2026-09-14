@@ -1,10 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
+import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/dto/login_request.dart';
+import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
+import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/models/user/user.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
@@ -79,6 +87,21 @@ void main() {
       sessionStore: _FakeSessionStore(),
     );
     GetIt.I.registerSingleton<AuthCubit>(cubit);
+    final apiClient = ApiClient(
+      baseUrl: 'http://example.test',
+      client: MockClient((request) async {
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'not found'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+    GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
+    GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
   });
 
   tearDown(() async {
