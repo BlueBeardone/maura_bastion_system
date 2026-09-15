@@ -416,4 +416,184 @@ void main() {
       expect(find.text('Remove Facility'), findsOneWidget);
     });
   });
+
+  group('FacilityPage upgrade dropdown', () {
+    testWidgets('shows caret for a kitchen with an unowned oneTime upgrade',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(),
+        bastionFacilities: [kitchen()],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('upgrade_menu_caret')), findsOneWidget);
+      expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
+    });
+
+    testWidgets('hides caret when the upgrade is owned', (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
+        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
+    });
+
+    testWidgets('hides caret while the facility is under construction',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(constructed: 0, total: 2),
+        bastionFacilities: [kitchen(constructed: 0, total: 2)],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
+      expect(find.textContaining('Upgrade to Rank'), findsOneWidget);
+    });
+
+    testWidgets('hides caret for facilities without a special upgrade',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: barracks(),
+        bastionFacilities: [barracks()],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
+    });
+
+    testWidgets('hides caret for perUse upgrades', (tester) async {
+      final theatre = Facility(
+        id: 'cat_theatre',
+        name: 'Theatre',
+        rank: Rank.B,
+        description: 'Plays.',
+        constructionTurns: 8,
+        constructedTurns: 8,
+        cost: 4500,
+      );
+
+      await pumpFacilityPage(
+        tester,
+        facility: theatre,
+        bastionFacilities: [theatre],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
+    });
+
+    testWidgets('caret opens a menu with the upgrade name and cost',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(),
+        bastionFacilities: [kitchen()],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+
+      final menuItem = find.descendant(
+        of: find.byType(MenuItemButton),
+        matching: find.text('Industrial Kitchen — 500 GP'),
+      );
+      expect(menuItem, findsOneWidget);
+    });
+
+    testWidgets('tapping the menu item invokes onPurchaseBranchUpgrade',
+        (tester) async {
+      var purchased = false;
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(),
+        bastionFacilities: [kitchen()],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {
+          purchased = true;
+        },
+      );
+      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(MenuItemButton));
+      await tester.pumpAndSettle();
+
+      expect(purchased, isTrue);
+    });
+
+    testWidgets('menu shows Renew label for a lapsed perTurn upgrade',
+        (tester) async {
+      Facility pub({
+        required String? branchUpgradeId,
+        required bool branchUpgradeActive,
+      }) =>
+          Facility(
+            id: 'cat_pub',
+            name: 'Pub',
+            rank: Rank.A,
+            description: 'Pub description.',
+            minimumRequiredHirelings: 1,
+            constructionTurns: 8,
+            constructedTurns: 8,
+            cost: 9000,
+            branchUpgradeId: branchUpgradeId,
+            branchUpgradeActive: branchUpgradeActive,
+          );
+
+      await pumpFacilityPage(
+        tester,
+        facility: pub(
+          branchUpgradeId: 'bru_pub_of_legend',
+          branchUpgradeActive: false,
+        ),
+        bastionFacilities: [
+          pub(
+            branchUpgradeId: 'bru_pub_of_legend',
+            branchUpgradeActive: false,
+          ),
+        ],
+        isUserBastion: true,
+        onUpgrade: () {},
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
+      await tester.pumpAndSettle();
+
+      final menuItem = find.descendant(
+        of: find.byType(MenuItemButton),
+        matching: find.textContaining('Renew Pub of Legend'),
+      );
+      expect(menuItem, findsOneWidget);
+    });
+  });
 }

@@ -302,6 +302,7 @@ class _FacilityView extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context, BastionCubit? cubit) {
+    final branchUpgrade = _purchaseableBranchUpgrade();
     final style = ElevatedButton.styleFrom(
       backgroundColor: MedievalColors.vermillion,
       foregroundColor: MedievalColors.goldPale,
@@ -314,17 +315,16 @@ class _FacilityView extends StatelessWidget {
       children: [
         if (onUpgrade != null && facility.rank != Rank.S)
           Expanded(
-            child: _busyButton(
+            child: _UpgradeSplitButton(
               cubit: cubit,
-              onPressed: onUpgrade,
-              style: style,
-              child: Text(
-                'Upgrade to Rank ${facility.rank.next!.title} — ${facilityUpgradeCost(facility.rank)} GP',
-                style: GoogleFonts.cinzel(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              upgrade: branchUpgrade,
+              menuLabel: branchUpgrade == null
+                  ? null
+                  : _branchUpgradeMenuLabel(branchUpgrade),
+              onUpgrade: onUpgrade,
+              onPurchaseBranchUpgrade: onPurchaseBranchUpgrade,
+              label:
+                  'Upgrade to Rank ${facility.rank.next!.title} — ${facilityUpgradeCost(facility.rank)} GP',
             ),
           ),
         if (onUpgrade != null && facility.rank != Rank.S && onRemove != null)
@@ -389,6 +389,36 @@ class _FacilityView extends StatelessWidget {
     final anyBusy = bastion.facilities
         .any((f) => f.constructedTurns < f.constructionTurns);
     return !anyBusy;
+  }
+
+  BranchUpgrade? _purchaseableBranchUpgrade() {
+    if (onPurchaseBranchUpgrade == null) return null;
+    if (!isUserBastion || isSelectionMode) return null;
+    if (onUpgrade == null || facility.rank == Rank.S) return null;
+    if (!_shouldShowBranchUpgradePurchase()) return null;
+    final upgrade = branchUpgradeForFacility(facility);
+    if (upgrade == null) return null;
+    if (upgrade.kind == BranchUpgradeKind.perUse) return null;
+    if (upgrade.kind == BranchUpgradeKind.oneTime &&
+        facility.branchUpgradeId != null) {
+      return null;
+    }
+    if (upgrade.kind == BranchUpgradeKind.perTurn &&
+        facility.branchUpgradeId != null &&
+        facility.branchUpgradeActive) {
+      return null;
+    }
+    return upgrade;
+  }
+
+  String _branchUpgradeMenuLabel(BranchUpgrade upgrade) {
+    final isLapsed = upgrade.kind == BranchUpgradeKind.perTurn &&
+        facility.branchUpgradeId != null &&
+        !facility.branchUpgradeActive;
+    final cost = upgrade.costFor(facility.rank);
+    return isLapsed
+        ? 'Renew ${upgrade.name} — $cost GP'
+        : '${upgrade.name} — $cost GP';
   }
 
   Widget _buildBranchUpgradeCard(BastionCubit? cubit) {
@@ -888,6 +918,136 @@ class _FacilityView extends StatelessWidget {
         size: 36,
         color: MedievalColors.sepiaMuted,
       ),
+    );
+  }
+}
+
+class _UpgradeSplitButton extends StatefulWidget {
+  final BastionCubit? cubit;
+  final BranchUpgrade? upgrade;
+  final String? menuLabel;
+  final VoidCallback? onUpgrade;
+  final VoidCallback? onPurchaseBranchUpgrade;
+  final String label;
+
+  const _UpgradeSplitButton({
+    required this.cubit,
+    required this.upgrade,
+    required this.menuLabel,
+    required this.onUpgrade,
+    required this.onPurchaseBranchUpgrade,
+    required this.label,
+  });
+
+  @override
+  State<_UpgradeSplitButton> createState() => _UpgradeSplitButtonState();
+}
+
+class _UpgradeSplitButtonState extends State<_UpgradeSplitButton> {
+  final MenuController _menuController = MenuController();
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.cubit == null) {
+      return _build(busy: false);
+    }
+    return BlocProvider<BastionCubit>.value(
+      value: widget.cubit!,
+      child: BlocBuilder<BastionCubit, BastionState>(
+        builder: (context, bastionState) {
+          final busy =
+              bastionState is BastionLoadedState && bastionState.isMutating;
+          return _build(busy: busy);
+        },
+      ),
+    );
+  }
+
+  Widget _build({required bool busy}) {
+    final upgrade = widget.upgrade;
+    final mainButton = BusyButton(
+      busy: busy,
+      onPressed: widget.onUpgrade,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: MedievalColors.vermillion,
+        foregroundColor: MedievalColors.goldPale,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: upgrade == null
+            ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            : const RoundedRectangleBorder(
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(10),
+                ),
+              ),
+      ),
+      child: Text(
+        widget.label,
+        style: GoogleFonts.cinzel(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    if (upgrade == null) {
+      return mainButton;
+    }
+
+    return MenuAnchor(
+      controller: _menuController,
+      style: MenuStyle(
+        backgroundColor:
+            WidgetStatePropertyAll(MedievalColors.parchmentLight),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: MedievalColors.goldLeaf),
+          ),
+        ),
+      ),
+      menuChildren: [
+        MenuItemButton(
+          onPressed: busy ? null : widget.onPurchaseBranchUpgrade,
+          child: Text(
+            widget.menuLabel!,
+            style: GoogleFonts.cinzel(
+              fontSize: 14,
+              color: MedievalColors.vermillion,
+            ),
+          ),
+        ),
+      ],
+      builder: (context, menuController, child) {
+        return Row(
+          children: [
+            Expanded(child: mainButton),
+            const SizedBox(width: 2),
+            SizedBox(
+              width: 40,
+              height: 48,
+              child: Material(
+                color: MedievalColors.vermillion,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.horizontal(
+                    right: Radius.circular(10),
+                  ),
+                ),
+                child: InkWell(
+                  key: const Key('upgrade_menu_caret'),
+                  borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(10),
+                  ),
+                  onTap: busy ? null : () => menuController.open(),
+                  child: const Icon(
+                    Icons.arrow_drop_down,
+                    color: MedievalColors.goldPale,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
