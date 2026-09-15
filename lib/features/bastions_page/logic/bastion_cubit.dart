@@ -6,6 +6,7 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_page.dart';
 import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
@@ -33,10 +34,61 @@ class BastionCubit extends Cubit<BastionState> {
 
   Future<void> loadBastions() async {
     try {
-      final bastions = await _bastionApi.getAll();
-      emit(BastionLoadedState(bastions: bastions));
+      final results = await Future.wait([
+        _bastionApi.getMine(),
+        _bastionApi.browse(page: 1),
+      ]);
+      final mine = results[0] as List<Bastion>;
+      final page = results[1] as BastionPage;
+      emit(BastionLoadedState(
+        userBastion: mine.isEmpty ? null : mine.first,
+        browseBastions: page.bastions,
+        currentPage: page.page,
+        hasMore: page.hasMore,
+      ));
     } catch (e, stackTrace) {
       emit(BastionErrorState(error: e as Exception, stackTrace: stackTrace, message: 'Failed to load bastions'));
+    }
+  }
+
+  /// Re-fetches only the caller's own bastion — used after mutations so the
+  /// browse pages and scroll position are preserved.
+  Future<void> refreshUserBastion() async {
+    if (state is! BastionLoadedState) return;
+    try {
+      final mine = await _bastionApi.getMine();
+      final loaded = state as BastionLoadedState;
+      emit(loaded.copyWith(
+        userBastion: mine.isEmpty ? null : mine.first,
+        clearUserBastion: mine.isEmpty,
+      ));
+    } catch (_) {
+      // Keep the current state; the pinned card stays as-is.
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (state is! BastionLoadedState) return;
+    final loaded = state as BastionLoadedState;
+    if (!loaded.hasMore || loaded.isLoadingMore) return;
+    final nextPage = loaded.currentPage + 1;
+    emit(loaded.copyWith(isLoadingMore: true, loadMoreFailed: false));
+    try {
+      final page = await _bastionApi.browse(page: nextPage);
+      if (state is! BastionLoadedState) return;
+      final current = state as BastionLoadedState;
+      if (current.currentPage >= nextPage) return; // reset happened mid-flight
+      emit(current.copyWith(
+        browseBastions: [...current.browseBastions, ...page.bastions],
+        currentPage: page.page,
+        hasMore: page.hasMore,
+        isLoadingMore: false,
+        loadMoreFailed: false,
+      ));
+    } catch (_) {
+      if (state is BastionLoadedState) {
+        emit((state as BastionLoadedState).copyWith(isLoadingMore: false, loadMoreFailed: true));
+      }
     }
   }
 
@@ -67,7 +119,7 @@ class BastionCubit extends Cubit<BastionState> {
       await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
       _setMutating(true);
       await _facilityApi.create(facility, bastionId);
-      await loadBastions();
+      await refreshUserBastion();
       return true;
     } catch (e) {
       _setMutating(false);
@@ -94,7 +146,7 @@ class BastionCubit extends Cubit<BastionState> {
         );
       }
       await _facilityApi.delete(facility.id);
-      await loadBastions();
+      await refreshUserBastion();
       return true;
     } catch (e) {
       _setMutating(false);
@@ -168,7 +220,7 @@ class BastionCubit extends Cubit<BastionState> {
       for (final facility in lapsed) {
         await _facilityApi.update(facility.id, facility, bastionId: bastion.id);
       }
-      await loadBastions();
+      await refreshUserBastion();
       return advanced;
     } catch (e) {
       return null;
@@ -213,7 +265,7 @@ class BastionCubit extends Cubit<BastionState> {
         return null;
       }
       await _facilityApi.update(upgraded.id, upgraded, bastionId: bastion.id);
-      await loadBastions();
+      await refreshUserBastion();
       return upgraded;
     } catch (e) {
       return null;
@@ -260,7 +312,7 @@ class BastionCubit extends Cubit<BastionState> {
         return null;
       }
       await _facilityApi.update(purchased.id, purchased, bastionId: bastion.id);
-      await loadBastions();
+      await refreshUserBastion();
       return purchased;
     } catch (e) {
       return null;
@@ -307,11 +359,10 @@ class BastionCubit extends Cubit<BastionState> {
       }
       final newBastion = await _bastionApi.create(localBastion);
 
-      final bastions = state is BastionLoadedState
-          ? List<Bastion>.from((state as BastionLoadedState).bastions)
-          : <Bastion>[];
-      bastions.add(newBastion);
-      emit(BastionLoadedState(bastions: bastions));
+      final current = state is BastionLoadedState
+          ? state as BastionLoadedState
+          : const BastionLoadedState();
+      emit(current.copyWith(userBastion: newBastion));
       return newBastion;
     } catch (e) {
       return null;

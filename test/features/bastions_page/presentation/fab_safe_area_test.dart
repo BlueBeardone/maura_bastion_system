@@ -38,7 +38,36 @@ Map<String, dynamic> _facilityJson(String id, String name) => {
       'cost': 0,
     };
 
-MockClient _mockClient() => MockClient((request) async {
+/// Wraps a handler so `GET /maura/v1/bastions/browse` returns an empty page
+/// with hasMore: false, matching the empty single-bastion dataset these
+/// mocks already serve via `/maura/v1/bastions`.
+MockClient _withEmptyBrowsePage(
+  Future<http.Response> Function(http.Request request) handler,
+) {
+  return MockClient((request) async {
+    if (request.method == 'GET' &&
+        request.url.path == '/maura/v1/bastions/browse') {
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'message': 'ok',
+          'data': {
+            'bastions': [],
+            'page': 1,
+            'limit': 20,
+            'total': 0,
+            'hasMore': false,
+          },
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    return handler(request);
+  });
+}
+
+MockClient _mockClient() => _withEmptyBrowsePage((request) async {
       if (request.method == 'GET' &&
           request.url.path == '/maura/v1/bastions') {
         return http.Response(

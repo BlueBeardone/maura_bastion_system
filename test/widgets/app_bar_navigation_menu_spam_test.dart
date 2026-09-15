@@ -17,6 +17,8 @@ import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/main_navigation_enum.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_page.dart'
+    as bastion_page;
 import 'package:maura_bastion_system/data/models/user/user.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
@@ -42,8 +44,10 @@ class _StubIdentityApi extends IdentityApi {
   }
 }
 
-/// getAll() stays pending until [completeWith] is called, so the test can tap
-/// the menu item repeatedly while the fetch is still in flight.
+/// getMine() stays pending until [completeWith] is called, so the test can tap
+/// the menu item repeatedly while the fetch is still in flight. loadBastions
+/// now fetches getMine() + browse(page: 1); browse serves an empty page so
+/// only the caller's own bastion is present.
 class _GatedBastionApi extends BastionApi {
   _GatedBastionApi()
       : super(
@@ -53,16 +57,26 @@ class _GatedBastionApi extends BastionApi {
           ),
         );
 
-  int getAllCalls = 0;
+  int getMineCalls = 0;
   final Completer<List<Bastion>> _gate = Completer();
 
   void completeWith(List<Bastion> bastions) => _gate.complete(bastions);
 
   @override
-  Future<List<Bastion>> getAll() {
-    getAllCalls++;
+  Future<List<Bastion>> getMine() {
+    getMineCalls++;
     return _gate.future;
   }
+
+  @override
+  Future<bastion_page.BastionPage> browse({int page = 1, int limit = 20}) async =>
+      const bastion_page.BastionPage(
+        bastions: [],
+        page: 1,
+        limit: 20,
+        total: 0,
+        hasMore: false,
+      );
 }
 
 void main() {
@@ -76,7 +90,7 @@ void main() {
   });
 
   testWidgets(
-    'tapping Facilities repeatedly while loading pushes only one BastionPage',
+    'tapping Overview repeatedly while loading pushes only one BastionPage',
     (tester) async {
       final bastionApi = _GatedBastionApi();
       GetIt.I.registerSingleton<BastionApi>(bastionApi);
@@ -147,7 +161,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The Facilities item is only visible once bastions have loaded and the
+      // The Overview item is only visible once bastions have loaded and the
       // user owns one (see 15f633c), so complete the gated fetch first.
       bastionApi.completeWith([
         Bastion(
@@ -160,13 +174,13 @@ void main() {
       ]);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Facilities'));
-      await tester.tap(find.text('Facilities'));
-      await tester.tap(find.text('Facilities'));
+      await tester.tap(find.text('Overview'));
+      await tester.tap(find.text('Overview'));
+      await tester.tap(find.text('Overview'));
 
       await tester.pumpAndSettle();
 
-      expect(bastionApi.getAllCalls, 3,
+      expect(bastionApi.getMineCalls, 3,
           reason:
               'one initial fetch + one menu reload after navigation + one from '
               'the pushed BastionPage itself; spamming the menu item must not '

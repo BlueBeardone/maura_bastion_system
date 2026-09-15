@@ -12,15 +12,18 @@ import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_creation_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
-import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
-import 'package:maura_bastion_system/features/login/logic/auth_state.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 import 'package:maura_bastion_system/widgets/standard_scaffold/standard_scaffold.dart';
 
-class BastionMainScreen extends StatelessWidget {
+class BastionMainScreen extends StatefulWidget {
   const BastionMainScreen({super.key});
 
+  @override
+  State<BastionMainScreen> createState() => _BastionMainScreenState();
+}
+
+class _BastionMainScreenState extends State<BastionMainScreen> {
   @override
   Widget build(BuildContext context) {
     return StandardScaffold(
@@ -50,7 +53,19 @@ class BastionMainScreen extends StatelessWidget {
           }
 
           if (state is BastionLoadedState) {
-            return _buildBastionsView(context, state.bastions);
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 900
+                    ? 3
+                    : constraints.maxWidth > 600
+                        ? 2
+                        : 1;
+                return _BastionListView(
+                  state: state,
+                  crossAxisCount: crossAxisCount,
+                );
+              },
+            );
           }
 
           return const Center(child: Text('Unknown state'));
@@ -58,91 +73,154 @@ class BastionMainScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBastionsView(BuildContext context, List<Bastion> bastions) {
-    final authState = GetIt.I<AuthCubit>().state;
-    final currentUserId = authState is AuthAuthenticatedState ? authState.user.id : null;
-    Bastion? userBastion;
-    for (final bastion in bastions) {
-      if (bastion.belongsTo(currentUserId)) {
-        userBastion = bastion;
-        break;
-      }
+class _BastionListView extends StatefulWidget {
+  final BastionLoadedState state;
+  final int crossAxisCount;
+
+  const _BastionListView({
+    required this.state,
+    required this.crossAxisCount,
+  });
+
+  @override
+  State<_BastionListView> createState() => _BastionListViewState();
+}
+
+class _BastionListViewState extends State<_BastionListView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final cubit = context.read<BastionCubit>();
+    final state = cubit.state;
+    if (state is! BastionLoadedState) return;
+    if (state.loadMoreFailed) return;
+    final position = _scrollController.position;
+    if (position.maxScrollExtent - position.pixels <= 400) {
+      cubit.loadMore();
     }
-    final otherBastions = bastions.where((bastion) => !bastion.belongsTo(currentUserId)).toList();
+  }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 900
-            ? 3
-            : constraints.maxWidth > 600
-                ? 2
-                : 1;
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    final crossAxisCount = widget.crossAxisCount;
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              'Your Bastion',
-              style: GoogleFonts.cinzel(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: MedievalColors.goldLeaf,
-              ),
-            ),
-            const SizedBox(height: 12),
-            userBastion == null
+    final rows = <List<Bastion>>[];
+    for (int i = 0; i < state.browseBastions.length; i += crossAxisCount) {
+      rows.add(state.browseBastions.skip(i).take(crossAxisCount).toList());
+    }
+
+    const headerCount = 3; // 'Your Bastion' title, user card, 'Other Bastions' title
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: headerCount + rows.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) return _sectionTitle('Your Bastion');
+        if (index == 1) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: state.userBastion == null
                 ? _buildAddBastionCard(context)
-                : _BastionCard(bastion: userBastion, isUserBastion: true),
-            const SizedBox(height: 24),
-            Text(
-              'Other Bastions',
-              style: GoogleFonts.cinzel(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: MedievalColors.goldLeaf,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildOtherBastions(crossAxisCount, otherBastions),
-          ],
-        );
+                : _BastionCard(bastion: state.userBastion!, isUserBastion: true),
+          );
+        }
+        if (index == 2) return _sectionTitle('Other Bastions');
+        final rowIndex = index - headerCount;
+        if (rowIndex < rows.length) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildRow(rows[rowIndex], crossAxisCount),
+          );
+        }
+        return _buildFooter(context, state);
       },
     );
   }
 
-  Widget _buildOtherBastions(int crossAxisCount, List<Bastion> otherBastions) {
-    final rows = <List<Bastion>>[];
-    for (int i = 0; i < otherBastions.length; i += crossAxisCount) {
-      rows.add(otherBastions.skip(i).take(crossAxisCount).toList());
-    }
-
-    return Column(
-      children: rows.map((row) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < row.length; i++) ...[
-                if (i > 0) const SizedBox(width: 16),
-                Expanded(
-                  child: () {
-                    final bastion = row[i];
-                    return _BastionCard(
-                      bastion: bastion,
-                      ownerName: null,
-                    );
-                  }(),
-                ),
-              ],
-              for (int i = row.length; i < crossAxisCount; i++)
-                const Expanded(child: SizedBox.shrink()),
-            ],
-          ),
-        );
-      }).toList(),
+  Widget _sectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        text,
+        style: GoogleFonts.cinzel(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: MedievalColors.goldLeaf,
+        ),
+      ),
     );
+  }
+
+  Widget _buildRow(List<Bastion> row, int crossAxisCount) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (int i = 0; i < row.length; i++) ...[
+          if (i > 0) const SizedBox(width: 16),
+          Expanded(
+            child: _BastionCard(bastion: row[i], ownerName: null),
+          ),
+        ],
+        for (int i = row.length; i < crossAxisCount; i++)
+          const Expanded(child: SizedBox.shrink()),
+      ],
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, BastionLoadedState state) {
+    final cubit = context.read<BastionCubit>();
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (state.loadMoreFailed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: TextButton(
+            onPressed: cubit.loadMore,
+            child: Text(
+              'Failed to load — tap to retry',
+              style: GoogleFonts.imFellEnglish(color: MedievalColors.vermillion),
+            ),
+          ),
+        ),
+      );
+    }
+    if (!state.hasMore) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: Text(
+            "You've reached the end",
+            style: GoogleFonts.imFellEnglish(
+              fontStyle: FontStyle.italic,
+              color: MedievalColors.sepiaMuted,
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildAddBastionCard(BuildContext context) {

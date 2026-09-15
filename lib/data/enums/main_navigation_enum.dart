@@ -1,6 +1,6 @@
 enum MainNavigation {
   newspaper,
-  myBastion,
+  bastions,
   facility,
   hirelings,
   about,
@@ -11,8 +11,8 @@ extension MainNavigationExtension on MainNavigation {
     switch (this) {
       case MainNavigation.newspaper: return "Newspaper";
       case MainNavigation.about: return "About";
-      case MainNavigation.facility: return "Facilities";
-      case MainNavigation.myBastion: return "My Bastion";
+      case MainNavigation.facility: return "Overview";
+      case MainNavigation.bastions: return "Bastions";
       case MainNavigation.hirelings: return "Hirelings";
     }
   }

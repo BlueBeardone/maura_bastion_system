@@ -18,12 +18,43 @@ import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 
+/// Wraps a handler so `GET /maura/v1/bastions/browse` returns an empty page
+/// with hasMore: false. The cubit's loadBastions now fetches getMine() +
+/// browse(page: 1); getMine() hits the same `/maura/v1/bastions` endpoint the
+/// handlers below already serve, so the loaded state's `bastions` getter still
+/// yields exactly the bastions these mocks return.
+MockClient _withEmptyBrowsePage(
+  Future<http.Response> Function(http.Request request) handler,
+) {
+  return MockClient((request) async {
+    if (request.method == 'GET' &&
+        request.url.path == '/maura/v1/bastions/browse') {
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'message': 'ok',
+          'data': {
+            'bastions': [],
+            'page': 1,
+            'limit': 20,
+            'total': 0,
+            'hasMore': false,
+          },
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    return handler(request);
+  });
+}
+
 void main() {
   group('BastionCubit.addFacility', () {
     test('POSTs the facility to /maura/v1/facilities from any state',
         () async {
       late http.Request captured;
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -120,7 +151,7 @@ void main() {
 
     test('addFacility rejects a 17th facility without any API call', () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -179,7 +210,7 @@ void main() {
 
     test('addFacility allows a 16th facility', () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -243,7 +274,7 @@ void main() {
 
     test('createBastion rejects more than 16 selected facilities', () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/bastions') {
           posts.add(request);
@@ -314,7 +345,7 @@ void main() {
     test('addFacility rejects a second S-Rank base facility without any API call',
         () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -372,7 +403,7 @@ void main() {
     test('addFacility allows an S-Rank base facility when only an upgraded S-Rank Bedroom exists',
         () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -434,7 +465,7 @@ void main() {
 
     test('createBastion rejects two S-Rank base facilities', () async {
       final posts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/bastions') {
           posts.add(request);
@@ -518,7 +549,7 @@ void main() {
         () async {
       final puts = <http.Request>[];
       var bastionGets = 0;
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           bastionGets++;
@@ -586,7 +617,7 @@ void main() {
     test('returns null and calls no API when all facilities are complete',
         () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -641,7 +672,7 @@ void main() {
       final puts = <http.Request>[];
       final putReceived = Completer<void>();
       final releasePut = Completer<void>();
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -708,7 +739,7 @@ void main() {
         () async {
       final puts = <http.Request>[];
       var constructed = 1;
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -775,7 +806,7 @@ void main() {
 
     test('lapses an active perTurn branch upgrade on turn advance', () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -846,7 +877,7 @@ void main() {
     test('gate runs before the facility PUT and the turn is persisted',
         () async {
       final requests = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         requests.add(request);
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/discord/individual-bastion-turn') {
@@ -931,7 +962,7 @@ void main() {
     test('gate runs with null when no facility is under construction',
         () async {
       final requests = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         requests.add(request);
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
@@ -983,7 +1014,7 @@ void main() {
 
     test('a failing gate blocks the turn and returns null', () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/discord/individual-bastion-turn') {
           return http.Response(
@@ -1098,7 +1129,7 @@ void main() {
     test('upgrades a built D facility to C, persisting rank, cost, and turns',
         () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -1177,7 +1208,7 @@ void main() {
     test('returns null without PUT when another facility is under construction',
         () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -1245,7 +1276,7 @@ void main() {
     test('returns null without PUT when the facility is already Rank S',
         () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -1309,7 +1340,7 @@ void main() {
     test('upgrades a facility id that is not in the catalog allowlist',
         () async {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -1407,7 +1438,7 @@ void main() {
       List<Map<String, dynamic>> facilities,
     ) {
       final puts = <http.Request>[];
-      final mock = MockClient((request) async {
+      final mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'GET' &&
             request.url.path == '/maura/v1/bastions') {
           return http.Response(
@@ -1601,7 +1632,7 @@ void main() {
       facilityCreations.clear();
       facilityUpdates.clear();
       allRequests.clear();
-      mock = MockClient((request) async {
+      mock = _withEmptyBrowsePage((request) async {
         allRequests.add(request);
 const discordPaths = <String>{
         '/maura/v1/discord/bastion-creation',
@@ -1973,7 +2004,7 @@ const discordPaths = <String>{
       facilityDeletes = [];
       discordSucceeds = true;
       deletedFacilityIds.clear();
-      mock = MockClient((request) async {
+      mock = _withEmptyBrowsePage((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/discord/facility-removed') {
           discordPosts.add(request);
@@ -2115,7 +2146,7 @@ const discordPaths = <String>{
     });
 
     test('returns false when the delete fails', () async {
-      final failingMock = MockClient((request) async {
+      final failingMock = _withEmptyBrowsePage((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/maura/v1/discord/facility-removed') {
           return http.Response(

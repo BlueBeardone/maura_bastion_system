@@ -1,5 +1,6 @@
 import 'api_client.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_page.dart';
 
 class BastionApi {
   final ApiClient _client;
@@ -14,6 +15,26 @@ class BastionApi {
     return data
         .map((b) => Bastion.fromJson(b as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Returns only the caller's own bastion(s) — the Java service filters by
+  /// user when no `all` query param is sent.
+  Future<List<Bastion>> getMine() async {
+    final data = await _client.get<List<dynamic>>(
+      '/maura/v1/bastions',
+      parser: (json) => json as List<dynamic>,
+    );
+    return data
+        .map((b) => Bastion.fromJson(b as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<BastionPage> browse({int page = 1, int limit = 20}) async {
+    final data = await _client.get<Map<String, dynamic>>(
+      '/maura/v1/bastions/browse?page=$page&limit=$limit',
+      parser: (json) => json as Map<String, dynamic>,
+    );
+    return BastionPage.fromJson(data);
   }
 
   Future<Bastion> get(String id) async {

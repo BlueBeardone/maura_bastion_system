@@ -146,7 +146,7 @@ class _AppBarNavigationMenuState extends State<AppBarNavigationMenu> {
         case MainNavigation.about:
           await _pushOrPopTo(context, buttonItem, (context) => AboutPage());
           break;
-        case MainNavigation.myBastion:
+        case MainNavigation.bastions:
           await _pushOrPopTo(
             context,
             buttonItem,

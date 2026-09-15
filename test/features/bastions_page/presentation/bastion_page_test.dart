@@ -28,6 +28,36 @@ class _FakeSessionStore extends AuthSessionStore {
   Future<void> clear() async {}
 }
 
+/// Wraps a handler so `GET /maura/v1/bastions/browse` returns an empty page
+/// with hasMore: false. The cubit's loadBastions now fetches getMine() +
+/// browse(page: 1); browse serves nothing extra here, so the page still
+/// renders exactly the bastion these mocks return from `/maura/v1/bastions`.
+MockClient _withEmptyBrowsePage(
+  Future<http.Response> Function(http.Request request) handler,
+) {
+  return MockClient((request) async {
+    if (request.method == 'GET' &&
+        request.url.path == '/maura/v1/bastions/browse') {
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'message': 'ok',
+          'data': {
+            'bastions': [],
+            'page': 1,
+            'limit': 20,
+            'total': 0,
+            'hasMore': false,
+          },
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    return handler(request);
+  });
+}
+
 void main() {
   setUp(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -37,7 +67,7 @@ void main() {
   testWidgets(
     'empty bastion still shows Construct Facility, Hirelings and Defenders containers',
     (tester) async {
-      final mockClient = MockClient((request) async {
+      final mockClient = _withEmptyBrowsePage((request) async {
         if (request.url.path == '/maura/v1/bastions' &&
             request.method == 'GET') {
           return http.Response(
@@ -131,7 +161,7 @@ void main() {
       {List<Map<String, dynamic>> hirelings = const [],
       List<http.Request>? capturedPuts,
       bool discordTurnSucceeds = true}) {
-    return MockClient((request) async {
+    return _withEmptyBrowsePage((request) async {
       if (request.method == 'GET' &&
           request.url.path == '/maura/v1/bastions') {
         return http.Response(
@@ -383,7 +413,7 @@ void main() {
       (tester) async {
     var puts = 0;
     var firstBastionGet = true;
-    final mockClient = MockClient((request) async {
+    final mockClient = _withEmptyBrowsePage((request) async {
       if (request.method == 'GET' &&
           request.url.path == '/maura/v1/bastions') {
         final rankField = firstBastionGet ? 'd' : 'c';

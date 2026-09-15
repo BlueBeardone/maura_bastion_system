@@ -93,7 +93,7 @@ void main() {
               title: AppBarNavigationMenu(
                 navigationItems: const [
                   MainNavigation.newspaper,
-                  MainNavigation.myBastion,
+                  MainNavigation.bastions,
                 ],
               ),
             ),
@@ -105,19 +105,19 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('tapping My Bastion twice pushes only one BastionMainScreen',
+  testWidgets('tapping Bastions twice pushes only one BastionMainScreen',
       (tester) async {
     await pumpHost(tester);
 
-    await tester.tap(find.text('My Bastion').last);
+    await tester.tap(find.text('Bastions').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('My Bastion').last);
+    await tester.tap(find.text('Bastions').last);
     await tester.pumpAndSettle();
 
     expect(
       find.byType(BastionMainScreen, skipOffstage: false),
       findsOneWidget,
-      reason: 'pressing My Bastion on the My Bastion page must not stack '
+      reason: 'pressing Bastions on the Bastions page must not stack '
           'a duplicate',
     );
   });
@@ -126,7 +126,7 @@ void main() {
       (tester) async {
     await pumpHost(tester);
 
-    await tester.tap(find.text('My Bastion').last);
+    await tester.tap(find.text('Bastions').last);
     await tester.pumpAndSettle();
     expect(find.byType(BastionMainScreen, skipOffstage: false), findsOneWidget);
 
