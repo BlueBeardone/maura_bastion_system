@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,30 @@ import 'package:maura_bastion_system/api/api_exception.dart';
 
 void main() {
   group('ApiClient', () {
+    test('throws ApiException when the backend never responds', () async {
+      final mock = MockClient((request) {
+        return Completer<http.StreamedResponse>().future;
+      });
+
+      final client = ApiClient(
+        baseUrl: 'http://example.test',
+        client: mock,
+        requestTimeout: const Duration(milliseconds: 50),
+      );
+
+      await expectLater(
+        client.get<Map<String, dynamic>>(
+          '/maura/v1/bastions',
+          parser: (json) => json as Map<String, dynamic>,
+        ),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 0)
+              .having((e) => e.message, 'message', contains('timed out')),
+        ),
+      );
+    });
+
     test('sends an enveloped GET and parses the data payload', () async {
       late http.Request captured;
       final mock = MockClient((request) async {

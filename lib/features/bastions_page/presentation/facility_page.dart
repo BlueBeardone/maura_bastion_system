@@ -247,89 +247,11 @@ class _FacilityView extends StatelessWidget {
                       ),
                     ),
                   ],
-                  if (_shouldShowUpgradeButton()) ...[
+                  if (isUserBastion &&
+                      !isSelectionMode &&
+                      (onUpgrade != null || onRemove != null)) ...[
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _busyButton(
-                        cubit: resolvedBastionCubit,
-                        onPressed: onUpgrade,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MedievalColors.vermillion,
-                          foregroundColor: MedievalColors.goldPale,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          'Upgrade to Rank ${facility.rank.next!.title} — ${facilityUpgradeCost(facility.rank)} GP',
-                          style: GoogleFonts.cinzel(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (_shouldShowRemoveButton()) ...[
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _busyButton(
-                        cubit: resolvedBastionCubit,
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (dialogContext) => AlertDialog(
-                              title: Text(
-                                'Remove ${facility.name}?',
-                                style: GoogleFonts.cinzel(
-                                  fontWeight: FontWeight.bold,
-                                  color: MedievalColors.vermillion,
-                                ),
-                              ),
-                              content: Text(
-                                'This cannot be undone.',
-                                style: GoogleFonts.imFellEnglish(
-                                  color: MedievalColors.sepiaInk,
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogContext).pop(false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogContext).pop(true),
-                                  child: const Text('Remove'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true) {
-                            onRemove!();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MedievalColors.vermillion,
-                          foregroundColor: MedievalColors.goldPale,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          'Remove Facility',
-                          style: GoogleFonts.cinzel(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildActionButtons(context, resolvedBastionCubit),
                   ],
                 ],
               ),
@@ -340,8 +262,6 @@ class _FacilityView extends StatelessWidget {
     );
   }
 
-  // FacilityPage is pushed onto the root navigator, so it is not always below
-  // a BlocProvider<BastionCubit>. Resolve the cubit only when one exists.
   static BastionCubit? _maybeBastionCubit(BuildContext context) {
     try {
       return context.watch<BastionCubit>();
@@ -381,21 +301,86 @@ class _FacilityView extends StatelessWidget {
     );
   }
 
-  bool _shouldShowUpgradeButton() {
-    if (onUpgrade == null) return false;
-    if (!isUserBastion || isSelectionMode) return false;
-    if (facility.constructedTurns < facility.constructionTurns) return false;
-    if (facility.rank == Rank.S) return false;
-    if (!upgradeableFacilityIds.contains(facility.id)) return false;
-    final anyBusy = bastion.facilities
-        .any((f) => f.constructedTurns < f.constructionTurns);
-    return !anyBusy;
-  }
-
-  bool _shouldShowRemoveButton() {
-    if (onRemove == null) return false;
-    if (!isUserBastion || isSelectionMode) return false;
-    return true;
+  Widget _buildActionButtons(BuildContext context, BastionCubit? cubit) {
+    final style = ElevatedButton.styleFrom(
+      backgroundColor: MedievalColors.vermillion,
+      foregroundColor: MedievalColors.goldPale,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (onUpgrade != null && facility.rank != Rank.S)
+          Expanded(
+            child: _busyButton(
+              cubit: cubit,
+              onPressed: onUpgrade,
+              style: style,
+              child: Text(
+                'Upgrade to Rank ${facility.rank.next!.title} — ${facilityUpgradeCost(facility.rank)} GP',
+                style: GoogleFonts.cinzel(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        if (onUpgrade != null && facility.rank != Rank.S && onRemove != null)
+          const SizedBox(width: 12),
+        if (onRemove != null)
+          Expanded(
+            child: _busyButton(
+              cubit: cubit,
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: Text(
+                      'Remove ${facility.name}?',
+                      style: GoogleFonts.cinzel(
+                        fontWeight: FontWeight.bold,
+                        color: MedievalColors.vermillion,
+                      ),
+                    ),
+                    content: Text(
+                      'This cannot be undone.',
+                      style: GoogleFonts.imFellEnglish(
+                        color: MedievalColors.sepiaInk,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(dialogContext).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(dialogContext).pop(true),
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  onRemove!();
+                }
+              },
+              style: style,
+              child: Text(
+                'Remove Facility',
+                style: GoogleFonts.cinzel(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   bool _shouldShowBranchUpgradePurchase() {

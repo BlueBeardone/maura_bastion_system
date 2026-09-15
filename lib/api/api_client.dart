@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -12,10 +13,15 @@ class ApiClient {
   final String baseUrl;
   final http.Client _client;
   final AuthSessionStore? _sessionStore;
+  final Duration requestTimeout;
   String? _authToken;
 
-  ApiClient({String? baseUrl, http.Client? client, AuthSessionStore? sessionStore})
-      : baseUrl = baseUrl ?? _baseUrl,
+  ApiClient({
+    String? baseUrl,
+    http.Client? client,
+    AuthSessionStore? sessionStore,
+    this.requestTimeout = const Duration(seconds: 30),
+  })  : baseUrl = baseUrl ?? _baseUrl,
         _client = client ?? http.Client(),
         _sessionStore = sessionStore;
 
@@ -80,8 +86,10 @@ class ApiClient {
     }
 
     try {
-      final streamed = await _client.send(request);
-      final response = await http.Response.fromStream(streamed);
+      final streamed =
+          await _client.send(request).timeout(requestTimeout);
+      final response =
+          await http.Response.fromStream(streamed).timeout(requestTimeout);
       final json =
           jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -112,6 +120,12 @@ class ApiClient {
       throw ApiException(
         statusCode: 0,
         message: 'Connection failed: ${e.message}',
+      );
+    } on TimeoutException {
+      throw ApiException(
+        statusCode: 0,
+        message:
+            'Request timed out after ${requestTimeout.inSeconds}s — backend not responding',
       );
     } on FormatException catch (e) {
       throw ApiException(
