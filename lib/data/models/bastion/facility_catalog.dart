@@ -108,6 +108,25 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
 BranchUpgrade? branchUpgradeFor(String facilityId) =>
     branchUpgradesByFacilityId[facilityId];
 
+BranchUpgrade? branchUpgradeForFacility(Facility facility) {
+  final byId = branchUpgradeFor(facility.id);
+  if (byId != null) return byId;
+  for (final catalogFacility in getFacilityCatalog()) {
+    if (catalogFacility.name == facility.name) {
+      return branchUpgradeFor(catalogFacility.id);
+    }
+  }
+  return null;
+}
+
+final Set<String> sRankBaseFacilityIds = getFacilityCatalog()
+    .where((f) => f.rank == Rank.S)
+    .map((f) => f.id)
+    .toSet();
+
+bool isSRankBaseFacility(Facility facility) =>
+    facility.rank == Rank.S && sRankBaseFacilityIds.contains(facility.id);
+
 extension FacilityBranchUpgradeX on Facility {
   BranchUpgrade? get branchUpgrade {
     if (branchUpgradeId == null) return null;

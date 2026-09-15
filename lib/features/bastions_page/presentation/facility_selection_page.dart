@@ -154,6 +154,20 @@ class FacilitySelectionPage extends StatelessWidget {
                       );
                       return;
                     }
+                    final hasSRankBaseSelected = catalog
+                        .where((f) => selectedIds.contains(f.id))
+                        .any(isSRankBaseFacility);
+                    if (isSRankBaseFacility(facility) &&
+                        hasSRankBaseSelected) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'A bastion can only have one S-Rank facility',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     setInnerState(() => selectedIds.add(facility.id));
                   },
                 );
@@ -210,6 +224,8 @@ class FacilitySelectionPage extends StatelessWidget {
   ) {
     final widgets = <Widget>[];
 
+    final bool bastionHasSRankBase = bastion!.facilities.any(isSRankBaseFacility);
+
     for (final rank in ranks) {
       final facilities = grouped[rank];
       if (facilities == null || facilities.isEmpty) continue;
@@ -233,7 +249,8 @@ class FacilitySelectionPage extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: facilities.map((facility) {
-            return _buildFacilityCard(context, facility);
+            final disabled = bastionHasSRankBase && isSRankBaseFacility(facility);
+            return _buildFacilityCard(context, facility, isDisabled: disabled);
           }).toList(),
         ),
       );
@@ -257,6 +274,7 @@ class FacilitySelectionPage extends StatelessWidget {
     Facility facility, {
     bool isPickMode = false,
     bool isSelected = false,
+    bool isDisabled = false,
     VoidCallback? onTap,
   }) {
     return SizedBox(
@@ -265,9 +283,11 @@ class FacilitySelectionPage extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: isPickMode
-              ? onTap
-              : () {
+          onTap: isDisabled
+              ? null
+              : isPickMode
+                  ? onTap
+                  : () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => FacilityPage(
                       facility: facility,
@@ -293,86 +313,102 @@ class FacilitySelectionPage extends StatelessWidget {
                     )),
                   );
                 },
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const RadialGradient(
-                center: Alignment.center,
-                radius: 0.9,
-                colors: [
-                  MedievalColors.parchmentLight,
-                  MedievalColors.parchmentDark,
-                ],
-                stops: [0.6, 1.0],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: isSelected
-                  ? Border.all(color: MedievalColors.goldLeaf, width: 2)
-                  : null,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(50),
-                  blurRadius: 6,
-                  offset: const Offset(2, 3),
+          child: Opacity(
+            opacity: isDisabled ? 0.55 : 1.0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const RadialGradient(
+                  center: Alignment.center,
+                  radius: 0.9,
+                  colors: [
+                    MedievalColors.parchmentLight,
+                    MedievalColors.parchmentDark,
+                  ],
+                  stops: [0.6, 1.0],
                 ),
-              ],
-            ),
-            child: CustomPaint(
-              painter: ParchmentBorderPainter(),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          facility.name,
-                          style: GoogleFonts.cinzel(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: MedievalColors.vermillion,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildFramedImage(facility),
-                        const SizedBox(height: 8),
-                        Text(
-                          facility.description,
-                          style: GoogleFonts.imFellEnglish(
-                            fontSize: 15,
-                            height: 1.4,
-                            color: MedievalColors.sepiaInk,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildFacilityInfoRow(facility),
-                      ],
-                    ),
+                borderRadius: BorderRadius.circular(14),
+                border: isSelected
+                    ? Border.all(color: MedievalColors.goldLeaf, width: 2)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(50),
+                    blurRadius: 6,
+                    offset: const Offset(2, 3),
                   ),
-                  if (isSelected)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: MedievalColors.verdigris,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+                ],
+              ),
+              child: CustomPaint(
+                painter: ParchmentBorderPainter(),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            facility.name,
+                            style: GoogleFonts.cinzel(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: MedievalColors.vermillion,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildFramedImage(facility),
+                          const SizedBox(height: 8),
+                          Text(
+                            facility.description,
+                            style: GoogleFonts.imFellEnglish(
+                              fontSize: 15,
+                              height: 1.4,
+                              color: MedievalColors.sepiaInk,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildFacilityInfoRow(facility),
+                          if (isDisabled) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              'Bastion already has an S-Rank facility',
+                              style: GoogleFonts.imFellEnglish(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: MedievalColors.vermillion,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                ],
+                    if (isSelected)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: MedievalColors.verdigris,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -199,7 +199,7 @@ class _FacilityView extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildTableSection(),
                   ],
-                  if (branchUpgradeFor(facility.id) != null &&
+                  if (branchUpgradeForFacility(facility) != null &&
                       !isSelectionMode) ...[
                     const SizedBox(height: 24),
                     _buildBranchUpgradeCard(resolvedBastionCubit),
@@ -311,7 +311,6 @@ class _FacilityView extends StatelessWidget {
       ),
     );
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (onUpgrade != null && facility.rank != Rank.S)
           Expanded(
@@ -393,7 +392,7 @@ class _FacilityView extends StatelessWidget {
   }
 
   Widget _buildBranchUpgradeCard(BastionCubit? cubit) {
-    final upgrade = branchUpgradeFor(facility.id)!;
+    final upgrade = branchUpgradeForFacility(facility)!;
     final owned = facility.hasActiveBranchUpgrade;
     final isLapsed = facility.branchUpgradeId != null &&
         !facility.branchUpgradeActive &&

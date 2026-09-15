@@ -11,7 +11,7 @@ void main() {
   group('ApiClient', () {
     test('throws ApiException when the backend never responds', () async {
       final mock = MockClient((request) {
-        return Completer<http.StreamedResponse>().future;
+        return Completer<http.Response>().future;
       });
 
       final client = ApiClient(

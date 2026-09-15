@@ -285,6 +285,202 @@ void main() {
     });
   });
 
+  group('BastionCubit S-Rank base facility restriction', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      String rank = 'd',
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank,
+          'description': 'desc',
+          'constructionTurns': 2,
+          'constructedTurns': 2,
+          'minimumRequiredHirelings': 0,
+          'cost': 600,
+        };
+
+    Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
+        {
+          'id': 'bastion-1',
+          'userId': 'user_1',
+          'name': 'Test Bastion',
+          'description': 'desc',
+          'facilities': facilities,
+        };
+
+    test('addFacility rejects a second S-Rank base facility without any API call',
+        () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(id: 'cat_colosseum', name: 'Colosseum', rank: 's'),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final ok = await cubit.addFacility(
+        'bastion-1',
+        Facility(
+          id: 'cat_ivory_tower',
+          name: 'Ivory Tower',
+          rank: Rank.S,
+          description: 'desc',
+        ),
+      );
+
+      expect(ok, isFalse);
+      expect(posts, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('addFacility allows an S-Rank base facility when only an upgraded S-Rank Bedroom exists',
+        () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(id: 'cat_bedroom', name: 'Bedroom', rank: 's'),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/facilities') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final ok = await cubit.addFacility(
+        'bastion-1',
+        Facility(
+          id: 'cat_colosseum',
+          name: 'Colosseum',
+          rank: Rank.S,
+          description: 'desc',
+        ),
+      );
+
+      expect(ok, isTrue);
+      expect(posts, hasLength(1));
+
+      await cubit.close();
+    });
+
+    test('createBastion rejects two S-Rank base facilities', () async {
+      final posts = <http.Request>[];
+      final mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/maura/v1/bastions') {
+          posts.add(request);
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+
+      final facilities = [
+        Facility(
+          id: 'cat_colosseum',
+          name: 'Colosseum',
+          rank: Rank.S,
+          description: 'desc',
+        ),
+        Facility(
+          id: 'cat_ivory_tower',
+          name: 'Ivory Tower',
+          rank: Rank.S,
+          description: 'desc',
+        ),
+      ];
+
+      final result = await cubit.createBastion('Name', 'desc', null, facilities);
+
+      expect(result, isNull);
+      expect(posts, isEmpty);
+
+      await cubit.close();
+    });
+  });
+
   group('BastionCubit.advanceBastionTurn', () {
     Map<String, dynamic> facilityJson({
       required String id,
@@ -1110,7 +1306,7 @@ void main() {
       await cubit.close();
     });
 
-    test('returns null without PUT for a non-upgradeable facility id',
+    test('upgrades a facility id that is not in the catalog allowlist',
         () async {
       final puts = <http.Request>[];
       final mock = MockClient((request) async {
@@ -1164,8 +1360,10 @@ void main() {
           .firstWhere((f) => f.id == 'keep');
       final result = await cubit.upgradeFacility('bastion-1', keep);
 
-      expect(result, isNull);
-      expect(puts, isEmpty);
+      expect(result, isNotNull);
+      expect(result!.rank, Rank.C);
+      expect(puts, hasLength(1));
+      expect(puts.single.url.path, contains('keep'));
 
       await cubit.close();
     });

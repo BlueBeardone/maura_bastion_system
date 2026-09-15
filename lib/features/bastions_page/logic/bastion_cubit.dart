@@ -58,6 +58,10 @@ class BastionCubit extends Cubit<BastionState> {
           );
     if (bastion == null) return false;
     if (bastion.facilities.length >= maxFacilitiesPerBastion) return false;
+    if (isSRankBaseFacility(facility) &&
+        bastion.facilities.any(isSRankBaseFacility)) {
+      return false;
+    }
 
     try {
       await _discordAnnouncer?.announceFacilityBuilt(bastion, facility);
@@ -185,7 +189,6 @@ class BastionCubit extends Cubit<BastionState> {
     );
 
     if (facility.rank == Rank.S) return null;
-    if (!upgradeableFacilityIds.contains(facility.id)) return null;
     final nextRank = facility.rank.next;
     if (nextRank == null) return null;
     final anyBusy = bastion.facilities
@@ -231,7 +234,7 @@ class BastionCubit extends Cubit<BastionState> {
       orElse: () => loaded.bastions.first,
     );
 
-    final upgrade = branchUpgradeFor(facility.id);
+    final upgrade = branchUpgradeForFacility(facility);
     if (upgrade == null) return null;
     // perUse upgrades (Theatre Stage Enhancements) are per-play payments with
     // no persistent state — never recorded here.
@@ -274,6 +277,7 @@ class BastionCubit extends Cubit<BastionState> {
     List<Facility> facilities,
   ) async {
     if (facilities.length > maxFacilitiesPerBastion) return null;
+    if (facilities.where(isSRankBaseFacility).length > 1) return null;
 
     final builtFacilities = facilities.map((f) => Facility(
       id: f.id,

@@ -129,7 +129,7 @@ void main() {
     expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
   });
 
-  testWidgets('hides Upgrade button while another facility is under construction',
+  testWidgets('shows Upgrade button even while another facility is under construction',
       (tester) async {
     final kitchen = Facility(
       id: 'cat_kitchen',
@@ -148,10 +148,10 @@ void main() {
       onUpgrade: () {},
     );
 
-    expect(find.text('Upgrade to Rank C — 900 GP'), findsNothing);
+    expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
   });
 
-  testWidgets('hides Upgrade button while the facility itself is under construction',
+  testWidgets('shows Upgrade button even while the facility itself is under construction',
       (tester) async {
     await pumpFacilityPage(
       tester,
@@ -161,7 +161,7 @@ void main() {
       onUpgrade: () {},
     );
 
-    expect(find.text('Upgrade to Rank C — 900 GP'), findsNothing);
+    expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
   });
 
   testWidgets('hides Upgrade button for a non-user bastion', (tester) async {
