@@ -104,4 +104,96 @@ void main() {
       expect(f.hirelingCapacity, 1);
     });
   });
+
+  group('upgraded name and description variants', () {
+    test('all oneTime and perTurn upgrades define upgraded variants', () {
+      for (final upgrade in branchUpgradesByFacilityId.values) {
+        if (upgrade.kind == BranchUpgradeKind.perUse) continue;
+        expect(upgrade.upgradedName, isNotNull,
+            reason: '${upgrade.id} missing upgradedName');
+        expect(upgrade.upgradedDescription, isNotNull,
+            reason: '${upgrade.id} missing upgradedDescription');
+      }
+    });
+
+    test('theatre perUse upgrade has no upgraded variant', () {
+      final upgrade = branchUpgradeFor('cat_theatre')!;
+      expect(upgrade.upgradedName, isNull);
+      expect(upgrade.upgradedDescription, isNull);
+    });
+
+    test('kitchen upgraded variant renames to Industrial Kitchen', () {
+      final upgrade = branchUpgradeFor('cat_kitchen')!;
+      expect(upgrade.upgradedName, 'Industrial Kitchen');
+      expect(upgrade.upgradedDescription,
+          contains('holds up to 3 hirelings'));
+      expect(upgrade.upgradedDescription, isNot(contains('Pay 500 GP')));
+    });
+
+    test('pub upgraded variant renames to Pub of Legend', () {
+      final upgrade = branchUpgradeFor('cat_pub')!;
+      expect(upgrade.upgradedName, 'Pub of Legend');
+      expect(upgrade.upgradedDescription,
+          contains('You pay 2,000 GP each Individual Bastion Turn'));
+    });
+  });
+
+  group('displayName / displayDescription', () {
+    test('base facility keeps its own name and description', () {
+      final f = facility();
+      expect(f.displayName, 'Test');
+      expect(f.displayDescription, 'desc');
+    });
+
+    test('owned oneTime upgrade transforms kitchen', () {
+      final base = getFacilityCatalog().firstWhere((f) => f.id == 'cat_kitchen');
+      final f = base.copyWith(branchUpgradeId: 'bru_industrial_kitchen');
+      expect(f.displayName, 'Industrial Kitchen');
+      expect(f.displayDescription, contains('holds up to 3 hirelings'));
+      expect(f.displayDescription, contains('1d6 extra treats'));
+      expect(f.displayDescription, isNot(contains('Pay 500 GP')));
+      expect(f.displayDescription, contains('advantage on crafting treats'));
+    });
+
+    test('active perTurn upgrade transforms pub, lapsed shows base', () {
+      final base = getFacilityCatalog().firstWhere((f) => f.id == 'cat_pub');
+      final active = base.copyWith(
+        branchUpgradeId: 'bru_pub_of_legend',
+        branchUpgradeActive: true,
+      );
+      expect(active.displayName, 'Pub of Legend');
+      expect(active.displayDescription,
+          contains('You pay 2,000 GP each Individual Bastion Turn'));
+      expect(active.displayDescription, isNot(contains('Pay 2,000 GP')));
+
+      final lapsed = base.copyWith(branchUpgradeId: 'bru_pub_of_legend');
+      expect(lapsed.displayName, 'Pub');
+      expect(lapsed.displayDescription, base.description);
+    });
+
+    test('description without the upgrade paragraph falls back to base',
+        () {
+      final f = facility(branchUpgradeId: 'bru_industrial_kitchen');
+      expect(f.displayName, 'Industrial Kitchen');
+      expect(f.displayDescription, 'desc');
+    });
+
+    test('every upgraded description splices out the payment paragraph', () {
+      final catalog = getFacilityCatalog();
+      for (final upgrade in branchUpgradesByFacilityId.values) {
+        if (upgrade.upgradedDescription == null) continue;
+        final base = catalog.firstWhere((f) => f.id == upgrade.facilityId);
+        // perTurn upgrades only transform while active; passing true is a
+        // no-op for oneTime upgrades.
+        final f = base.copyWith(
+          branchUpgradeId: upgrade.id,
+          branchUpgradeActive: true,
+        );
+        expect(f.displayDescription, isNot(contains(upgrade.description)),
+            reason: upgrade.id);
+        expect(f.displayDescription, contains(upgrade.upgradedDescription!),
+            reason: upgrade.id);
+      }
+    });
+  });
 }

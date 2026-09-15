@@ -11,6 +11,8 @@ class BranchUpgrade {
   final String description;
   final BranchUpgradeKind kind;
   final int? hirelingCapacity;
+  final String? upgradedName;
+  final String? upgradedDescription;
 
   const BranchUpgrade({
     required this.id,
@@ -21,6 +23,8 @@ class BranchUpgrade {
     required this.description,
     required this.kind,
     this.hirelingCapacity,
+    this.upgradedName,
+    this.upgradedDescription,
   });
 
   int costFor(Rank rank) => costByRank?[rank] ?? cost ?? 0;

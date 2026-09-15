@@ -262,7 +262,8 @@ void main() {
       expect(find.textContaining('500 GP'), findsWidgets);
     });
 
-    testWidgets('shows Owned badge and capacity 3 when owned', (tester) async {
+    testWidgets('owned oneTime upgrade renames facility and hides card',
+        (tester) async {
       await pumpFacilityPage(
         tester,
         facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
@@ -272,8 +273,65 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Owned'), findsOneWidget);
+      expect(find.text('Industrial Kitchen'), findsOneWidget);
+      expect(find.text('Owned'), findsNothing);
       expect(find.byType(ElevatedButton), findsNothing);
+    });
+
+    testWidgets('unowned kitchen keeps base name and shows card',
+        (tester) async {
+      await pumpFacilityPage(
+        tester,
+        facility: kitchen(),
+        bastionFacilities: [kitchen()],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kitchen'), findsOneWidget);
+      expect(find.textContaining('Industrial Kitchen'), findsWidgets);
+    });
+
+    testWidgets('active perTurn upgrade renames pub and hides card',
+        (tester) async {
+      Facility pub({
+        required String? branchUpgradeId,
+        required bool branchUpgradeActive,
+      }) =>
+          Facility(
+            id: 'cat_pub',
+            name: 'Pub',
+            rank: Rank.A,
+            description: 'Pub description.',
+            minimumRequiredHirelings: 1,
+            constructionTurns: 8,
+            constructedTurns: 8,
+            cost: 9000,
+            branchUpgradeId: branchUpgradeId,
+            branchUpgradeActive: branchUpgradeActive,
+          );
+
+      await pumpFacilityPage(
+        tester,
+        facility: pub(
+          branchUpgradeId: 'bru_pub_of_legend',
+          branchUpgradeActive: true,
+        ),
+        bastionFacilities: [
+          pub(
+            branchUpgradeId: 'bru_pub_of_legend',
+            branchUpgradeActive: true,
+          ),
+        ],
+        isUserBastion: true,
+        onPurchaseBranchUpgrade: () {},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pub of Legend'), findsOneWidget);
+      expect(find.text('Owned'), findsNothing);
+      expect(find.textContaining('Renew'), findsNothing);
     });
 
     testWidgets('shows Renew label for lapsed perTurn upgrade', (tester) async {

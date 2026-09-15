@@ -200,7 +200,8 @@ class _FacilityView extends StatelessWidget {
                     _buildTableSection(),
                   ],
                   if (branchUpgradeForFacility(facility) != null &&
-                      !isSelectionMode) ...[
+                      !isSelectionMode &&
+                      !facility.hasActiveBranchUpgrade) ...[
                     const SizedBox(height: 24),
                     _buildBranchUpgradeCard(resolvedBastionCubit),
                   ],
@@ -338,7 +339,7 @@ class _FacilityView extends StatelessWidget {
                   context: context,
                   builder: (dialogContext) => AlertDialog(
                     title: Text(
-                      'Remove ${facility.name}?',
+                      'Remove ${facility.displayName}?',
                       style: GoogleFonts.cinzel(
                         fontWeight: FontWeight.bold,
                         color: MedievalColors.vermillion,
@@ -423,7 +424,6 @@ class _FacilityView extends StatelessWidget {
 
   Widget _buildBranchUpgradeCard(BastionCubit? cubit) {
     final upgrade = branchUpgradeForFacility(facility)!;
-    final owned = facility.hasActiveBranchUpgrade;
     final isLapsed = facility.branchUpgradeId != null &&
         !facility.branchUpgradeActive &&
         upgrade.kind == BranchUpgradeKind.perTurn;
@@ -431,12 +431,8 @@ class _FacilityView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: owned
-            ? MedievalColors.goldLeaf.withAlpha(40)
-            : MedievalColors.parchment.withAlpha(120),
-        border: Border.all(
-          color: owned ? MedievalColors.goldBright : MedievalColors.goldPale,
-        ),
+        color: MedievalColors.parchment.withAlpha(120),
+        border: Border.all(color: MedievalColors.goldPale),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -454,23 +450,6 @@ class _FacilityView extends StatelessWidget {
                   ),
                 ),
               ),
-              if (owned)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: MedievalColors.goldBright,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Owned',
-                    style: GoogleFonts.cinzel(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: MedievalColors.parchment,
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 6),
@@ -482,18 +461,7 @@ class _FacilityView extends StatelessWidget {
               color: MedievalColors.sepiaInk,
             ),
           ),
-          if (owned && upgrade.hirelingCapacity != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Holds up to ${upgrade.hirelingCapacity} hirelings',
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 15,
-                fontStyle: FontStyle.italic,
-                color: MedievalColors.sepiaSecondary,
-              ),
-            ),
-          ],
-          if (!owned && _shouldShowBranchUpgradePurchase() &&
+          if (_shouldShowBranchUpgradePurchase() &&
               upgrade.kind != BranchUpgradeKind.perUse) ...[
             const SizedBox(height: 10),
             SizedBox(
@@ -521,8 +489,7 @@ class _FacilityView extends StatelessWidget {
               ),
             ),
           ],
-          if (!owned &&
-              upgrade.kind == BranchUpgradeKind.perUse &&
+          if (upgrade.kind == BranchUpgradeKind.perUse &&
               _shouldShowBranchUpgradePurchase()) ...[
             const SizedBox(height: 10),
             Text(
@@ -544,7 +511,7 @@ class _FacilityView extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            facility.name,
+            facility.displayName,
             style: GoogleFonts.cinzel(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -728,7 +695,7 @@ class _FacilityView extends StatelessWidget {
 
   Widget _buildDescription() {
     return Text(
-      facility.description,
+      facility.displayDescription,
       style: GoogleFonts.imFellEnglish(
         fontSize: 17,
         height: 1.4,

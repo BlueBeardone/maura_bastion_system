@@ -45,6 +45,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
         'Pay 500 GP. The amount of hirelings your kitchen can hold increases to 3. While you have three hirelings in the kitchen, when you successfully pass a DC to craft a treat in the kitchen, you get 1d6 extra treats!',
     kind: BranchUpgradeKind.oneTime,
     hirelingCapacity: 3,
+    upgradedName: 'Industrial Kitchen',
+    upgradedDescription:
+        'The kitchen holds up to 3 hirelings. While three hirelings work in the kitchen, when you successfully pass a DC to craft a treat in the kitchen, you get 1d6 extra treats!',
   ),
   'cat_laboratory': BranchUpgrade(
     id: 'bru_industrial_laboratory',
@@ -55,6 +58,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
         'Pay 4,000 GP. The amount of hirelings your Laboratory can hold increases to 2. While you have two hirelings in the laboratory, when you successfully pass a DC to craft a potion, poison, or dilution, you have a 20% chance to gain a double. Increase this chance by 10% for each Laboratory rank above C.',
     kind: BranchUpgradeKind.oneTime,
     hirelingCapacity: 2,
+    upgradedName: 'Industrial Laboratory',
+    upgradedDescription:
+        'The laboratory holds up to 2 hirelings. While two hirelings work in the laboratory, when you successfully pass a DC to craft a potion, poison, or dilution, you have a 20% chance to gain a double. Increase this chance by 10% for each Laboratory rank above C.',
   ),
   'cat_library': BranchUpgrade(
     id: 'bru_vault_of_knowledge',
@@ -64,6 +70,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
     description:
         'Pay 1,000 GP to gain new and accurate information, and your bonus to a skill increases to +3 until the end of the Bastion Turn.',
     kind: BranchUpgradeKind.oneTime,
+    upgradedName: 'Vault of Knowledge',
+    upgradedDescription:
+        'You gain new and accurate information, and your bonus to a skill increases to +3 until the end of the Bastion Turn.',
   ),
   'cat_trading_hub': BranchUpgrade(
     id: 'bru_specialized_shelving',
@@ -73,6 +82,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
     description:
         'Pay 2,000 GP to increase the total value of what you can procure by 500 GP per rank. You also unlock additional items to buy.',
     kind: BranchUpgradeKind.oneTime,
+    upgradedName: 'Specialized Shelving',
+    upgradedDescription:
+        'The total value of what you can procure is increased by 500 GP per rank, and additional items are unlocked to buy.',
   ),
   'cat_workshop': BranchUpgrade(
     id: 'bru_mastercraft_workshop',
@@ -83,6 +95,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
         'Pay 4,000 GP. The amount of hirelings your Workshop can hold increases to 2. While you have two hirelings in the Workshop, the Individual Bastion Turn Order also adds 1d4 to your crafting roll. This does not stack with Flash of Genius or Built for Success.',
     kind: BranchUpgradeKind.oneTime,
     hirelingCapacity: 2,
+    upgradedName: 'Mastercraft Workshop',
+    upgradedDescription:
+        'The workshop holds up to 2 hirelings. While two hirelings work in the workshop, the Individual Bastion Turn Order also adds 1d4 to your crafting roll. This does not stack with Flash of Genius or Built for Success.',
   ),
   'cat_pub': BranchUpgrade(
     id: 'bru_pub_of_legend',
@@ -93,6 +108,9 @@ const Map<String, BranchUpgrade> branchUpgradesByFacilityId = {
         'Pay 2,000 GP each Individual Bastion Turn to increase your Hireling count to 4. While you have at least 4 hirelings working in the pub, you can have another pub special.',
     kind: BranchUpgradeKind.perTurn,
     hirelingCapacity: 4,
+    upgradedName: 'Pub of Legend',
+    upgradedDescription:
+        'You pay 2,000 GP each Individual Bastion Turn to keep your hireling count at 4. While you have at least 4 hirelings working in the pub, you can have another pub special.',
   ),
   'cat_theatre': BranchUpgrade(
     id: 'bru_stage_enhancements',
@@ -151,6 +169,28 @@ extension FacilityBranchUpgradeX on Facility {
       return minimumRequiredHirelings;
     }
     return upgrade.hirelingCapacity!;
+  }
+
+  String get displayName {
+    final upgrade = branchUpgrade;
+    if (!hasActiveBranchUpgrade || upgrade == null) return name;
+    return upgrade.upgradedName ?? name;
+  }
+
+  String get displayDescription {
+    final upgrade = branchUpgrade;
+    if (!hasActiveBranchUpgrade ||
+        upgrade == null ||
+        upgrade.upgradedDescription == null) {
+      return description;
+    }
+    // The upgrade paragraph is embedded as the trailing "Upgrade Name: ..."
+    // paragraph of the base description; splice it and replace with the
+    // present-tense variant.
+    final marker = '${upgrade.name}: ';
+    final idx = description.lastIndexOf(marker);
+    if (idx < 0) return description;
+    return description.substring(0, idx) + upgrade.upgradedDescription!;
   }
 }
 
