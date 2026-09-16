@@ -147,50 +147,30 @@ bool isSRankBaseFacility(Facility facility) =>
 
 extension FacilityBranchUpgradeX on Facility {
   BranchUpgrade? get branchUpgrade {
-    if (branchUpgradeId == null) return null;
     for (final upgrade in branchUpgradesByFacilityId.values) {
-      if (upgrade.id == branchUpgradeId) return upgrade;
+      if (upgrade.upgradedName != null && upgrade.upgradedName == name) {
+        return upgrade;
+      }
     }
     return null;
   }
 
-  bool get hasActiveBranchUpgrade {
-    final upgrade = branchUpgrade;
-    if (upgrade == null) return false;
-    if (upgrade.kind == BranchUpgradeKind.perTurn && !branchUpgradeActive) {
-      return false;
-    }
-    return true;
-  }
+  bool get hasActiveBranchUpgrade => branchUpgrade != null;
 
-  int get hirelingCapacity {
-    final upgrade = branchUpgrade;
-    if (!hasActiveBranchUpgrade || upgrade!.hirelingCapacity == null) {
-      return minimumRequiredHirelings;
-    }
-    return upgrade.hirelingCapacity!;
-  }
+  int get hirelingCapacity =>
+      branchUpgrade?.hirelingCapacity ?? minimumRequiredHirelings;
 
-  String get displayName {
-    final upgrade = branchUpgrade;
-    if (!hasActiveBranchUpgrade || upgrade == null) return name;
-    return upgrade.upgradedName ?? name;
-  }
+  Facility applyBranchUpgrade(BranchUpgrade upgrade) => copyWith(
+        name: upgrade.upgradedName ?? name,
+        description: upgrade.upgradedDescription ?? description,
+      );
 
-  String get displayDescription {
+  Facility revertBranchUpgrade() {
     final upgrade = branchUpgrade;
-    if (!hasActiveBranchUpgrade ||
-        upgrade == null ||
-        upgrade.upgradedDescription == null) {
-      return description;
-    }
-    // The upgrade paragraph is embedded as the trailing "Upgrade Name: ..."
-    // paragraph of the base description; splice it and replace with the
-    // present-tense variant.
-    final marker = '${upgrade.name}: ';
-    final idx = description.lastIndexOf(marker);
-    if (idx < 0) return description;
-    return description.substring(0, idx) + upgrade.upgradedDescription!;
+    if (upgrade == null) return this;
+    final base =
+        getFacilityCatalog().firstWhere((f) => f.id == upgrade.facilityId);
+    return copyWith(name: base.name, description: base.description);
   }
 }
 

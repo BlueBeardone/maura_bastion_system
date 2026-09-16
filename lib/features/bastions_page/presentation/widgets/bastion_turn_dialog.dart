@@ -5,7 +5,6 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
-import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/data/models/bastion/individual_bastion_event.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
@@ -299,7 +298,7 @@ class BastionTurnDialog extends StatelessWidget {
             iconColor: MedievalColors.sepiaSecondary,
             collapsedIconColor: MedievalColors.sepiaSecondary,
             title: Text(
-              facility.displayName,
+              facility.name,
               style: GoogleFonts.cinzel(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -317,7 +316,7 @@ class BastionTurnDialog extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  facility.displayDescription,
+                  facility.description,
                   style: GoogleFonts.imFellEnglish(
                     fontSize: 15,
                     height: 1.4,

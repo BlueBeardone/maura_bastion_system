@@ -8,18 +8,15 @@ import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 Facility facility({
   String id = 'cat_kitchen',
   Rank rank = Rank.D,
-  String? branchUpgradeId,
-  bool branchUpgradeActive = false,
+  String name = 'Test',
   int minimumRequiredHirelings = 1,
 }) =>
     Facility(
       id: id,
-      name: 'Test',
+      name: name,
       rank: rank,
       description: 'desc',
       minimumRequiredHirelings: minimumRequiredHirelings,
-      branchUpgradeId: branchUpgradeId,
-      branchUpgradeActive: branchUpgradeActive,
     );
 
 void main() {
@@ -71,35 +68,33 @@ void main() {
       expect(f.hirelingCapacity, 1);
     });
 
-    test('hirelingCapacity comes from owned oneTime upgrade', () {
-      final f = facility(branchUpgradeId: 'bru_industrial_kitchen');
+    test('hirelingCapacity comes from an applied oneTime upgrade', () {
+      final base =
+          getFacilityCatalog().firstWhere((f) => f.id == 'cat_kitchen');
+      final f = base.applyBranchUpgrade(branchUpgradeFor('cat_kitchen')!);
+      expect(f.name, 'Industrial Kitchen');
       expect(f.hasActiveBranchUpgrade, isTrue);
       expect(f.hirelingCapacity, 3);
     });
 
-    test('perTurn upgrade only active when branchUpgradeActive is true', () {
-      final lapsed = facility(
-        branchUpgradeId: 'bru_pub_of_legend',
-        minimumRequiredHirelings: 1,
-      );
-      expect(lapsed.hasActiveBranchUpgrade, isFalse);
-      expect(lapsed.hirelingCapacity, 1);
-
-      final paid = facility(
-        branchUpgradeId: 'bru_pub_of_legend',
-        branchUpgradeActive: true,
-        minimumRequiredHirelings: 1,
-      );
+    test('reverting a perTurn upgrade restores the base facility', () {
+      final base = getFacilityCatalog().firstWhere((f) => f.id == 'cat_pub');
+      final paid = base.applyBranchUpgrade(branchUpgradeFor('cat_pub')!);
+      expect(paid.name, 'Pub of Legend');
       expect(paid.hasActiveBranchUpgrade, isTrue);
       expect(paid.hirelingCapacity, 4);
+
+      final lapsed = paid.revertBranchUpgrade();
+      expect(lapsed.name, 'Pub');
+      expect(lapsed.description, base.description);
+      expect(lapsed.hasActiveBranchUpgrade, isFalse);
+      expect(lapsed.hirelingCapacity, 1);
     });
 
     test('owned upgrade without capacity keeps base capacity', () {
-      final f = facility(
-        id: 'cat_library',
-        branchUpgradeId: 'bru_vault_of_knowledge',
-        minimumRequiredHirelings: 1,
-      );
+      final base =
+          getFacilityCatalog().firstWhere((f) => f.id == 'cat_library');
+      final f = base.applyBranchUpgrade(branchUpgradeFor('cat_library')!);
       expect(f.hasActiveBranchUpgrade, isTrue);
       expect(f.hirelingCapacity, 1);
     });
@@ -138,62 +133,34 @@ void main() {
     });
   });
 
-  group('displayName / displayDescription', () {
-    test('base facility keeps its own name and description', () {
-      final f = facility();
-      expect(f.displayName, 'Test');
-      expect(f.displayDescription, 'desc');
+  group('applyBranchUpgrade', () {
+    test('kitchen upgrade renames and swaps the description', () {
+      final base =
+          getFacilityCatalog().firstWhere((f) => f.id == 'cat_kitchen');
+      final f = base.applyBranchUpgrade(branchUpgradeFor('cat_kitchen')!);
+      expect(f.name, 'Industrial Kitchen');
+      expect(f.description, contains('holds up to 3 hirelings'));
+      expect(f.description, contains('1d6 extra treats'));
+      expect(f.description, isNot(contains('Pay 500 GP')));
+      expect(f.description, isNot(contains('advantage on crafting treats')));
     });
 
-    test('owned oneTime upgrade transforms kitchen', () {
-      final base = getFacilityCatalog().firstWhere((f) => f.id == 'cat_kitchen');
-      final f = base.copyWith(branchUpgradeId: 'bru_industrial_kitchen');
-      expect(f.displayName, 'Industrial Kitchen');
-      expect(f.displayDescription, contains('holds up to 3 hirelings'));
-      expect(f.displayDescription, contains('1d6 extra treats'));
-      expect(f.displayDescription, isNot(contains('Pay 500 GP')));
-      expect(f.displayDescription, contains('advantage on crafting treats'));
-    });
-
-    test('active perTurn upgrade transforms pub, lapsed shows base', () {
-      final base = getFacilityCatalog().firstWhere((f) => f.id == 'cat_pub');
-      final active = base.copyWith(
-        branchUpgradeId: 'bru_pub_of_legend',
-        branchUpgradeActive: true,
-      );
-      expect(active.displayName, 'Pub of Legend');
-      expect(active.displayDescription,
-          contains('You pay 2,000 GP each Individual Bastion Turn'));
-      expect(active.displayDescription, isNot(contains('Pay 2,000 GP')));
-
-      final lapsed = base.copyWith(branchUpgradeId: 'bru_pub_of_legend');
-      expect(lapsed.displayName, 'Pub');
-      expect(lapsed.displayDescription, base.description);
-    });
-
-    test('description without the upgrade paragraph falls back to base',
-        () {
-      final f = facility(branchUpgradeId: 'bru_industrial_kitchen');
-      expect(f.displayName, 'Industrial Kitchen');
-      expect(f.displayDescription, 'desc');
-    });
-
-    test('every upgraded description splices out the payment paragraph', () {
+    test('every stateful upgrade replaces the payment paragraph', () {
       final catalog = getFacilityCatalog();
       for (final upgrade in branchUpgradesByFacilityId.values) {
-        if (upgrade.upgradedDescription == null) continue;
+        if (upgrade.kind == BranchUpgradeKind.perUse) continue;
         final base = catalog.firstWhere((f) => f.id == upgrade.facilityId);
-        // perTurn upgrades only transform while active; passing true is a
-        // no-op for oneTime upgrades.
-        final f = base.copyWith(
-          branchUpgradeId: upgrade.id,
-          branchUpgradeActive: true,
-        );
-        expect(f.displayDescription, isNot(contains(upgrade.description)),
-            reason: upgrade.id);
-        expect(f.displayDescription, contains(upgrade.upgradedDescription!),
+        final f = base.applyBranchUpgrade(upgrade);
+        expect(f.name, upgrade.upgradedName, reason: upgrade.id);
+        expect(f.description, upgrade.upgradedDescription, reason: upgrade.id);
+        expect(f.description, isNot(contains(upgrade.description)),
             reason: upgrade.id);
       }
+    });
+
+    test('revert is a no-op for a base facility', () {
+      final f = facility();
+      expect(f.revertBranchUpgrade(), same(f));
     });
   });
 }

@@ -349,7 +349,7 @@ class FacilitySelectionPage extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            facility.displayName,
+                            facility.name,
                             style: GoogleFonts.cinzel(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -362,7 +362,7 @@ class FacilitySelectionPage extends StatelessWidget {
                           _buildFramedImage(facility),
                           const SizedBox(height: 8),
                           Text(
-                            facility.displayDescription,
+                            facility.description,
                             style: GoogleFonts.imFellEnglish(
                               fontSize: 15,
                               height: 1.4,

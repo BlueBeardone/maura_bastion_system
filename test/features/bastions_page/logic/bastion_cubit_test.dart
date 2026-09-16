@@ -520,8 +520,6 @@ void main() {
       int constructed = 0,
       int total = 0,
       int requiredHirelings = 0,
-      String? branchUpgradeId,
-      bool branchUpgradeActive = false,
     }) =>
         {
           'id': id,
@@ -532,8 +530,6 @@ void main() {
           'constructedTurns': constructed,
           'minimumRequiredHirelings': requiredHirelings,
           'cost': 0,
-          'branchUpgradeId': ?branchUpgradeId,
-          'branchUpgradeActive': branchUpgradeActive,
         };
 
     Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
@@ -820,9 +816,7 @@ void main() {
                     constructed: 0, total: 2,
                   ),
                   facilityJson(
-                    id: 'cat_pub', name: 'Pub', rank: 'a',
-                    branchUpgradeId: 'bru_pub_of_legend',
-                    branchUpgradeActive: true,
+                    id: 'cat_pub', name: 'Pub of Legend', rank: 'a',
                   ),
                 ]),
               ],
@@ -870,7 +864,10 @@ void main() {
       final kitchenBody = jsonDecode(kitchenPut.body) as Map<String, dynamic>;
       final pubBody = jsonDecode(pubPut.body) as Map<String, dynamic>;
       expect(kitchenBody['constructedTurns'], 1);
-      expect(pubBody['branchUpgradeActive'], isFalse);
+      expect(pubBody['name'], 'Pub');
+      final basePub =
+          getFacilityCatalog().firstWhere((f) => f.id == 'cat_pub');
+      expect(pubBody['description'], basePub.description);
       await cubit.close();
     });
 
@@ -1405,8 +1402,6 @@ void main() {
       required String id,
       required String name,
       required String rank,
-      String? branchUpgradeId,
-      bool branchUpgradeActive = false,
       int constructed = 2,
       int total = 2,
     }) =>
@@ -1419,8 +1414,6 @@ void main() {
           'constructedTurns': constructed,
           'minimumRequiredHirelings': 1,
           'cost': 600,
-          'branchUpgradeId': ?branchUpgradeId,
-          'branchUpgradeActive': branchUpgradeActive,
         };
 
     Map<String, dynamic> bastionJson(List<Map<String, dynamic>> facilities) =>
@@ -1496,24 +1489,20 @@ void main() {
       final result = await cubit.purchaseBranchUpgrade('bastion-1', kitchen);
 
       expect(result, isNotNull);
-      expect(result!.branchUpgradeId, 'bru_industrial_kitchen');
-      expect(result.branchUpgradeActive, isTrue);
+      expect(result!.name, 'Industrial Kitchen');
+      final upgrade = branchUpgradeFor('cat_kitchen')!;
+      expect(result.description, upgrade.upgradedDescription);
       expect(puts, hasLength(1));
       final body = jsonDecode(puts.first.body) as Map<String, dynamic>;
-      expect(body['branchUpgradeId'], 'bru_industrial_kitchen');
-      expect(body['branchUpgradeActive'], isTrue);
+      expect(body['name'], 'Industrial Kitchen');
+      expect(body['description'], upgrade.upgradedDescription);
       await cubit.close();
     });
 
     test('rejects purchase when a branch upgrade is already active',
         () async {
       final (mock, puts) = purchaseMock([
-        facilityJson(
-          id: 'cat_kitchen',
-          name: 'Kitchen',
-          rank: 'd',
-          branchUpgradeId: 'bru_industrial_kitchen',
-        ),
+        facilityJson(id: 'cat_kitchen', name: 'Industrial Kitchen', rank: 'd'),
       ]);
       final cubit = cubitWith(mock);
       await cubit.loadBastions();
@@ -1570,15 +1559,9 @@ void main() {
       await cubit.close();
     });
 
-    test('renews a lapsed perTurn upgrade', () async {
+    test('purchases a perTurn upgrade again after it lapses', () async {
       final (mock, puts) = purchaseMock([
-        facilityJson(
-          id: 'cat_pub',
-          name: 'Pub',
-          rank: 'a',
-          branchUpgradeId: 'bru_pub_of_legend',
-          branchUpgradeActive: false,
-        ),
+        facilityJson(id: 'cat_pub', name: 'Pub', rank: 'a'),
       ]);
       final cubit = cubitWith(mock);
       await cubit.loadBastions();
@@ -1591,8 +1574,10 @@ void main() {
       final result = await cubit.purchaseBranchUpgrade('bastion-1', pub);
 
       expect(result, isNotNull);
-      expect(result!.branchUpgradeActive, isTrue);
+      expect(result!.name, 'Pub of Legend');
       expect(puts, hasLength(1));
+      final body = jsonDecode(puts.first.body) as Map<String, dynamic>;
+      expect(body['name'], 'Pub of Legend');
       await cubit.close();
     });
 

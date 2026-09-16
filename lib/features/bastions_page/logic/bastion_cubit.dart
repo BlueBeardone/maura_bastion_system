@@ -193,19 +193,19 @@ class BastionCubit extends Cubit<BastionState> {
         constructedTurns: target.constructedTurns + 1,
       );
 
-      // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance.
-      final targetPerTurnActive = target.branchUpgrade?.kind ==
-              BranchUpgradeKind.perTurn &&
-          target.branchUpgradeActive;
-      if (targetPerTurnActive) {
-        advanced = advanced.copyWith(branchUpgradeActive: false);
+      // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance
+      // by reverting them to the base name/description.
+      final targetPerTurnUpgrade =
+          target.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
+      if (targetPerTurnUpgrade) {
+        advanced = advanced.revertBranchUpgrade();
       }
       final lapsed = <Facility>[];
       for (final facility in bastion.facilities) {
         if (facility.id == target.id) continue;
         final isPerTurn = facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
-        if (isPerTurn && facility.branchUpgradeActive) {
-          lapsed.add(facility.copyWith(branchUpgradeActive: false));
+        if (isPerTurn) {
+          lapsed.add(facility.revertBranchUpgrade());
         }
       }
 
@@ -297,17 +297,14 @@ class BastionCubit extends Cubit<BastionState> {
         .any((f) => f.constructedTurns < f.constructionTurns);
     if (anyBusy) return null;
 
-    final purchased = facility.copyWith(
-      branchUpgradeId: upgrade.id,
-      branchUpgradeActive: true,
-    );
+    final purchased = facility.applyBranchUpgrade(upgrade);
 
     try {
       _upgrading = true;
       _setMutating(true);
       try {
         await _discordAnnouncer
-            ?.announceBranchUpgradePurchased(bastion, purchased, upgrade);
+            ?.announceBranchUpgradePurchased(bastion, facility, upgrade);
       } catch (e) {
         return null;
       }

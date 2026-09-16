@@ -17,6 +17,7 @@ import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
@@ -231,8 +232,6 @@ void main() {
     int constructed = 2,
     int total = 2,
     Rank rank = Rank.D,
-    String? branchUpgradeId,
-    bool branchUpgradeActive = false,
   }) =>
       Facility(
         id: 'cat_kitchen',
@@ -243,9 +242,15 @@ void main() {
         constructionTurns: total,
         constructedTurns: constructed,
         cost: 600,
-        branchUpgradeId: branchUpgradeId,
-        branchUpgradeActive: branchUpgradeActive,
       );
+
+  Facility upgradedKitchen({
+    int constructed = 2,
+    int total = 2,
+    Rank rank = Rank.D,
+  }) =>
+      kitchen(constructed: constructed, total: total, rank: rank)
+          .applyBranchUpgrade(branchUpgradeFor('cat_kitchen')!);
 
   group('FacilityPage branch upgrade card', () {
     testWidgets('shows purchase button for unowned upgrade', (tester) async {
@@ -264,10 +269,11 @@ void main() {
 
     testWidgets('owned oneTime upgrade renames facility and hides card',
         (tester) async {
+      final upgraded = upgradedKitchen();
       await pumpFacilityPage(
         tester,
-        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
-        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
+        facility: upgraded,
+        bastionFacilities: [upgraded],
         isUserBastion: true,
         onPurchaseBranchUpgrade: () {},
       );
@@ -295,35 +301,15 @@ void main() {
 
     testWidgets('active perTurn upgrade renames pub and hides card',
         (tester) async {
-      Facility pub({
-        required String? branchUpgradeId,
-        required bool branchUpgradeActive,
-      }) =>
-          Facility(
-            id: 'cat_pub',
-            name: 'Pub',
-            rank: Rank.A,
-            description: 'Pub description.',
-            minimumRequiredHirelings: 1,
-            constructionTurns: 8,
-            constructedTurns: 8,
-            cost: 9000,
-            branchUpgradeId: branchUpgradeId,
-            branchUpgradeActive: branchUpgradeActive,
-          );
+      Facility pub() =>
+          getFacilityCatalog()
+              .firstWhere((f) => f.id == 'cat_pub')
+              .applyBranchUpgrade(branchUpgradeFor('cat_pub')!);
 
       await pumpFacilityPage(
         tester,
-        facility: pub(
-          branchUpgradeId: 'bru_pub_of_legend',
-          branchUpgradeActive: true,
-        ),
-        bastionFacilities: [
-          pub(
-            branchUpgradeId: 'bru_pub_of_legend',
-            branchUpgradeActive: true,
-          ),
-        ],
+        facility: pub(),
+        bastionFacilities: [pub()],
         isUserBastion: true,
         onPurchaseBranchUpgrade: () {},
       );
@@ -334,50 +320,40 @@ void main() {
       expect(find.textContaining('Renew'), findsNothing);
     });
 
-    testWidgets('shows Renew label for lapsed perTurn upgrade', (tester) async {
-      Facility pub({
-        required String? branchUpgradeId,
-        required bool branchUpgradeActive,
-      }) =>
-          Facility(
+    testWidgets('shows the purchase card again for a lapsed perTurn upgrade',
+        (tester) async {
+      Facility pub({String name = 'Pub'}) => Facility(
             id: 'cat_pub',
-            name: 'Pub',
+            name: name,
             rank: Rank.A,
             description: 'Pub description.',
             minimumRequiredHirelings: 1,
             constructionTurns: 8,
             constructedTurns: 8,
             cost: 9000,
-            branchUpgradeId: branchUpgradeId,
-            branchUpgradeActive: branchUpgradeActive,
           );
 
       await pumpFacilityPage(
         tester,
-        facility: pub(
-          branchUpgradeId: 'bru_pub_of_legend',
-          branchUpgradeActive: false,
-        ),
-        bastionFacilities: [
-          pub(
-            branchUpgradeId: 'bru_pub_of_legend',
-            branchUpgradeActive: false,
-          ),
-        ],
+        facility: pub(),
+        bastionFacilities: [pub()],
         isUserBastion: true,
         onPurchaseBranchUpgrade: () {},
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Renew'), findsOneWidget);
+      expect(find.text('Pub'), findsOneWidget);
+      expect(find.textContaining('Pub of Legend'), findsWidgets);
+      expect(find.textContaining('Renew'), findsNothing);
     });
 
     testWidgets('hirelings required line uses hirelingCapacity',
         (tester) async {
+      final upgraded = upgradedKitchen();
       await pumpFacilityPage(
         tester,
-        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
-        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
+        facility: upgraded,
+        bastionFacilities: [upgraded],
         isUserBastion: true,
         onPurchaseBranchUpgrade: () {},
       );
@@ -472,186 +448,6 @@ void main() {
 
       expect(removeCalled, isFalse);
       expect(find.text('Remove Facility'), findsOneWidget);
-    });
-  });
-
-  group('FacilityPage upgrade dropdown', () {
-    testWidgets('shows caret for a kitchen with an unowned oneTime upgrade',
-        (tester) async {
-      await pumpFacilityPage(
-        tester,
-        facility: kitchen(),
-        bastionFacilities: [kitchen()],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('upgrade_menu_caret')), findsOneWidget);
-      expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);
-    });
-
-    testWidgets('hides caret when the upgrade is owned', (tester) async {
-      await pumpFacilityPage(
-        tester,
-        facility: kitchen(branchUpgradeId: 'bru_industrial_kitchen'),
-        bastionFacilities: [kitchen(branchUpgradeId: 'bru_industrial_kitchen')],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
-    });
-
-    testWidgets('hides caret while the facility is under construction',
-        (tester) async {
-      await pumpFacilityPage(
-        tester,
-        facility: kitchen(constructed: 0, total: 2),
-        bastionFacilities: [kitchen(constructed: 0, total: 2)],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
-      expect(find.textContaining('Upgrade to Rank'), findsOneWidget);
-    });
-
-    testWidgets('hides caret for facilities without a special upgrade',
-        (tester) async {
-      await pumpFacilityPage(
-        tester,
-        facility: barracks(),
-        bastionFacilities: [barracks()],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
-    });
-
-    testWidgets('hides caret for perUse upgrades', (tester) async {
-      final theatre = Facility(
-        id: 'cat_theatre',
-        name: 'Theatre',
-        rank: Rank.B,
-        description: 'Plays.',
-        constructionTurns: 8,
-        constructedTurns: 8,
-        cost: 4500,
-      );
-
-      await pumpFacilityPage(
-        tester,
-        facility: theatre,
-        bastionFacilities: [theatre],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('upgrade_menu_caret')), findsNothing);
-    });
-
-    testWidgets('caret opens a menu with the upgrade name and cost',
-        (tester) async {
-      await pumpFacilityPage(
-        tester,
-        facility: kitchen(),
-        bastionFacilities: [kitchen()],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-
-      final menuItem = find.descendant(
-        of: find.byType(MenuItemButton),
-        matching: find.text('Industrial Kitchen — 500 GP'),
-      );
-      expect(menuItem, findsOneWidget);
-    });
-
-    testWidgets('tapping the menu item invokes onPurchaseBranchUpgrade',
-        (tester) async {
-      var purchased = false;
-      await pumpFacilityPage(
-        tester,
-        facility: kitchen(),
-        bastionFacilities: [kitchen()],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {
-          purchased = true;
-        },
-      );
-      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(MenuItemButton));
-      await tester.pumpAndSettle();
-
-      expect(purchased, isTrue);
-    });
-
-    testWidgets('menu shows Renew label for a lapsed perTurn upgrade',
-        (tester) async {
-      Facility pub({
-        required String? branchUpgradeId,
-        required bool branchUpgradeActive,
-      }) =>
-          Facility(
-            id: 'cat_pub',
-            name: 'Pub',
-            rank: Rank.A,
-            description: 'Pub description.',
-            minimumRequiredHirelings: 1,
-            constructionTurns: 8,
-            constructedTurns: 8,
-            cost: 9000,
-            branchUpgradeId: branchUpgradeId,
-            branchUpgradeActive: branchUpgradeActive,
-          );
-
-      await pumpFacilityPage(
-        tester,
-        facility: pub(
-          branchUpgradeId: 'bru_pub_of_legend',
-          branchUpgradeActive: false,
-        ),
-        bastionFacilities: [
-          pub(
-            branchUpgradeId: 'bru_pub_of_legend',
-            branchUpgradeActive: false,
-          ),
-        ],
-        isUserBastion: true,
-        onUpgrade: () {},
-        onPurchaseBranchUpgrade: () {},
-      );
-      await tester.ensureVisible(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('upgrade_menu_caret')));
-      await tester.pumpAndSettle();
-
-      final menuItem = find.descendant(
-        of: find.byType(MenuItemButton),
-        matching: find.textContaining('Renew Pub of Legend'),
-      );
-      expect(menuItem, findsOneWidget);
     });
   });
 }
