@@ -349,11 +349,6 @@ class BastionCubit extends Cubit<BastionState> {
     );
 
     try {
-      try {
-        await _discordAnnouncer?.announceBastionCreated(localBastion);
-      } catch (e) {
-        return null;
-      }
       final newBastion = await _bastionApi.create(localBastion);
 
       final current = state is BastionLoadedState

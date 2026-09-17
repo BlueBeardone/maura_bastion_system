@@ -23,9 +23,11 @@ void main() {
     api = MockDefenderApi();
     announcer = MockDiscordAnnouncer();
     when(() => announcer.announceDefenderAcquired(any(),
-        bastionName: any(named: 'bastionName'))).thenAnswer((_) async {});
+        bastionName: any(named: 'bastionName'),
+        bastionId: any(named: 'bastionId'))).thenAnswer((_) async {});
     when(() => announcer.announceDefendersRecruited(any(),
-        bastionName: any(named: 'bastionName'))).thenAnswer((_) async {});
+        bastionName: any(named: 'bastionName'),
+        bastionId: any(named: 'bastionId'))).thenAnswer((_) async {});
   });
 
   DefendersCubit buildCubit() => DefendersCubit(
@@ -129,7 +131,8 @@ void main() {
   test('addDefender returns false when the Discord announcement throws',
       () async {
     when(() => announcer.announceDefenderAcquired(any(),
-        bastionName: any(named: 'bastionName'))).thenThrow(Exception('down'));
+        bastionName: any(named: 'bastionName'),
+        bastionId: any(named: 'bastionId'))).thenThrow(Exception('down'));
     when(() => api.create(any())).thenAnswer((_) async => Defender(
         id: 'd9', name: 'Aldric', type: DefenderType.knight, bastionId: 'b1'));
     final cubit = buildCubit();
@@ -218,7 +221,8 @@ void main() {
   test('bulkAddDefenders creates nothing and emits error when the '
       'announcement fails', () async {
     when(() => announcer.announceDefendersRecruited(any(),
-        bastionName: any(named: 'bastionName'))).thenThrow(Exception('down'));
+        bastionName: any(named: 'bastionName'),
+        bastionId: any(named: 'bastionId'))).thenThrow(Exception('down'));
     final cubit = buildCubit();
 
     final count = await cubit.bulkAddDefenders(

@@ -1739,18 +1739,6 @@ const discordPaths = <String>{
                       ApiClient(baseUrl: 'http://example.test', client: mock))),
         );
 
-    test('createBastion announces the founding', () async {
-      final c = cubit();
-      await c.createBastion('Ravencrest', 'A keep on the hill.', null, []);
-
-      expect(discordPosts, hasLength(1));
-      final body = jsonDecode(discordPosts.first.body) as Map<String, dynamic>;
-      expect(body['message'],
-          '🏰 **Ravencrest** has been founded!\n\nA keep on the hill.');
-
-      await c.close();
-    });
-
     test('addFacility announces construction start with the bastion name', () async {
       final c = cubit();
       await c.loadBastions();
@@ -1851,19 +1839,6 @@ const discordPaths = <String>{
 
       expect(upgraded, isNull);
       expect(c.state, isA<BastionLoadedState>());
-
-      await c.close();
-    });
-
-    test('createBastion is blocked when the Discord log fails', () async {
-      discordSucceeds = false;
-      final c = cubit();
-
-      final result = await c.createBastion('Ravencrest', 'A keep.', null, []);
-
-      expect(result, isNull);
-      expect(bastionPosts, isEmpty);
-      expect(c.state, isA<BastionLoadingState>());
 
       await c.close();
     });

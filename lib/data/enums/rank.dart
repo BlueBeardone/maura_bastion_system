@@ -3,7 +3,8 @@ enum Rank {
   A,
   B,
   C,
-  D;
+  D,
+  E;
 
   static Rank fromString(String rank) {
     switch (rank) {
@@ -12,6 +13,7 @@ enum Rank {
       case "b": return Rank.B;
       case "c": return Rank.C;
       case "d": return Rank.D;
+      case "e": return Rank.E;
       default: throw ArgumentError("Invalid rank: $rank");
     }
   }
@@ -25,6 +27,7 @@ extension MainNavigationExtension on Rank {
       case Rank.B: return "B";
       case Rank.C: return "C";
       case Rank.D: return "D";
+      case Rank.E: return "E";
     }
   }
 
@@ -35,6 +38,7 @@ extension MainNavigationExtension on Rank {
       case Rank.B: return Rank.A;
       case Rank.A: return Rank.S;
       case Rank.S: return null;
+      case Rank.E: return Rank.D;
     }
   }
 }

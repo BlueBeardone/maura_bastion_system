@@ -13,11 +13,9 @@ class DiscordAnnouncer {
 
   DiscordAnnouncer({required DiscordApi discordApi}) : _discordApi = discordApi;
 
-  Future<void> announceBastionCreated(Bastion bastion) =>
-      _announce(bastionCreatedMessage(bastion), _discordApi.sendBastionCreated);
-
   Future<void> announceFacilityBuilt(Bastion bastion, Facility facility) =>
-      _announce(facilityBuiltMessage(bastion, facility), _discordApi.sendFacilityBuilt);
+      _announce(facilityBuiltMessage(bastion, facility), _discordApi.sendFacilityBuilt,
+          bastionId: bastion.id);
 
   Future<void> announceFacilityRankUp(
     Bastion bastion,
@@ -27,6 +25,7 @@ class DiscordAnnouncer {
       _announce(
         facilityRankUpMessage(bastion, oldFacility, upgraded),
         _discordApi.sendFacilityRankUp,
+        bastionId: bastion.id,
       );
 
   Future<void> announceBranchUpgradePurchased(
@@ -37,59 +36,55 @@ class DiscordAnnouncer {
       _announce(
         branchUpgradePurchasedMessage(bastion, facility, upgrade),
         _discordApi.sendBranchUpgradePurchased,
+        bastionId: bastion.id,
       );
 
   Future<void> announceFacilityRemoved(Bastion bastion, Facility facility) =>
       _announce(
         facilityRemovedMessage(bastion, facility),
         _discordApi.sendFacilityRemoved,
+        bastionId: bastion.id,
       );
 
-  Future<void> announceHirelingHired(Hireling hireling, {String? bastionName}) =>
+  Future<void> announceHirelingHired(
+    Hireling hireling, {
+    String? bastionName,
+    String? bastionId,
+  }) =>
       _announce(
         hirelingHiredMessage(hireling, bastionName: bastionName),
         _discordApi.sendHirelingHired,
+        bastionId: bastionId,
       );
 
-  Future<void> announceDefenderAcquired(Defender defender, {String? bastionName}) =>
+  Future<void> announceDefenderAcquired(
+    Defender defender, {
+    String? bastionName,
+    String? bastionId,
+  }) =>
       _announce(
         defenderAcquiredMessage(defender, bastionName: bastionName),
         _discordApi.sendDefenderAcquired,
+        bastionId: bastionId,
       );
 
   Future<void> announceDefendersRecruited(
     List<Defender> defenders, {
     String? bastionName,
+    String? bastionId,
   }) =>
       _announce(
         defendersRecruitedMessage(defenders, bastionName: bastionName),
         _discordApi.sendDefenderAcquired,
+        bastionId: bastionId,
       );
 
   Future<void> _announce(
     String message,
-    Future<void> Function(String) transport,
-  ) =>
-      transport(message);
-}
-
-String bastionCreatedMessage(Bastion bastion) {
-  final lines = <String>['🏰 **${bastion.name}** has been founded!'];
-  final description = _optionalLine(bastion.description);
-  if (description != null) lines.addAll(['', description]);
-  if (bastion.facilities.isNotEmpty) {
-    lines.add('');
-    lines.add('**Starting facilities** (${bastion.facilities.length}):');
-    for (final facility in bastion.facilities) {
-      lines.add(
-        '• **${facility.name}** (Rank ${facility.rank.title}) — '
-        '${facility.cost}gp, ${_turns(facility.constructionTurns)} to build',
-      );
-    }
-  }
-  final imgUrl = _optionalLine(bastion.imgUrl);
-  if (imgUrl != null) lines.addAll(['', imgUrl]);
-  return lines.join('\n');
+    Future<void> Function(String, {String? bastionId}) transport, {
+    String? bastionId,
+  }) =>
+      transport(message, bastionId: bastionId);
 }
 
 String facilityBuiltMessage(Bastion bastion, Facility facility) {

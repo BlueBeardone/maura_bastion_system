@@ -62,8 +62,11 @@ class HirelingsCubit extends Cubit<HirelingsState> {
       isMutating: true,
     ));
     try {
-      await _discordAnnouncer
-          ?.announceHirelingHired(newHireling, bastionName: _bastionName);
+      await _discordAnnouncer?.announceHirelingHired(
+        newHireling,
+        bastionName: _bastionName,
+        bastionId: state.bastionId,
+      );
       final created = await _hirelingApi.create(newHireling);
       emit(HirelingsState(
         bastionId: state.bastionId,

@@ -462,6 +462,10 @@ class _ThrowingDefenderAnnouncer extends DiscordAnnouncer {
   _ThrowingDefenderAnnouncer({required super.discordApi});
 
   @override
-  Future<void> announceDefenderAcquired(Defender defender, {String? bastionName}) =>
+  Future<void> announceDefenderAcquired(
+    Defender defender, {
+    String? bastionName,
+    String? bastionId,
+  }) =>
       throw Exception('Discord is down');
 }

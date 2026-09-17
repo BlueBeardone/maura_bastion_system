@@ -64,8 +64,11 @@ class DefendersCubit extends Cubit<DefendersState> {
       isMutating: true,
     ));
     try {
-      await _discordAnnouncer
-          ?.announceDefenderAcquired(newDefender, bastionName: _bastionName);
+      await _discordAnnouncer?.announceDefenderAcquired(
+        newDefender,
+        bastionName: _bastionName,
+        bastionId: state.bastionId,
+      );
       final created = await _defenderApi.create(newDefender);
       emit(DefendersState(
         bastionId: state.bastionId,
@@ -106,8 +109,11 @@ class DefendersCubit extends Cubit<DefendersState> {
       isMutating: true,
     ));
     try {
-      await _discordAnnouncer
-          ?.announceDefendersRecruited(newDefenders, bastionName: _bastionName);
+      await _discordAnnouncer?.announceDefendersRecruited(
+        newDefenders,
+        bastionName: _bastionName,
+        bastionId: state.bastionId,
+      );
     } catch (e) {
       emit(DefendersState(
         bastionId: state.bastionId,

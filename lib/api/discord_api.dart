@@ -26,28 +26,31 @@ class DiscordApi {
   Future<void> sendBastionCreated(String message) =>
       _post('/maura/v1/discord/bastion-creation', message);
 
-  Future<void> sendFacilityBuilt(String message) =>
-      _post('/maura/v1/discord/facility-built', message);
+  Future<void> sendFacilityBuilt(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/facility-built', message, bastionId: bastionId);
 
-  Future<void> sendFacilityRankUp(String message) =>
-      _post('/maura/v1/discord/facility-rank-up', message);
+  Future<void> sendFacilityRankUp(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/facility-rank-up', message, bastionId: bastionId);
 
-  Future<void> sendBranchUpgradePurchased(String message) =>
-      _post('/maura/v1/discord/branch-upgrade', message);
+  Future<void> sendBranchUpgradePurchased(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/branch-upgrade', message, bastionId: bastionId);
 
-  Future<void> sendFacilityRemoved(String message) =>
-      _post('/maura/v1/discord/facility-removed', message);
+  Future<void> sendFacilityRemoved(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/facility-removed', message, bastionId: bastionId);
 
-  Future<void> sendHirelingHired(String message) =>
-      _post('/maura/v1/discord/hireling-hired', message);
+  Future<void> sendHirelingHired(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/hireling-hired', message, bastionId: bastionId);
 
-  Future<void> sendDefenderAcquired(String message) =>
-      _post('/maura/v1/discord/defender-acquired', message);
+  Future<void> sendDefenderAcquired(String message, {String? bastionId}) =>
+      _post('/maura/v1/discord/defender-acquired', message, bastionId: bastionId);
 
-  Future<void> _post(String path, String message) async {
+  Future<void> _post(String path, String message, {String? bastionId}) async {
     await _client.post<Map<String, dynamic>?>(
       path,
-      {'message': message},
+      {
+        'message': message,
+        if (bastionId != null && bastionId.isNotEmpty) 'bastionId': bastionId,
+      },
       parser: (json) => json as Map<String, dynamic>,
     );
   }

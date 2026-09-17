@@ -33,64 +33,6 @@ MockClient capturingMock(void Function(http.Request) onCapture) =>
 
 void main() {
   group('message builders', () {
-    test('bastionCreatedMessage includes description and facilities', () {
-      final bastion = Bastion(
-        id: 'bastion-1',
-        name: 'Ravencrest',
-        description: 'A keep on the hill.',
-        facilities: [
-          Facility(
-            id: 'cat_kitchen',
-            name: 'Kitchen',
-            rank: Rank.D,
-            description: 'Cooks food.',
-            constructionTurns: 2,
-            cost: 600,
-          ),
-          Facility(id: 'cat_well_room', name: 'Well Room', rank: Rank.D, description: 'Water.'),
-        ],
-      );
-
-      final message = bastionCreatedMessage(bastion);
-
-      expect(
-        message,
-        '🏰 **Ravencrest** has been founded!\n\n'
-        'A keep on the hill.\n\n'
-        '**Starting facilities** (2):\n'
-        '• **Kitchen** (Rank D) — 600gp, 2 turns to build\n'
-        '• **Well Room** (Rank D) — 0gp, 0 turns to build',
-      );
-    });
-
-    test('bastionCreatedMessage omits null description and empty facilities', () {
-      final bastion = Bastion(
-        id: 'bastion-1',
-        name: 'Ravencrest',
-        description: '   ',
-        facilities: [],
-      );
-
-      expect(bastionCreatedMessage(bastion), '🏰 **Ravencrest** has been founded!');
-    });
-
-    test('bastionCreatedMessage appends the image url when set', () {
-      final bastion = Bastion(
-        id: 'bastion-1',
-        name: 'Ravencrest',
-        description: 'A keep.',
-        imgUrl: 'https://example.test/ravencrest.png',
-        facilities: [],
-      );
-
-      expect(
-        bastionCreatedMessage(bastion),
-        '🏰 **Ravencrest** has been founded!\n\n'
-        'A keep.\n\n'
-        'https://example.test/ravencrest.png',
-      );
-    });
-
     test('facilityBuiltMessage includes description, cost, build time, hirelings', () {
       final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
       const facility = Facility(
@@ -278,48 +220,25 @@ void main() {
   });
 
   group('DiscordAnnouncer transport', () {
-    test('announceBastionCreated POSTs the built message to /maura/v1/discord/bastion-creation', () async {
-      late http.Request captured;
-      final mock = capturingMock((request) => captured = request);
-      final announcer = announcerWith(mock);
-
-      final bastion = Bastion(
-        id: 'bastion-1',
-        name: 'Ravencrest',
-        description: 'A keep on the hill.',
-        facilities: [],
-      );
-      await announcer.announceBastionCreated(bastion);
-
-      expect(captured.method, 'POST');
-      expect(
-        captured.url.toString(),
-        'http://example.test/maura/v1/discord/bastion-creation',
-      );
-      expect(
-        captured.body,
-        jsonEncode({
-          'message': '🏰 **Ravencrest** has been founded!\n\nA keep on the hill.',
-        }),
-      );
-    });
-
     test('announceHirelingHired POSTs the built message', () async {
       late http.Request captured;
       final mock = capturingMock((request) => captured = request);
       final announcer = announcerWith(mock);
 
       final hireling = Hireling(id: 'h', name: 'Marta', bastionId: 'b');
-      await announcer.announceHirelingHired(hireling, bastionName: 'Ravencrest');
+      await announcer.announceHirelingHired(
+        hireling,
+        bastionName: 'Ravencrest',
+        bastionId: 'bastion-1',
+      );
 
       expect(
         captured.url.toString(),
         'http://example.test/maura/v1/discord/hireling-hired',
       );
-      expect(
-        captured.body,
-        jsonEncode({'message': '🧑‍🌾 **Ravencrest** hires **Marta**!'}),
-      );
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['message'], '🧑‍🌾 **Ravencrest** hires **Marta**!');
+      expect(body['bastionId'], 'bastion-1');
     });
 
     test('announceDefenderAcquired POSTs the built message', () async {
@@ -328,18 +247,22 @@ void main() {
       final announcer = announcerWith(mock);
 
       final defender = Defender(id: 'd', type: DefenderType.beast, bastionId: 'b');
-      await announcer.announceDefenderAcquired(defender, bastionName: 'Ravencrest');
+      await announcer.announceDefenderAcquired(
+        defender,
+        bastionName: 'Ravencrest',
+        bastionId: 'bastion-1',
+      );
 
       expect(
         captured.url.toString(),
         'http://example.test/maura/v1/discord/defender-acquired',
       );
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
       expect(
-        captured.body,
-        jsonEncode({
-          'message': '🛡️ **Ravencrest** gains a new defender: **Unnamed Defender** (Beast)!',
-        }),
+        body['message'],
+        '🛡️ **Ravencrest** gains a new defender: **Unnamed Defender** (Beast)!',
       );
+      expect(body['bastionId'], 'bastion-1');
     });
 
     test('announceFacilityBuilt POSTs the built message', () async {
@@ -362,15 +285,14 @@ void main() {
         captured.url.toString(),
         'http://example.test/maura/v1/discord/facility-built',
       );
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
       expect(
-        captured.body,
-        jsonEncode({
-          'message':
-              '🏗️ **Ravencrest** has started construction on **Kitchen** (Rank D)!\n\n'
-                  'Cooks food.\n\n'
-                  'Cost: 600gp • Build time: 2 turns • Required hirelings: 0',
-        }),
+        body['message'],
+        '🏗️ **Ravencrest** has started construction on **Kitchen** (Rank D)!\n\n'
+            'Cooks food.\n\n'
+            'Cost: 600gp • Build time: 2 turns • Required hirelings: 0',
       );
+      expect(body['bastionId'], 'b');
     });
 
     test('announceFacilityRemoved POSTs the built message', () async {
@@ -391,14 +313,13 @@ void main() {
         captured.url.toString(),
         'http://example.test/maura/v1/discord/facility-removed',
       );
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
       expect(
-        captured.body,
-        jsonEncode({
-          'message':
-              '🏚️ **Ravencrest** has torn down **Barracks** (Rank D).\n\n'
-                  'Houses the guard.',
-        }),
+        body['message'],
+        '🏚️ **Ravencrest** has torn down **Barracks** (Rank D).\n\n'
+            'Houses the guard.',
       );
+      expect(body['bastionId'], 'b');
     });
 
     test('propagates ApiException so callers can gate actions on it', () async {
@@ -412,9 +333,15 @@ void main() {
       final announcer = announcerWith(mock);
 
       final bastion = Bastion(id: 'b', name: 'Ravencrest', description: 'd', facilities: []);
+      const facility = Facility(
+        id: 'cat_kitchen',
+        name: 'Kitchen',
+        rank: Rank.D,
+        description: 'Cooks food.',
+      );
 
       await expectLater(
-        announcer.announceBastionCreated(bastion),
+        announcer.announceFacilityBuilt(bastion, facility),
         throwsA(isA<ApiException>()),
       );
     });
@@ -474,11 +401,14 @@ void main() {
   group('announceDefendersRecruited', () {
     test('sends the summary via the defender-acquired transport', () async {
       final sent = <String>[];
+      final bastionIds = <String?>[];
       final announcer = DiscordAnnouncer(
         discordApi: DiscordApi(
           client: ApiClient(
             client: MockClient((request) async {
-              sent.add(jsonDecode(request.body)['message'] as String);
+              final body = jsonDecode(request.body) as Map<String, dynamic>;
+              sent.add(body['message'] as String);
+              bastionIds.add(body['bastionId'] as String?);
               return http.Response(
                 jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
                 200,
@@ -491,9 +421,11 @@ void main() {
       await announcer.announceDefendersRecruited(
         [defender('Aldric Vane', DefenderType.knight)],
         bastionName: 'Ravencrest',
+        bastionId: 'bastion-1',
       );
       expect(sent, hasLength(1));
       expect(sent.single, contains('**Aldric Vane**'));
+      expect(bastionIds.single, 'bastion-1');
     });
   });
 }
