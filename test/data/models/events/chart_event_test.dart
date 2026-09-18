@@ -44,7 +44,6 @@ void main() {
           categories: [RewardCategory.herb],
           note: 'lost',
         )),
-        tier: ChartTier.basic,
         success: false,
         rng: Random(1),
       );
@@ -57,7 +56,6 @@ void main() {
     test('kind none yields nothing but the note', () {
       final result = rollTurnReward(
         event: eventWith(const RewardSpec(note: 'quiet')),
-        tier: ChartTier.master,
         success: true,
         rng: Random(1),
       );
@@ -74,7 +72,6 @@ void main() {
           categories: [RewardCategory.herb],
           unitDice: UnitDice(1, 2),
         )),
-        tier: ChartTier.basic,
         success: true,
         rng: Random(2),
       );
@@ -89,7 +86,6 @@ void main() {
             kind: RewardKind.gold,
             goldDice: const UnitDice(2, 10),
           )),
-          tier: ChartTier.skilled,
           success: true,
           rng: Random(100 + i),
         );
@@ -100,7 +96,6 @@ void main() {
     test('recruit kind carries through', () {
       final result = rollTurnReward(
         event: eventWith(const RewardSpec(kind: RewardKind.recruitHireling)),
-        tier: ChartTier.basic,
         success: true,
         rng: Random(1),
       );
@@ -115,7 +110,6 @@ void main() {
           categories: [RewardCategory.stone],
           goldDice: UnitDice(2, 10),
         )),
-        tier: ChartTier.basic,
         success: true,
         rng: Random(4),
       );

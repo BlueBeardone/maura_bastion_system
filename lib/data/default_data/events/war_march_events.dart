@@ -32,7 +32,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Rout the scavengers', maxUnits: 2, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         note: 'Recovered stolen goods',
       ),
     ),
@@ -69,7 +69,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Storm the bandit camp', maxUnits: 3, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(4, 10),
+        goldDice: UnitDice(4, 100),
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
       ),
@@ -102,7 +102,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Raid the raiders\' camp', maxUnits: 4, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
         note: 'Recovered loot and war-beast remains',
@@ -118,7 +118,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Hold the walls through the night', maxUnits: 4, dc: 15),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(3, 10),
+        goldDice: UnitDice(3, 100),
         note: 'The raiders withdraw before dawn',
       ),
     ),
@@ -132,7 +132,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Answer the challenge', maxUnits: 2, dc: 18),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 2),
       ),
@@ -159,7 +159,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Break the enemy forge', maxUnits: 4, dc: 17),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(4, 10),
+        goldDice: UnitDice(4, 100),
         note: 'Break the forge, carry off the stock',
       ),
     ),
@@ -173,7 +173,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(prompt: 'Face the Black Banner', maxUnits: 4, dc: 20),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 4),
+        goldDice: UnitDice(3, 100),
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
         note: '250 GP per rank on victory; the banner\'s knight joins your bastion',

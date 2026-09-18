@@ -41,11 +41,11 @@ class ChartEvent {
 
 TurnReward rollTurnReward({
   required ChartEvent event,
-  required ChartTier tier,
   required bool success,
   Random? rng,
 }) {
   final spec = event.reward;
+  final tier = event.tier;
   if (!success || spec.kind == RewardKind.none) {
     return TurnReward(
       materials: const [],

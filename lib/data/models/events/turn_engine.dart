@@ -2,7 +2,6 @@
 import 'dart:math';
 
 import 'package:maura_bastion_system/data/default_data/events/chart_events_catalog.dart';
-import 'package:maura_bastion_system/data/models/events/archetypes.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_slices.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
@@ -40,6 +39,9 @@ class ChartTurnEngine {
         .where((e) =>
             !e.isArchetype && e.chart == slice.chart && e.tier == tier)
         .toList();
+    if (pool.isEmpty) {
+      throw ArgumentError('No events for chart ${slice.chart} at tier $tier');
+    }
     return ChartTurnRoll(
       slice: slice,
       event: pool[random.nextInt(pool.length)],
@@ -52,7 +54,6 @@ class ChartTurnEngine {
     Random? rng,
     double chance = 0.25,
   }) {
-    if (!unlocksConvergence(points) && !unlocksRivalry(points)) return null;
     final random = rng ?? Random();
     if (random.nextDouble() >= chance) return null;
     final eligible = catalog()

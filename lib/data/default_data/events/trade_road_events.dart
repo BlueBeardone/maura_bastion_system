@@ -17,7 +17,7 @@ List<ChartEvent> tradeRoadEvents() {
           'A peddler\'s cart creaks up to your gates, full of things nobody needs and everybody wants.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         note: 'Trinkets and pin-money',
       ),
     ),
@@ -30,7 +30,7 @@ List<ChartEvent> tradeRoadEvents() {
           'Tolls, stall rents, and a small cut of everything sold. Market day is a good day.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(3, 10),
+        goldDice: UnitDice(3, 100),
       ),
     ),
     ChartEvent(
@@ -42,7 +42,7 @@ List<ChartEvent> tradeRoadEvents() {
           'A merchant house settles an old debt with a letter of credit. It is worth the ink it is written in — this time.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 12),
+        goldDice: UnitDice(2, 120),
       ),
     ),
     ChartEvent(
@@ -53,7 +53,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'A collector arrives with a ledger and no sense of humor. One of your hirelings owes money to dangerous people.',
       reward: RewardSpec(
-        note: 'Pay 50 GP or lose one hireling this turn (choice at resolution)',
+        note: 'Pay 500 GP or lose one hireling this turn (choice at resolution)',
       ),
     ),
     ChartEvent(
@@ -65,7 +65,7 @@ List<ChartEvent> tradeRoadEvents() {
           'A traveling fair sets up beneath your walls. A rented stall and a generous purse of prizes draw the crowds — and their coin.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(4, 10),
+        goldDice: UnitDice(4, 100),
         note: 'After 25 GP of stall fees',
       ),
     ),
@@ -94,7 +94,7 @@ List<ChartEvent> tradeRoadEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
         unitDice: UnitDice(1, 2),
-        note: 'Or take 150 GP instead (choice at resolution)',
+        note: 'Or take 1500 GP instead (choice at resolution)',
       ),
     ),
     ChartEvent(
@@ -118,7 +118,7 @@ List<ChartEvent> tradeRoadEvents() {
           'A desperate traveler sells you a battered case of oddities for pocket change. Appraising it takes a careful eye — and a willingness to be wrong.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(6, 10),
+        goldDice: UnitDice(6, 100),
         note: 'Buy low, sell high — or keep it',
       ),
     ),
@@ -134,7 +134,7 @@ List<ChartEvent> tradeRoadEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
         unitDice: UnitDice(1, 2),
-        goldDice: UnitDice(3, 10),
+        goldDice: UnitDice(3, 100),
       ),
     ),
     ChartEvent(
@@ -147,7 +147,7 @@ List<ChartEvent> tradeRoadEvents() {
       dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 15),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(4, 10),
+        goldDice: UnitDice(4, 100),
         note: 'The rival signs favorable terms',
       ),
     ),
@@ -162,7 +162,7 @@ List<ChartEvent> tradeRoadEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
         unitDice: UnitDice(1, 2),
-        note: 'Exclusive contract: +50 GP to every future Trade Road reward (permanent)',
+        note: 'Exclusive contract: +500 GP to every future Trade Road reward (permanent)',
       ),
     ),
   ];

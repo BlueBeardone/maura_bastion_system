@@ -39,7 +39,7 @@ List<ChartEvent> hearthEvents() {
       dispatch: DispatchSpec(prompt: 'Fight the kitchen fire', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(1, 6),
+        goldDice: UnitDice(1, 60),
         note: 'Salvaged what the flames spared',
       ),
     ),
@@ -53,7 +53,7 @@ List<ChartEvent> hearthEvents() {
       dispatch: DispatchSpec(prompt: 'Clear the cellar rats', maxUnits: 2, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         note: 'Rat-catching bounty',
       ),
     ),
@@ -101,7 +101,7 @@ List<ChartEvent> hearthEvents() {
           'The bastion hosts the season\'s festival. Stall fees, drinking songs, and a remarkably honest dice game.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         note: 'Stall fees and games',
       ),
     ),
@@ -114,7 +114,7 @@ List<ChartEvent> hearthEvents() {
           'A bard whose name opens doors in three kingdoms has chosen YOUR common room for a residency. The crowds follow.',
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(4, 10),
+        goldDice: UnitDice(4, 100),
         note: 'The common room is full for a week',
       ),
     ),
@@ -140,7 +140,7 @@ List<ChartEvent> hearthEvents() {
       dispatch: DispatchSpec(prompt: 'Fulfil the masterwork order', maxUnits: 2, dc: 15),
       reward: RewardSpec(
         kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
+        goldDice: UnitDice(2, 100),
         note: 'A visiting tailor commissions work',
       ),
     ),
