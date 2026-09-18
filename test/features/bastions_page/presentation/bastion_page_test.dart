@@ -593,6 +593,22 @@ void main() {
     expect(find.text('Empty Bastion'), findsOneWidget);
   });
 
+  testWidgets('Chart Web button opens the allocation panel', (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(id: 'keep', name: 'Keep'),
+      ]),
+    );
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsWidgets);
+  });
+
   testWidgets('hides the edit action for other players bastions',
       (tester) async {
     final mockClient = _withEmptyBrowsePage((request) async {
