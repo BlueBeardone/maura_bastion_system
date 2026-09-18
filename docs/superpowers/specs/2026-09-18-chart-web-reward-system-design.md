@@ -70,13 +70,19 @@ and reward categories (categories reuse the existing `RewardCategory` enum):
 
 ### 2.2 Distribution archetypes
 
-- **Convergence events** — unlocked by 4+ points in *three different* charts
-  (~8 events total). Examples: *The Alchemist's Commission* (Wilds+Arcane:
-  hunt planar-touched game for Rank B herbs), a Trade Road caravan delivering
-  Deeps ore.
-- **Rivalry events** — unlocked by 8+ points in *two* charts (i.e. both at
-  Master tier — the maximum 16 points allows exactly one such pairing); a
-  choice event favoring one chart or the other.
+- **Convergence events** (6 total) — each involves 2–3 related charts and is
+  eligible when **every related chart has ≥ 4 points** (per-event gating;
+  the engine's archetype side-roll applies). Examples: *The Alchemist's
+  Commission* (Wilds+Arcane: hunt planar-touched game for Rank B herbs), a
+  Trade Road caravan delivering Deeps ore.
+- **Rivalry events** (2 total) — each involves exactly 2 related charts at
+  **≥ 8 points each** (both Master tier — the maximum 16 points allows at
+  most one such pairing); a choice event favoring one chart or the other.
+- Archetype eligibility is **per-event** (related-charts threshold), not a
+  global unlock: a player with 4+ in Wilds and Arcane can roll *The
+  Alchemist's Commission* regardless of their other charts. The
+  `unlocksConvergence`/`unlocksRivalry` helper predicates remain for UI
+  hinting ("new events available") only.
 
 ## 3. Event Catalog
 
