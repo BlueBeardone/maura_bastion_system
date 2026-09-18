@@ -81,4 +81,79 @@ void main() {
       }
     });
   });
+
+  group('maybeRollArchetype', () {
+    test('never fires without an unlocked archetype', () {
+      for (var i = 0; i < 20; i++) {
+        expect(
+          engine.maybeRollArchetype(
+            points: {EventChart.wilds: 16},
+            rng: Random(i),
+            chance: 1.0,
+          ),
+          isNull,
+        );
+      }
+    });
+
+    test('chance 0 never fires even when unlocked', () {
+      expect(
+        engine.maybeRollArchetype(
+          points: {
+            EventChart.wilds: 4,
+            EventChart.deeps: 4,
+            EventChart.arcane: 4,
+          },
+          rng: Random(1),
+          chance: 0.0,
+        ),
+        isNull,
+      );
+    });
+
+    test('chance 1 fires an eligible convergence archetype', () {
+      final archetype = engine.maybeRollArchetype(
+        points: {
+          EventChart.wilds: 4,
+          EventChart.deeps: 4,
+          EventChart.arcane: 4,
+        },
+        rng: Random(1),
+        chance: 1.0,
+      );
+      expect(archetype, isNotNull);
+      expect(archetype!.isArchetype, isTrue);
+      expect(archetype.minPointsPerChart, lessThanOrEqualTo(4));
+    });
+
+    test('only rivalry events are eligible at 8/8', () {
+      for (var i = 0; i < 10; i++) {
+        final archetype = engine.maybeRollArchetype(
+          points: {EventChart.wilds: 8, EventChart.deeps: 8},
+          rng: Random(i),
+          chance: 1.0,
+        );
+        expect(archetype, isNotNull);
+        expect(archetype!.minPointsPerChart, 8);
+      }
+    });
+
+    test('default chance fires roughly a quarter of the time', () {
+      var fired = 0;
+      for (var i = 0; i < 1000; i++) {
+        if (engine.maybeRollArchetype(
+              points: {
+                EventChart.wilds: 4,
+                EventChart.deeps: 4,
+                EventChart.arcane: 4,
+              },
+              rng: Random(i),
+            ) !=
+            null) {
+          fired++;
+        }
+      }
+      expect(fired, inInclusiveRange(150, 350));
+    });
+  });
 }
