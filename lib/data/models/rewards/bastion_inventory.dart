@@ -106,3 +106,5 @@ class BastionInventory {
     return SellOverflowResult(inventory: inventory, goldGained: gold, sold: sold);
   }
 }
+
+const double bastionStorageMaxWeight = 500.0;
