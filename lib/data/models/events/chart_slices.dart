@@ -1,4 +1,3 @@
-// lib/data/models/events/chart_slices.dart
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 
 class ChartSlice {
@@ -15,12 +14,30 @@ class ChartSlice {
   });
 
   bool contains(int roll) => roll >= rollMin && roll <= rollMax;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChartSlice &&
+          other.chart == chart &&
+          other.points == points &&
+          other.rollMin == rollMin &&
+          other.rollMax == rollMax;
+
+  @override
+  int get hashCode => Object.hash(chart, points, rollMin, rollMax);
+
+  @override
+  String toString() =>
+      'ChartSlice(chart: $chart, points: $points, rollMin: $rollMin, rollMax: $rollMax)';
 }
 
 /// Splits the 1d100 range across charts proportionally to their assigned
 /// points, using largest-remainder rounding so the slices always sum to 100.
 /// Charts with 0 points get no slice. Slices are ordered by points descending
-/// (ties by chart declaration order).
+/// (ties intend chart declaration order, subject to floating-point
+/// representation of equal remainders; allocation remains deterministic
+/// and valid).
 List<ChartSlice> computeChartSlices(Map<EventChart, int> points) {
   final active = EventChart.values
       .where((c) => (points[c] ?? 0) > 0)

@@ -6,6 +6,9 @@ enum ChartTier {
   master,
   legend;
 
+  /// Maps a points value to its tier. Values above the 16-point maximum
+  /// (see [legend.maxPoints]) are clamped to [legend]; the caller — the
+  /// future points model — validates the 16-point cap.
   static ChartTier? forPoints(int points) {
     if (points <= 0) return null;
     if (points <= 3) return basic;

@@ -1,4 +1,3 @@
-// test/data/models/events/chart_slices_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/models/events/chart_slices.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
@@ -63,5 +62,29 @@ void main() {
       expect(s.contains(s.rollMin - 1), isFalse);
       expect(s.contains(s.rollMax + 1), isFalse);
     }
+  });
+
+  test('ChartSlice value equality', () {
+    final a = ChartSlice(
+      chart: EventChart.wilds,
+      points: 8,
+      rollMin: 1,
+      rollMax: 50,
+    );
+    final b = ChartSlice(
+      chart: EventChart.wilds,
+      points: 8,
+      rollMin: 1,
+      rollMax: 50,
+    );
+    final c = ChartSlice(
+      chart: EventChart.wilds,
+      points: 8,
+      rollMin: 1,
+      rollMax: 51,
+    );
+    expect(a, equals(b));
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(equals(c)));
   });
 }
