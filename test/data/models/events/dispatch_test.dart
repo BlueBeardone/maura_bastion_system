@@ -28,4 +28,23 @@ void main() {
     expect(defaultDiceFor(DispatchUnitType.bastionDefender), const UnitDice(1, 6));
     expect(defaultDiceFor(DispatchUnitType.hireling), const UnitDice(1, 6));
   });
+
+  group('DispatchSpec', () {
+    test('diceFor prefers the override', () {
+      const spec = DispatchSpec(
+        prompt: 'Send hunters',
+        maxUnits: 3,
+        dc: 12,
+        diceOverride: {DispatchUnitType.knight: UnitDice(2, 6)},
+      );
+      expect(spec.diceFor(DispatchUnitType.knight), const UnitDice(2, 6));
+      expect(spec.diceFor(DispatchUnitType.beast), const UnitDice(2, 6));
+      expect(spec.diceFor(DispatchUnitType.hireling), const UnitDice(1, 6));
+    });
+
+    test('diceFor falls back to defaults without override', () {
+      const spec = DispatchSpec(prompt: 'Send anyone', maxUnits: 4, dc: 10);
+      expect(spec.diceFor(DispatchUnitType.bastionDefender), const UnitDice(1, 6));
+    });
+  });
 }

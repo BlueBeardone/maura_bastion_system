@@ -23,3 +23,28 @@ UnitDice defaultDiceFor(DispatchUnitType type) {
       return const UnitDice(1, 6);
   }
 }
+
+class DispatchUnit {
+  final String id;
+  final String name;
+  final DispatchUnitType type;
+
+  const DispatchUnit({required this.id, required this.name, required this.type});
+}
+
+class DispatchSpec {
+  final String prompt;
+  final int maxUnits;
+  final int dc;
+  final Map<DispatchUnitType, UnitDice>? diceOverride;
+
+  const DispatchSpec({
+    required this.prompt,
+    required this.maxUnits,
+    required this.dc,
+    this.diceOverride,
+  });
+
+  UnitDice diceFor(DispatchUnitType type) =>
+      diceOverride?[type] ?? defaultDiceFor(type);
+}
