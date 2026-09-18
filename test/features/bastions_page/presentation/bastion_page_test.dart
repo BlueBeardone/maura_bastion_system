@@ -14,8 +14,11 @@ import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/data/models/events/event_chart.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
@@ -613,6 +616,39 @@ void main() {
 
     expect(find.text('The Chart Web'), findsOneWidget);
     expect(find.byIcon(Icons.add), findsWidgets);
+  });
+
+  testWidgets('reopening Chart Web preserves allocations', (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(id: 'f1', name: 'Keep'),
+        turnFacilityJson(id: 'f2', name: 'Barracks'),
+        turnFacilityJson(id: 'f3', name: 'Kitchen'),
+        turnFacilityJson(id: 'f4', name: 'Library'),
+        turnFacilityJson(id: 'f5', name: 'Garden'),
+        turnFacilityJson(id: 'f6', name: 'Forge'),
+      ]),
+    );
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    final pointsCubit =
+        tester.element(find.byType(ChartWebPanel)).read<ChartPointsCubit>();
+    pointsCubit.assign(EventChart.wilds, 2);
+    await tester.pumpAndSettle();
+    expect(find.text('4 of 6 points unassigned'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.text('4 of 6 points unassigned'), findsOneWidget);
   });
 
   testWidgets('hides the edit action for other players bastions',

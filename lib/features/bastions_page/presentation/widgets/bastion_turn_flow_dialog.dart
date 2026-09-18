@@ -10,6 +10,7 @@ import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
+import 'package:maura_bastion_system/data/models/rewards/bastion_inventory.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
@@ -20,17 +21,20 @@ enum _Phase { dispatch, reward }
 class BastionTurnFlowDialog extends StatefulWidget {
   final Bastion bastion;
   final ChartTurnRoll roll;
+  final String? rolledRow;
 
   const BastionTurnFlowDialog({
     super.key,
     required this.bastion,
     required this.roll,
+    this.rolledRow,
   });
 
   static Future<void> show(
     BuildContext context, {
     required Bastion bastion,
     required ChartTurnRoll roll,
+    String? rolledRow,
   }) {
     return showDialog(
       context: context,
@@ -41,7 +45,11 @@ class BastionTurnFlowDialog extends StatefulWidget {
         ],
         child: Dialog(
           backgroundColor: Colors.transparent,
-          child: BastionTurnFlowDialog(bastion: bastion, roll: roll),
+          child: BastionTurnFlowDialog(
+            bastion: bastion,
+            roll: roll,
+            rolledRow: rolledRow,
+          ),
         ),
       ),
     );
@@ -195,6 +203,10 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           const SizedBox(height: 8),
           FacilityTableView(table: event.table!),
         ],
+        if (widget.rolledRow != null) ...[
+          const SizedBox(height: 8),
+          _buildRolledResultCallout(widget.rolledRow!),
+        ],
         const SizedBox(height: 12),
         if (_phase == _Phase.dispatch) _buildDispatchSection(),
         if (_phase == _Phase.reward && _reward != null) _buildRewardSection(),
@@ -317,13 +329,16 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
             ),
         ],
         if (reward.recruit == RewardKind.recruitDefender)
-          _rewardLine('A new defender joins the bastion!'),
+          _rewardLine(
+              'A defender offers to join — their arrival will be recorded at the next muster.'),
         if (reward.recruit == RewardKind.recruitHireling)
-          _rewardLine('A new hireling joins the bastion!'),
+          _rewardLine(
+              'A hireling offers to join — their arrival will be recorded at the next muster.'),
         if (inventory.lastSold.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            'Storage full: sold ${inventory.lastSold.fold<int>(0, (s, g) => s + g.units)} units for ${inventory.goldEarned} GP',
+            'Storage full: sold ${inventory.lastSold.fold<int>(0, (s, g) => s + g.units)} units '
+            'for ${inventory.lastSold.fold<int>(0, (s, g) => s + g.units * valuePerUnit(g.reward, g.effectiveRank))} GP',
             style: GoogleFonts.imFellEnglish(
               fontSize: 14,
               fontStyle: FontStyle.italic,
@@ -352,6 +367,42 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildRolledResultCallout(String rolledRow) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: MedievalColors.parchment,
+        border: Border.all(color: MedievalColors.goldLeaf),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rolled',
+              style: GoogleFonts.cinzel(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: MedievalColors.vermillion,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              rolledRow,
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 15,
+                height: 1.4,
+                color: MedievalColors.sepiaInk,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

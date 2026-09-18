@@ -99,4 +99,18 @@ void main() {
 
     expect(find.textContaining('Convergence'), findsOneWidget);
   });
+
+  testWidgets('shows combined hint when Rivalry is unlocked', (tester) async {
+    final cubit = ChartPointsCubit();
+    cubit.load(_bastion(16));
+    cubit.assign(EventChart.wilds, 8);
+    cubit.assign(EventChart.deeps, 8);
+    await tester.pumpWidget(harness(cubit: cubit));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Convergence and Rivalry events unlocked'),
+      findsOneWidget,
+    );
+  });
 }

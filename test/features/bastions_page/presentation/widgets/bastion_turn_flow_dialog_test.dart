@@ -12,6 +12,7 @@ import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
+import 'package:maura_bastion_system/data/models/rewards/bastion_inventory.dart';
 import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
@@ -36,14 +37,19 @@ Bastion _bastion() => Bastion(
 ChartTurnRoll _roll(ChartEvent event) =>
     ChartTurnRoll(slice: null, event: event, tier: event.tier);
 
-Widget _harness(Bastion bastion, ChartTurnRoll roll) => MaterialApp(
+Widget _harness(Bastion bastion, ChartTurnRoll roll, {String? rolledRow}) =>
+    MaterialApp(
       home: MultiBlocProvider(
         providers: [
           BlocProvider.value(value: ChartPointsCubit()..load(bastion)),
           BlocProvider.value(value: BastionInventoryCubit()..load(bastion)),
         ],
         child: Scaffold(
-          body: BastionTurnFlowDialog(bastion: bastion, roll: roll),
+          body: BastionTurnFlowDialog(
+            bastion: bastion,
+            roll: roll,
+            rolledRow: rolledRow,
+          ),
         ),
       ),
     );
@@ -146,5 +152,106 @@ void main() {
 
     expect(find.text(roll.event.name), findsOneWidget);
     expect(find.text('Turn resolved'), findsOneWidget);
+  });
+
+  testWidgets('renders the rolled table row callout when provided',
+      (tester) async {
+    const event = ChartEvent(
+      id: 'evt_rolled',
+      name: 'Berry Thicket',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'A quiet harvest.',
+      reward: RewardSpec(note: 'A quiet harvest indeed'),
+    );
+    await tester.pumpWidget(
+      _harness(_bastion(), _roll(event), rolledRow: '1 — Bonus gold'),
+    );
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rolled'), findsOneWidget);
+    expect(find.text('1 — Bonus gold'), findsOneWidget);
+  });
+
+  testWidgets('no rolled row means no Rolled callout', (tester) async {
+    const event = ChartEvent(
+      id: 'evt_unrolled',
+      name: 'Berry Thicket',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'A quiet harvest.',
+      reward: RewardSpec(note: 'A quiet harvest indeed'),
+    );
+    await tester.pumpWidget(_harness(_bastion(), _roll(event)));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rolled'), findsNothing);
+  });
+
+  testWidgets('overflow sale line shows this sale gold, not cumulative',
+      (tester) async {
+    const cheapOre = Reward(
+      id: 'cheap_ore',
+      name: 'Cheap Ore',
+      category: RewardCategory.metal,
+      rank: Rank.D,
+      marketValue: 5,
+      weightPerUnit: 100,
+      description: '',
+    );
+    final bastion = _bastion();
+    final inventoryCubit = BastionInventoryCubit()
+      ..load(bastion)
+      // 600 lb of cheap ore: 1 unit sold for 5 GP, storage left at the cap.
+      ..addRewards(const [
+        RewardGrant(reward: cheapOre, effectiveRank: Rank.D, units: 6),
+      ]);
+    expect(inventoryCubit.state.lastSold, isNotEmpty);
+    expect(inventoryCubit.state.goldEarned, 5);
+
+    const event = ChartEvent(
+      id: 'evt_overflow',
+      name: 'Ore Windfall',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'Too much ore.',
+      reward: RewardSpec(
+        kind: RewardKind.material,
+        categories: [RewardCategory.metal],
+        unitDice: UnitDice(1, 1),
+      ),
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: ChartPointsCubit()..load(bastion)),
+          BlocProvider.value(value: inventoryCubit),
+        ],
+        child: Scaffold(
+          body: BastionTurnFlowDialog(bastion: bastion, roll: _roll(event)),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final lastSold = inventoryCubit.state.lastSold;
+    expect(lastSold, isNotEmpty);
+    final soldUnits = lastSold.fold<int>(0, (s, g) => s + g.units);
+    final saleGold = lastSold.fold<int>(
+      0,
+      (s, g) => s + g.units * valuePerUnit(g.reward, g.effectiveRank),
+    );
+    expect(saleGold, greaterThan(0));
+    // The cumulative goldEarned includes the pre-load sale, so if the line
+    // showed the cumulative figure the expectation below would fail.
+    expect(saleGold, lessThan(inventoryCubit.state.goldEarned));
+
+    expect(
+      find.textContaining('Storage full: sold $soldUnits units for $saleGold GP'),
+      findsOneWidget,
+    );
   });
 }

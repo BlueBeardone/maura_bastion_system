@@ -157,7 +157,11 @@ class BastionPage extends StatelessWidget {
                               ),
                             ),
                             onPressed: () {
-                              context.read<ChartPointsCubit>().load(bastion);
+                              final pointsCubit =
+                                  context.read<ChartPointsCubit>();
+                              if (pointsCubit.state.bastionId != bastion.id) {
+                                pointsCubit.load(bastion);
+                              }
                               ChartWebPanel.show(context);
                             },
                           ),
@@ -239,6 +243,7 @@ class BastionPage extends StatelessWidget {
       context,
       bastion: bastion,
       roll: roll,
+      rolledRow: eventResult.rolledRow,
     );
   }
 

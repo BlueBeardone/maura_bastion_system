@@ -30,7 +30,7 @@ class ChartWebPanel extends StatelessWidget {
     final slices = computeChartSlices(points.points);
     String hint;
     if (unlocksRivalry(points.points)) {
-      hint = 'Rivalry events unlocked';
+      hint = 'Convergence and Rivalry events unlocked';
     } else if (unlocksConvergence(points.points)) {
       hint = 'Convergence events unlocked';
     } else {
