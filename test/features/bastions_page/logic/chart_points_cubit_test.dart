@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/data/models/events/chart_points.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Bastion bastionWithFacilities(int count) => Bastion(
       id: 'b1',
@@ -30,6 +31,8 @@ void main() {
   late ChartPointsCubit cubit;
 
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     cubit = ChartPointsCubit();
   });
 
@@ -67,5 +70,26 @@ void main() {
     cubit.load(bastionWithFacilities(2));
     expect(cubit.state.points.assignedTotal, 0);
     expect(cubit.state.points.earnedPoints, 2);
+  });
+
+  test('load restores persisted points for the same bastion', () async {
+    SharedPreferences.setMockInitialValues({
+      'chart_points_b1': '{"points": {"wilds": 3}}',
+    });
+    final restoring = ChartPointsCubit();
+    restoring.load(bastionWithFacilities(4));
+    await Future<void>.delayed(Duration.zero);
+    expect(restoring.state.points[EventChart.wilds], 3);
+    expect(restoring.state.points.earnedPoints, 4);
+    await restoring.close();
+  });
+
+  test('assign writes through to the store', () async {
+    SharedPreferences.setMockInitialValues({});
+    cubit.load(bastionWithFacilities(4));
+    cubit.assign(EventChart.wilds, 2);
+    await Future<void>.delayed(Duration.zero);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('chart_points_b1'), contains('wilds'));
   });
 }
