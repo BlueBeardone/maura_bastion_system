@@ -48,3 +48,49 @@ class DispatchSpec {
   UnitDice diceFor(DispatchUnitType type) =>
       diceOverride?[type] ?? defaultDiceFor(type);
 }
+
+class UnitRoll {
+  final DispatchUnit unit;
+  final List<int> rolls;
+
+  const UnitRoll({required this.unit, required this.rolls});
+
+  int get subtotal => rolls.fold(0, (a, b) => a + b);
+}
+
+class DispatchResult {
+  final List<UnitRoll> unitRolls;
+  final int bonus;
+  final int dc;
+
+  const DispatchResult({required this.unitRolls, required this.bonus, required this.dc});
+
+  int get total =>
+      unitRolls.fold(0, (sum, r) => sum + r.subtotal) + bonus;
+
+  bool get success => total >= dc;
+}
+
+DispatchResult resolveDispatch({
+  required DispatchSpec spec,
+  required List<DispatchUnit> units,
+  Random? rng,
+  int bonus = 0,
+}) {
+  if (units.length > spec.maxUnits) {
+    throw ArgumentError(
+      'Dispatch allows at most ${spec.maxUnits} units, got ${units.length}',
+    );
+  }
+  final random = rng ?? Random();
+  final rolls = units
+      .map((unit) => UnitRoll(
+            unit: unit,
+            rolls: List.generate(
+              spec.diceFor(unit.type).count,
+              (_) => random.nextInt(spec.diceFor(unit.type).faces) + 1,
+            ),
+          ))
+      .toList();
+  return DispatchResult(unitRolls: rolls, bonus: bonus, dc: spec.dc);
+}

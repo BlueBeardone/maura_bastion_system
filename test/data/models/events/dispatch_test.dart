@@ -47,4 +47,63 @@ void main() {
       expect(spec.diceFor(DispatchUnitType.bastionDefender), const UnitDice(1, 6));
     });
   });
+
+  group('resolveDispatch', () {
+    const spec = DispatchSpec(prompt: 'Send a party', maxUnits: 2, dc: 10);
+
+    test('throws when more units than maxUnits', () {
+      const units = [
+        DispatchUnit(id: 'a', name: 'A', type: DispatchUnitType.bastionDefender),
+        DispatchUnit(id: 'b', name: 'B', type: DispatchUnitType.bastionDefender),
+        DispatchUnit(id: 'c', name: 'C', type: DispatchUnitType.bastionDefender),
+      ];
+      expect(
+        () => resolveDispatch(spec: spec, units: units, rng: Random(1)),
+        throwsArgumentError,
+      );
+    });
+
+    test('rolls per-unit dice and tallies with bonus', () {
+      final result = resolveDispatch(
+        spec: spec,
+        units: const [
+          DispatchUnit(id: 'a', name: 'Aldric', type: DispatchUnitType.knight),
+          DispatchUnit(id: 'b', name: 'Rex', type: DispatchUnitType.beast),
+        ],
+        rng: Random(7),
+        bonus: 2,
+      );
+      expect(result.unitRolls.length, 2);
+      expect(result.unitRolls[0].rolls.length, 1); // knight 1d8
+      expect(result.unitRolls[0].unit.name, 'Aldric');
+      expect(result.unitRolls[1].rolls.length, 2); // beast 2d6
+      final expectedTotal = result.unitRolls.fold<int>(0, (s, r) => s + r.subtotal) + 2;
+      expect(result.total, expectedTotal);
+      expect(result.success, expectedTotal >= 10);
+    });
+
+    test('deterministic rng gives deterministic rolls', () {
+      final a = resolveDispatch(
+        spec: spec,
+        units: const [DispatchUnit(id: 'a', name: 'A', type: DispatchUnitType.bastionDefender)],
+        rng: Random(99),
+      );
+      final b = resolveDispatch(
+        spec: spec,
+        units: const [DispatchUnit(id: 'a', name: 'A', type: DispatchUnitType.bastionDefender)],
+        rng: Random(99),
+      );
+      expect(a.unitRolls.single.subtotal, b.unitRolls.single.subtotal);
+    });
+
+    test('success boundary is meets-it-beats-it', () {
+      final result = DispatchResult(
+        unitRolls: const [],
+        bonus: 10,
+        dc: 10,
+      );
+      expect(result.total, 10);
+      expect(result.success, isTrue);
+    });
+  });
 }
