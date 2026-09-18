@@ -4,6 +4,7 @@ import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Reward _metal(String id) => Reward(
       id: id,
@@ -24,7 +25,11 @@ Bastion _bastion() => Bastion(id: 'b1', name: 'T', description: '', facilities: 
 void main() {
   late BastionInventoryCubit cubit;
 
-  setUp(() => cubit = BastionInventoryCubit());
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    cubit = BastionInventoryCubit();
+  });
   tearDown(() => cubit.close());
 
   test('initial state is empty', () {
@@ -64,5 +69,29 @@ void main() {
     cubit.addRewards([_grant(_metal('rew_m'), 101)]);
     cubit.addRewards([_grant(_metal('rew_m'), 1)]);
     expect(cubit.state.goldEarned, 300);
+  });
+
+  test('addRewards writes through to the store', () async {
+    cubit.load(_bastion());
+    cubit.addRewards([_grant(_metal('rew_m'), 2)]);
+    await Future<void>.delayed(Duration.zero);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('bastion_inventory_b1'), contains('rew_m'));
+  });
+
+  test('load restores a persisted inventory', () async {
+    SharedPreferences.setMockInitialValues({
+      'bastion_inventory_b1':
+          '{"entries": [{"rewardId": "rew_adamantine", "effectiveRank": "D", "units": 3}]}',
+    });
+    final restoring = BastionInventoryCubit();
+    restoring.load(_bastion());
+    await Future<void>.delayed(Duration.zero);
+    expect(restoring.state.inventory.entries['rew_adamantine|D']!.units, 3);
+    expect(
+      restoring.state.inventory.entries['rew_adamantine|D']!.reward.id,
+      'rew_adamantine',
+    );
+    await restoring.close();
   });
 }
