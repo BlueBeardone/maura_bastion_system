@@ -64,4 +64,64 @@ void main() {
     expect(original.entries.values.single.units, 1);
     expect(updated.entries.values.single.units, 2);
   });
+
+  group('sellDownTo', () {
+    test('inventory under the limit sells nothing', () {
+      final inventory = const BastionInventory().addGrants([
+        grant(herb('rew_a', Rank.E, 15), Rank.E, 4),
+        grant(metal('rew_m'), Rank.D, 2),
+      ]);
+      final result = inventory.sellDownTo(maxWeight: 100);
+      expect(result.goldGained, 0);
+      expect(result.sold, isEmpty);
+      expect(result.inventory.totalWeight(), inventory.totalWeight());
+    });
+
+    test('sells cheapest first until the weight fits', () {
+      final cheap = herb('rew_cheap', Rank.E, 15);
+      final pricey = herb('rew_pricey', Rank.D, 150);
+      final inventory = const BastionInventory().addGrants([
+        grant(cheap, Rank.E, 10), // 5 lbs, value 150
+        grant(pricey, Rank.D, 10), // 5 lbs, value 1500
+      ]);
+      final result = inventory.sellDownTo(maxWeight: 8);
+      expect(result.sold.single.reward.id, 'rew_cheap');
+      expect(result.sold.single.units, 4);
+      expect(result.goldGained, 4 * 15);
+      expect(result.inventory.totalWeight(), closeTo(8, 0.001));
+      expect(result.inventory.entries['rew_cheap|E']!.units, 6);
+      expect(result.inventory.entries['rew_pricey|D']!.units, 10);
+    });
+
+    test('partial sale shrinks the cheapest entry', () {
+      final cheap = herb('rew_cheap', Rank.E, 15);
+      final inventory = const BastionInventory().addGrants([
+        grant(cheap, Rank.E, 10), // 5 lbs
+        grant(metal('rew_m'), Rank.D, 3), // 15 lbs
+      ]);
+      final result = inventory.sellDownTo(maxWeight: 17);
+      expect(result.inventory.entries['rew_cheap|E']!.units, 4);
+      expect(result.sold.single.units, 6);
+      expect(result.goldGained, 6 * 15);
+    });
+
+    test('rank-null meat values come from the meat/blood chart', () {
+      final meat = Reward(
+        id: 'rew_meat',
+        name: 'Meat',
+        category: RewardCategory.meat,
+        weightPerUnit: 2,
+        description: 'test',
+      );
+      final inventory = const BastionInventory().addGrants([
+        grant(herb('rew_pricey', Rank.D, 150), Rank.D, 10), // 5 lbs, 1500
+        grant(meat, Rank.E, 10), // 20 lbs, 3/unit
+      ]);
+      final result = inventory.sellDownTo(maxWeight: 10);
+      expect(result.sold.single.reward.id, 'rew_meat');
+      expect(result.sold.single.units, 8);
+      expect(result.goldGained, 8 * 3);
+      expect(result.inventory.entries['rew_meat|E']!.units, 2);
+    });
+  });
 }
