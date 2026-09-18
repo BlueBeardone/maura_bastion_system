@@ -120,6 +120,10 @@ class BastionPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    if (bastion.imgUrl != null) ...[
+                      _buildFramedImage(bastion.imgUrl, height: 200),
+                      const SizedBox(height: 8),
+                    ],
                     bastion.description.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(bottom: 16.0),
@@ -387,7 +391,7 @@ class BastionPage extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      _buildFramedImage(facility),
+                      _buildFramedImage(facility.imgUrl),
                       const SizedBox(height: 8),
                       Text(
                         facility.description,
@@ -548,8 +552,8 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFramedImage(Facility facility) {
-    if (facility.imgUrl != null) {
+  Widget _buildFramedImage(String? imgUrl, {double height = 100}) {
+    if (imgUrl != null) {
       return Container(
         decoration: BoxDecoration(
           border: Border.all(color: MedievalColors.goldPale, width: 1.5),
@@ -558,9 +562,9 @@ class BastionPage extends StatelessWidget {
           children: [
             ClipRRect(
               child: SafeNetworkImage(
-                url: facility.imgUrl,
+                url: imgUrl,
                 placeholder: _imagePlaceholder('No Engraving'),
-                height: 100,
+                height: height,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
