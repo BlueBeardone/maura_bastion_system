@@ -2168,6 +2168,155 @@ const discordPaths = <String>{
       await failingCubit.close();
     });
   });
+
+  group('BastionCubit.updateBastion', () {
+    Map<String, dynamic> facilityJson({
+      required String id,
+      required String name,
+      String rank = 'd',
+    }) =>
+        {
+          'id': id,
+          'name': name,
+          'rank': rank,
+          'description': 'desc',
+          'constructionTurns': 0,
+          'constructedTurns': 0,
+          'minimumRequiredHirelings': 0,
+          'cost': 0,
+        };
+
+    test(
+        'PUTs updated details to /maura/v1/bastions/{id} and refreshes the user bastion',
+        () async {
+      Map<String, dynamic> bastion = {
+        'id': 'bastion-1',
+        'userId': 'user_1',
+        'name': 'Old Name',
+        'description': 'Old description',
+        'imgUrl': 'https://old.example/keep.png',
+        'facilities': [facilityJson(id: 'keep', name: 'Keep')],
+      };
+      final puts = <http.Request>[];
+      final mock = _withEmptyBrowsePage((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': [bastion]}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/bastions/bastion-1') {
+          puts.add(request);
+          bastion = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response(
+            jsonEncode({'success': true, 'message': 'ok', 'data': bastion}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final toUpdate = (cubit.state as BastionLoadedState).userBastion!;
+      final error = await cubit.updateBastion(toUpdate.copyWith(
+        name: 'New Name',
+        description: 'New description',
+        imgUrl: null,
+      ));
+
+      expect(error, isNull);
+      expect(puts, hasLength(1));
+      expect(puts.first.url.path, '/maura/v1/bastions/bastion-1');
+      final body = jsonDecode(puts.first.body) as Map<String, dynamic>;
+      expect(body['name'], 'New Name');
+      expect(body['description'], 'New description');
+      expect(body['imgUrl'], isNull);
+      expect((body['facilities'] as List).first['bastionId'], 'bastion-1');
+
+      final refreshed = (cubit.state as BastionLoadedState).userBastion!;
+      expect(refreshed.name, 'New Name');
+      expect(refreshed.imgUrl, isNull);
+      expect(refreshed.facilities.first.id, 'keep');
+      expect((cubit.state as BastionLoadedState).isMutating, isFalse);
+
+      await cubit.close();
+    });
+
+    test('returns the server message and keeps loaded state on failure',
+        () async {
+      final puts = <http.Request>[];
+      final mock = _withEmptyBrowsePage((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                {
+                  'id': 'bastion-1',
+                  'userId': 'user_1',
+                  'name': 'Old Name',
+                  'description': 'Old description',
+                  'imgUrl': 'https://old.example/keep.png',
+                  'facilities': [facilityJson(id: 'keep', name: 'Keep')],
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path == '/maura/v1/bastions/bastion-1') {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'Not your bastion'}),
+            403,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final toUpdate = (cubit.state as BastionLoadedState).userBastion!;
+      final error = await cubit.updateBastion(
+        toUpdate.copyWith(name: 'New Name'),
+      );
+
+      expect(error, 'Not your bastion');
+      expect(puts, hasLength(1));
+      expect((cubit.state as BastionLoadedState).userBastion!.name, 'Old Name');
+      expect((cubit.state as BastionLoadedState).isMutating, isFalse);
+
+      await cubit.close();
+    });
+  });
 }
 
 class _ThrowingAnnouncer extends DiscordAnnouncer {

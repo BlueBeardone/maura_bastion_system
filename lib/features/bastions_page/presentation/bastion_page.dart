@@ -22,6 +22,7 @@ import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/quest_input_dialog.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
@@ -87,13 +88,36 @@ class BastionPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      bastion.name,
-                      style: GoogleFonts.cinzel(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: MedievalColors.vermillion,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            bastion.name,
+                            style: GoogleFonts.cinzel(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: MedievalColors.vermillion,
+                            ),
+                          ),
+                        ),
+                        if (isUserBastion)
+                          IconButton(
+                            onPressed: () {
+                              final cubit = context.read<BastionCubit>();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => BastionEditPage(
+                                    bastion: bastion,
+                                    bastionCubit: cubit,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.edit),
+                            tooltip: 'Edit Bastion',
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     bastion.description.isNotEmpty

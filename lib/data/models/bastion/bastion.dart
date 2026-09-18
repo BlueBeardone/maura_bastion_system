@@ -34,6 +34,30 @@ class Bastion {
   int facilityHirelingCount(String facilityId) =>
       hirelings.where((h) => h.facilityId == facilityId).length;
 
+  static const Object _unchanged = Object();
+
+  Bastion copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? description,
+    Object? imgUrl = _unchanged,
+    List<Facility>? facilities,
+    List<Defender>? defenders,
+    List<Hireling>? hirelings,
+  }) {
+    return Bastion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imgUrl: identical(imgUrl, _unchanged) ? this.imgUrl : imgUrl as String?,
+      facilities: facilities ?? this.facilities,
+      defenders: defenders ?? this.defenders,
+      hirelings: hirelings ?? this.hirelings,
+    );
+  }
+
   factory Bastion.fromJson(Map<String, dynamic> json) {
     return Bastion(
       id: json['id'] as String,

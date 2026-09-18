@@ -14,6 +14,7 @@ import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
@@ -522,5 +523,135 @@ void main() {
     expect(puts, 1);
     expect(find.text('Upgrade to Rank C — 900 GP'), findsNothing);
     expect(find.text('Barracks'), findsWidgets);
+  });
+
+  testWidgets('shows an edit action for the user bastion and opens the edit page',
+      (tester) async {
+    final mockClient = _withEmptyBrowsePage((request) async {
+      if (request.url.path == '/maura/v1/bastions' &&
+          request.method == 'GET') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_empty',
+                'userId': 'user_1',
+                'name': 'Empty Bastion',
+                'description': 'An empty stronghold awaiting its lord.',
+                'facilities': [],
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final apiClient = ApiClient(
+      baseUrl: 'http://example.test',
+      client: mockClient,
+    );
+    GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
+    GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
+
+    final sessionStore = _FakeSessionStore();
+    final authCubit = AuthCubit(
+      identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+      apiClient: apiClient,
+      sessionStore: sessionStore,
+    );
+    GetIt.I.registerSingleton<AuthCubit>(authCubit);
+
+    await tester.pumpWidget(
+      BlocProvider<AuthCubit>(
+        create: (_) => authCubit,
+        child: const MaterialApp(
+          home: BastionPage(bastionId: 'bastion_empty', isUserBastion: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Edit Bastion'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Edit Bastion'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BastionEditPage), findsOneWidget);
+    expect(find.text('Empty Bastion'), findsOneWidget);
+  });
+
+  testWidgets('hides the edit action for other players bastions',
+      (tester) async {
+    final mockClient = _withEmptyBrowsePage((request) async {
+      if (request.url.path == '/maura/v1/bastions' &&
+          request.method == 'GET') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_other',
+                'userId': 'user_2',
+                'name': 'Foreign Bastion',
+                'description': 'Not yours.',
+                'facilities': [],
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final apiClient = ApiClient(
+      baseUrl: 'http://example.test',
+      client: mockClient,
+    );
+    GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
+    GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
+    GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    GetIt.I.registerSingleton<DiscordAnnouncer>(
+      DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
+    );
+
+    final sessionStore = _FakeSessionStore();
+    final authCubit = AuthCubit(
+      identityApi: IdentityApi(client: apiClient, sessionStore: sessionStore),
+      apiClient: apiClient,
+      sessionStore: sessionStore,
+    );
+    GetIt.I.registerSingleton<AuthCubit>(authCubit);
+
+    await tester.pumpWidget(
+      BlocProvider<AuthCubit>(
+        create: (_) => authCubit,
+        child: const MaterialApp(
+          home: BastionPage(bastionId: 'bastion_other', isUserBastion: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Edit Bastion'), findsNothing);
   });
 }

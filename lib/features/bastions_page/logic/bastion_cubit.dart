@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/api_exception.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
@@ -358,6 +359,24 @@ class BastionCubit extends Cubit<BastionState> {
       return newBastion;
     } catch (e) {
       return null;
+    }
+  }
+
+  /// Saves the bastion's editable details (name, description, imgUrl) by
+  /// PUTting the full bastion body — facilities, defenders, and hirelings
+  /// pass through untouched — then refreshes the user bastion.
+  /// Returns null on success, or an error message for a SnackBar.
+  Future<String?> updateBastion(Bastion bastion) async {
+    if (state is! BastionLoadedState) return 'Bastion not loaded';
+    try {
+      _setMutating(true);
+      await _bastionApi.update(bastion.id, bastion);
+      await refreshUserBastion();
+      return null;
+    } catch (e) {
+      return e is ApiException ? e.message : 'Could not update bastion';
+    } finally {
+      _setMutating(false);
     }
   }
 }
