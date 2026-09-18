@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
+import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
@@ -58,4 +59,15 @@ TurnReward resolveEventRewards({
     success: dispatch == null ? true : dispatch.success,
     rng: rng,
   );
+}
+
+String rewardSummaryText(TurnReward reward) {
+  final parts = <String>[
+    for (final g in reward.materials)
+      '${g.units} \u00d7 ${g.reward.name} (Rank ${g.effectiveRank.title})',
+    if (reward.gold > 0) '${reward.gold} GP',
+    if (reward.recruit == RewardKind.recruitDefender) 'a new defender',
+    if (reward.recruit == RewardKind.recruitHireling) 'a new hireling',
+  ];
+  return parts.isEmpty ? 'none' : parts.join(', ');
 }

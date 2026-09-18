@@ -2,7 +2,6 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
-import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 
@@ -22,15 +21,8 @@ NewspaperArticle? notableResultArticle({
       bonusArchetype != null;
   if (!notable) return null;
 
-  final summaryParts = <String>[
-    for (final g in reward.materials)
-      '${g.units} \u00d7 ${g.reward.name} (Rank ${g.effectiveRank.title})',
-    if (reward.gold > 0) '${reward.gold} GP',
-    if (reward.recruit == RewardKind.recruitDefender) 'a new defender',
-    if (reward.recruit == RewardKind.recruitHireling) 'a new hireling',
-  ];
   final content =
-      '${event.description}\n\nRewards: ${summaryParts.isEmpty ? 'none recorded' : summaryParts.join(', ')}.'
+      '${event.description}\n\nRewards: ${rewardSummaryText(reward)}.'
       '${bonusArchetype != null ? '\n\nElsewhere in Maura: ${bonusArchetype.description}' : ''}';
 
   return NewspaperArticle(

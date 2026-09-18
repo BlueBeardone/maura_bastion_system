@@ -8,9 +8,12 @@ import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
+import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
+import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 
 ChartEvent _dispatchable() => const ChartEvent(
       id: 'evt_d',
@@ -84,5 +87,30 @@ void main() {
   test('resolveEventRewards auto-succeeds plain events', () {
     final reward = resolveEventRewards(event: _plain());
     expect(reward.recruit, RewardKind.none);
+  });
+
+  group('rewardSummaryText', () {
+    test('empty reward reads none', () {
+      expect(
+        rewardSummaryText(const TurnReward(materials: [], gold: 0, recruit: RewardKind.none)),
+        'none',
+      );
+    });
+
+    test('materials, gold and recruits are joined', () {
+      final metal = Reward(
+        id: 'rew_m',
+        name: 'Adamantine',
+        category: RewardCategory.metal,
+        weightPerUnit: 5,
+        description: 'test',
+      );
+      final summary = rewardSummaryText(TurnReward(
+        materials: [RewardGrant(reward: metal, effectiveRank: Rank.D, units: 2)],
+        gold: 320,
+        recruit: RewardKind.recruitHireling,
+      ));
+      expect(summary, '2 × Adamantine (Rank D), 320 GP, a new hireling');
+    });
   });
 }

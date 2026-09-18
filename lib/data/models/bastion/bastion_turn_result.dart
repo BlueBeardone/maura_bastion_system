@@ -75,11 +75,13 @@ class BastionTurnEventResult {
   final String name;
   final String description;
   final String? rolledRow;
+  final String? rewardSummary;
 
   const BastionTurnEventResult({
     required this.name,
     required this.description,
     this.rolledRow,
+    this.rewardSummary,
   });
 
   factory BastionTurnEventResult.fromJson(Map<String, dynamic> json) {
@@ -87,6 +89,7 @@ class BastionTurnEventResult {
       name: json['name'] as String,
       description: json['description'] as String,
       rolledRow: json['rolledRow'] as String?,
+      rewardSummary: json['rewardSummary'] as String?,
     );
   }
 
@@ -95,6 +98,7 @@ class BastionTurnEventResult {
       'name': name,
       'description': description,
       'rolledRow': rolledRow,
+      'rewardSummary': rewardSummary,
     };
   }
 }

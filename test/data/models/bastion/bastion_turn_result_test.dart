@@ -56,5 +56,22 @@ void main() {
       expect(back.event?.name, 'Quiet Week');
       expect(back.event?.rolledRow, isNull);
     });
+
+    test('event result serializes rewardSummary', () {
+      const result = BastionTurnEventResult(
+        name: 'Wolf Cull',
+        description: 'Wolves.',
+        rewardSummary: '2 × Adamantine (Rank D)',
+      );
+      final json = result.toJson();
+      expect(json['rewardSummary'], '2 × Adamantine (Rank D)');
+      expect(
+        BastionTurnEventResult.fromJson(json).rewardSummary,
+        '2 × Adamantine (Rank D)',
+      );
+      const absent = BastionTurnEventResult(name: 'A', description: 'B');
+      expect(absent.toJson()['rewardSummary'], isNull);
+      expect(BastionTurnEventResult.fromJson(absent.toJson()).rewardSummary, isNull);
+    });
   });
 }
