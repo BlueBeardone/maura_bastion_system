@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/default_data/events/chart_events_catalog.dart';
-import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maura_bastion_system/data/default_data/rewards/default_reward_data.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/events/reward_spec.dart';

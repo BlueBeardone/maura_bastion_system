@@ -1,10 +1,8 @@
 // test/data/default_data/events/arcane_events_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/default_data/events/arcane_events.dart';
-import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
-import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 
 void main() {
   final events = arcaneEvents();
