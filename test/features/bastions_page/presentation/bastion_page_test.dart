@@ -16,7 +16,6 @@ import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
-import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
@@ -262,8 +261,9 @@ void main() {
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
-  testWidgets('FAB takes a turn: advances construction and shows eligible facilities',
+  testWidgets('FAB takes a turn: advances construction and opens the flow dialog',
       (tester) async {
+    final puts = <http.Request>[];
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -296,6 +296,7 @@ void main() {
             'facilityId': 'kitchen',
           },
         ],
+        capturedPuts: puts,
       ),
     );
 
@@ -312,40 +313,45 @@ void main() {
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
 
-    // Dialog is open, construction advanced for the first under-construction facility.
+    // The chart web flow dialog is up (either phase).
     expect(find.text('Bastion Turn'), findsOneWidget);
-    expect(
-      find.textContaining('Construction advanced: Barracks (1/2 turns)'),
-      findsOneWidget,
+    expect(find.text('Individual Event'), findsOneWidget);
+
+    // The Discord gate passed and the under-construction facility advanced.
+    expect(puts, hasLength(1));
+  });
+
+  testWidgets('bastion turn uses the chart web flow dialog', (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient(
+        [
+          turnFacilityJson(
+            id: 'keep',
+            name: 'Keep',
+            description: 'A sturdy keep.',
+          ),
+          turnFacilityJson(
+              id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+        ],
+      ),
     );
 
-    // Only eligible (built + staffed) facilities are listed in the dialog.
-    final dialogFinder = find.byType(BastionTurnDialog);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Keep')),
-        findsOneWidget);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Barracks')),
-        findsNothing);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Kitchen')),
-        findsNothing);
-
-    // Expanding reveals the description and the table. Scope the assertions to
-    // the Keep tile: the randomly-rolled individual event can itself carry a
-    // table, which would add a second "Facility Table" header elsewhere in the
-    // dialog.
-    await tester.tap(find.descendant(of: dialogFinder, matching: find.text('Keep')));
+    await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
-    final keepTile = find.descendant(
-      of: dialogFinder,
-      matching: find.widgetWithText(ExpansionTile, 'Keep'),
-    );
-    expect(
-      find.descendant(of: keepTile, matching: find.text('A sturdy keep.')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: keepTile, matching: find.text('Facility Table')),
-      findsOneWidget,
-    );
+
+    await tester.enterText(find.byType(TextField), 'quest');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    // The new flow dialog is up (either phase) — old dialog content is gone.
+    expect(find.text('Bastion Turn'), findsOneWidget);
+    expect(find.text('Individual Event'), findsOneWidget);
+    expect(find.textContaining('Construction advanced'), findsNothing);
+    expect(find.text('No facilities ready to grant buffs this turn.'),
+        findsNothing);
   });
 
   testWidgets(
