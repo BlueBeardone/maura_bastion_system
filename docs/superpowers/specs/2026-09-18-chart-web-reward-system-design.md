@@ -54,7 +54,7 @@ and reward categories (categories reuse the existing `RewardCategory` enum):
 
 - The turn roll stays **1d100**. Each chart's **share of the d100 range is
   proportional to its assigned points**.   E.g. 8 Wilds / 5 Trade / 3 Hearth →
-  Wilds owns 1–50, Trade 51–83, Hearth 84–100 (largest-remainder rounding so
+  Wilds owns 1–50, Trade 51–81, Hearth 82–100 (largest-remainder rounding so
   the slices always sum to 100). Charts with zero points never fire.
 - **Tiers within a chart** (by points in that chart):
 
