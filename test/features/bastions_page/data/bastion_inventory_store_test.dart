@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/default_data/rewards/default_reward_data.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -39,5 +41,36 @@ void main() {
     });
     final store = BastionInventoryStore();
     expect(await store.read('b1'), isEmpty);
+  });
+
+  test('read of corrupt (non-JSON) data is empty, no throw', () async {
+    SharedPreferences.setMockInitialValues({'bastion_inventory_b1': 'garbage'});
+    final store = BastionInventoryStore();
+    expect(await store.read('b1'), isEmpty);
+  });
+
+  test('read skips a bad entry but keeps the good one', () async {
+    final adamantine =
+        getDefaultRewards().firstWhere((r) => r.id == 'rew_adamantine');
+    SharedPreferences.setMockInitialValues({
+      'bastion_inventory_b1': jsonEncode({
+        'entries': [
+          {
+            'rewardId': adamantine.id,
+            'effectiveRank': 'D',
+          },
+          {
+            'rewardId': adamantine.id,
+            'effectiveRank': 'D',
+            'units': 3,
+          },
+        ],
+      }),
+    });
+    final store = BastionInventoryStore();
+    final grants = await store.read('b1');
+    expect(grants, hasLength(1));
+    expect(grants.single.reward.id, 'rew_adamantine');
+    expect(grants.single.units, 3);
   });
 }

@@ -29,28 +29,36 @@ class BastionInventoryStore {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString('$_prefix$bastionId');
     if (raw == null) return const [];
-    final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    final entries = decoded['entries'] as List? ?? [];
-    final catalog = getDefaultRewards();
-    final grants = <RewardGrant>[];
-    for (final e in entries) {
-      final map = e as Map<String, dynamic>;
-      final rewardId = map['rewardId'] as String;
-      Reward? reward;
-      for (final r in catalog) {
-        if (r.id == rewardId) {
-          reward = r;
-          break;
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final entries = decoded['entries'] as List? ?? [];
+      final catalog = getDefaultRewards();
+      final grants = <RewardGrant>[];
+      for (final e in entries) {
+        try {
+          final map = e as Map<String, dynamic>;
+          final rewardId = map['rewardId'] as String;
+          Reward? reward;
+          for (final r in catalog) {
+            if (r.id == rewardId) {
+              reward = r;
+              break;
+            }
+          }
+          if (reward == null) continue;
+          grants.add(RewardGrant(
+            reward: reward,
+            effectiveRank:
+                Rank.fromString((map['effectiveRank'] as String).toLowerCase()),
+            units: (map['units'] as num).toInt(),
+          ));
+        } catch (_) {
+          continue;
         }
       }
-      if (reward == null) continue;
-      grants.add(RewardGrant(
-        reward: reward,
-        effectiveRank:
-            Rank.fromString((map['effectiveRank'] as String).toLowerCase()),
-        units: (map['units'] as num).toInt(),
-      ));
+      return grants;
+    } catch (_) {
+      return const [];
     }
-    return grants;
   }
 }

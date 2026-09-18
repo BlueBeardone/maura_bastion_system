@@ -22,13 +22,17 @@ class ChartPointsStore {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString('$_prefix$bastionId');
     if (raw == null) return {};
-    final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    final points = decoded['points'] as Map<String, dynamic>? ?? {};
-    return {
-      for (final entry in points.entries)
-        if (EventChart.values.where((c) => c.name == entry.key).isNotEmpty)
-          EventChart.values.firstWhere((c) => c.name == entry.key):
-              (entry.value as num).toInt(),
-    };
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final points = decoded['points'] as Map<String, dynamic>? ?? {};
+      return {
+        for (final entry in points.entries)
+          if (EventChart.values.where((c) => c.name == entry.key).isNotEmpty)
+            EventChart.values.firstWhere((c) => c.name == entry.key):
+                (entry.value as num).toInt(),
+      };
+    } catch (_) {
+      return {};
+    }
   }
 }

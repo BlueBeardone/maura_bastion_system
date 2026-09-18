@@ -33,4 +33,16 @@ void main() {
     final read = await store.read('b2');
     expect(read, {EventChart.wilds: 2});
   });
+
+  test('read of corrupt (non-JSON) data is empty, no throw', () async {
+    SharedPreferences.setMockInitialValues({'chart_points_b1': 'not json'});
+    final store = ChartPointsStore();
+    expect(await store.read('b1'), isEmpty);
+  });
+
+  test('read of wrong-shaped JSON is empty, no throw', () async {
+    SharedPreferences.setMockInitialValues({'chart_points_b1': '{"points": 5}'});
+    final store = ChartPointsStore();
+    expect(await store.read('b1'), isEmpty);
+  });
 }

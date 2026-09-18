@@ -162,6 +162,12 @@ class BastionPage extends StatelessWidget {
                               if (pointsCubit.state.bastionId != bastion.id) {
                                 pointsCubit.load(bastion);
                               }
+                              final inventoryCubit =
+                                  context.read<BastionInventoryCubit>();
+                              if (inventoryCubit.state.bastionId !=
+                                  bastion.id) {
+                                inventoryCubit.load(bastion);
+                              }
                               ChartWebPanel.show(context);
                             },
                           ),
@@ -197,6 +203,10 @@ class BastionPage extends StatelessWidget {
     final pointsCubit = context.read<ChartPointsCubit>();
     if (pointsCubit.state.bastionId != bastion.id) {
       pointsCubit.load(bastion);
+    }
+    final inventoryCubit = context.read<BastionInventoryCubit>();
+    if (inventoryCubit.state.bastionId != bastion.id) {
+      inventoryCubit.load(bastion);
     }
     final roll =
         const ChartTurnEngine().rollTurn(points: pointsCubit.state.points.points);

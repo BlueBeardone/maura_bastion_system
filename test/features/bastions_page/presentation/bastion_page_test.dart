@@ -15,12 +15,14 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeSessionStore extends AuthSessionStore {
   @override
@@ -603,6 +605,7 @@ void main() {
   });
 
   testWidgets('Chart Web button opens the allocation panel', (tester) async {
+    SharedPreferences.setMockInitialValues({});
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -616,6 +619,15 @@ void main() {
 
     expect(find.text('The Chart Web'), findsOneWidget);
     expect(find.byIcon(Icons.add), findsWidgets);
+
+    // The Chart Web button must also load the inventory cubit for this
+    // bastion (C1: persistence would otherwise be unreachable).
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    final inventoryCubit = tester
+        .element(find.text('Chart Web'))
+        .read<BastionInventoryCubit>();
+    expect(inventoryCubit.state.bastionId, 'bastion_1');
   });
 
   testWidgets('reopening Chart Web preserves allocations', (tester) async {

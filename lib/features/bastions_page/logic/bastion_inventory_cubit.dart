@@ -48,7 +48,7 @@ class BastionInventoryCubit extends Cubit<BastionInventoryState> {
     if (stored.isEmpty || bastionId != state.bastionId) return;
     emit(BastionInventoryState(
       bastionId: state.bastionId,
-      inventory: state.inventory.addGrants(stored),
+      inventory: BastionInventory().addGrants(stored),
       goldEarned: state.goldEarned,
     ));
   }

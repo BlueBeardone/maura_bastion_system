@@ -37,6 +37,9 @@ class ChartPointsCubit extends Cubit<ChartPointsState> {
   Future<void> _restore(String bastionId) async {
     final stored = await _store.read(bastionId);
     if (stored.isEmpty || bastionId != state.bastionId) return;
+    // Only restore while no user assignment has happened since load, so a
+    // concurrent assign (M1) isn't clobbered by the in-flight restore.
+    if (state.points.assignedTotal != 0) return;
     final restored = ChartPoints(
       earnedPoints: state.points.earnedPoints,
       points: stored,
