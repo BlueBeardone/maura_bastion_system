@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/api/newspaper_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -13,6 +16,7 @@ import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 import 'package:maura_bastion_system/data/models/rewards/bastion_inventory.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/chart_web_news.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
@@ -113,6 +117,19 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
       points: pointsCubit.state.points.points,
       rng: Random(),
     );
+    final article = notableResultArticle(
+      bastion: widget.bastion,
+      event: widget.roll.event,
+      reward: _reward!,
+      bonusArchetype: _bonusArchetype,
+    );
+    if (article != null) {
+      try {
+        unawaited(
+          GetIt.I<NewspaperApi>().create(article).then((_) {}, onError: (_) {}),
+        );
+      } catch (_) {}
+    }
     setState(() => _phase = _Phase.reward);
   }
 
