@@ -143,7 +143,9 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
         bastion: widget.bastion,
         points: points,
       );
-      unawaited(store.append(widget.bastion.id, filler));
+      unawaited(
+        store.append(widget.bastion.id, filler).then((_) {}, onError: (_) {}),
+      );
     } catch (_) {
       // Filler is cosmetic; never let it break the turn flow.
     }
