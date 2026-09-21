@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:maura_bastion_system/core/config/dependancy_injection.dart';
+import 'package:maura_bastion_system/core/config/dependency_injection.dart';
 import 'package:maura_bastion_system/core/themes/main_theme.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:maura_bastion_system/features/login/presentation/auth_gate.dart';

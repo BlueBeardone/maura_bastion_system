@@ -9,6 +9,7 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/api/newspaper_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/features/bastions_page/data/filler_store.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 
@@ -38,6 +39,7 @@ class DependencyInjection {
     GetIt.I.registerLazySingleton<FacilityApi>(() => FacilityApi(client: client));
     GetIt.I.registerLazySingleton<HirelingApi>(() => HirelingApi(client: client));
     GetIt.I.registerLazySingleton<NewspaperApi>(() => NewspaperApi(client: client));
+    GetIt.I.registerLazySingleton<FillerStore>(() => FillerStore());
   }
 
   static void _registerCubits() {

@@ -14,11 +14,14 @@ import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/data/models/events/event_chart.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
-import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeSessionStore extends AuthSessionStore {
   @override
@@ -262,8 +265,9 @@ void main() {
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
-  testWidgets('FAB takes a turn: advances construction and shows eligible facilities',
+  testWidgets('FAB takes a turn: advances construction and opens the flow dialog',
       (tester) async {
+    final puts = <http.Request>[];
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -296,6 +300,7 @@ void main() {
             'facilityId': 'kitchen',
           },
         ],
+        capturedPuts: puts,
       ),
     );
 
@@ -312,40 +317,55 @@ void main() {
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
 
-    // Dialog is open, construction advanced for the first under-construction facility.
+    // The chart web flow dialog is up (either phase).
     expect(find.text('Bastion Turn'), findsOneWidget);
-    expect(
-      find.textContaining('Construction advanced: Barracks (1/2 turns)'),
-      findsOneWidget,
-    );
+    expect(find.text('Individual Event'), findsOneWidget);
 
-    // Only eligible (built + staffed) facilities are listed in the dialog.
-    final dialogFinder = find.byType(BastionTurnDialog);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Keep')),
-        findsOneWidget);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Barracks')),
-        findsNothing);
-    expect(find.descendant(of: dialogFinder, matching: find.text('Kitchen')),
-        findsNothing);
-
-    // Expanding reveals the description and the table. Scope the assertions to
-    // the Keep tile: the randomly-rolled individual event can itself carry a
-    // table, which would add a second "Facility Table" header elsewhere in the
-    // dialog.
-    await tester.tap(find.descendant(of: dialogFinder, matching: find.text('Keep')));
+    // Resolution now happens BEFORE the advance — the PUT only fires once
+    // the turn is resolved and the dialog is dismissed with Done.
+    if (find.text('Resolve').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Resolve'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    final keepTile = find.descendant(
-      of: dialogFinder,
-      matching: find.widgetWithText(ExpansionTile, 'Keep'),
+
+    // The Discord gate passed and the under-construction facility advanced.
+    expect(puts, hasLength(1));
+    expect(find.text('Bastion Turn'), findsNothing);
+  });
+
+  testWidgets('bastion turn uses the chart web flow dialog', (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient(
+        [
+          turnFacilityJson(
+            id: 'keep',
+            name: 'Keep',
+            description: 'A sturdy keep.',
+          ),
+          turnFacilityJson(
+              id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+        ],
+      ),
     );
-    expect(
-      find.descendant(of: keepTile, matching: find.text('A sturdy keep.')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: keepTile, matching: find.text('Facility Table')),
-      findsOneWidget,
-    );
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'quest');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    // The new flow dialog is up (either phase) — old dialog content is gone.
+    expect(find.text('Bastion Turn'), findsOneWidget);
+    expect(find.text('Individual Event'), findsOneWidget);
+    expect(find.textContaining('Construction advanced'), findsNothing);
+    expect(find.text('No facilities ready to grant buffs this turn.'),
+        findsNothing);
   });
 
   testWidgets(
@@ -374,6 +394,16 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Cleared the crypt');
     await tester.pump();
     await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    // The flow dialog is resolved BEFORE the advance, so it opens even when
+    // the Discord log later fails.
+    expect(find.text('Bastion Turn'), findsOneWidget);
+    if (find.text('Resolve').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Resolve'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
     expect(
@@ -591,6 +621,56 @@ void main() {
 
     expect(find.byType(BastionEditPage), findsOneWidget);
     expect(find.text('Empty Bastion'), findsOneWidget);
+  });
+
+  testWidgets('Chart Web button opens the allocation panel', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(id: 'keep', name: 'Keep'),
+      ]),
+    );
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsWidgets);
+  });
+
+  testWidgets('reopening Chart Web preserves allocations', (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(id: 'f1', name: 'Keep'),
+        turnFacilityJson(id: 'f2', name: 'Barracks'),
+        turnFacilityJson(id: 'f3', name: 'Kitchen'),
+        turnFacilityJson(id: 'f4', name: 'Library'),
+        turnFacilityJson(id: 'f5', name: 'Garden'),
+        turnFacilityJson(id: 'f6', name: 'Forge'),
+      ]),
+    );
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    final pointsCubit =
+        tester.element(find.byType(ChartWebPanel)).read<ChartPointsCubit>();
+    pointsCubit.assign(EventChart.wilds, 2);
+    await tester.pumpAndSettle();
+    expect(find.text('4 of 6 points unassigned'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Chart Web'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.text('4 of 6 points unassigned'), findsOneWidget);
   });
 
   testWidgets('hides the edit action for other players bastions',
