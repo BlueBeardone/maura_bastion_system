@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -13,8 +14,10 @@ import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/data/models/rewards/reward.dart';
+import 'package:maura_bastion_system/features/bastions_page/data/filler_store.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_flow_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Bastion _bastion() => Bastion(
       id: 'b1',
@@ -254,5 +257,27 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(popped, 'a new hireling');
+  });
+
+  testWidgets('uneventful turn appends a local filler article', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    GetIt.I.registerSingleton<FillerStore>(FillerStore());
+    addTearDown(GetIt.I.reset);
+
+    final bastion = _bastion();
+    final event = ChartEvent(
+      id: 'unt_test_quiet',
+      name: 'Quiet Week',
+      chart: null,
+      tier: ChartTier.basic,
+      description: 'Nothing happens this turn.',
+      reward: const RewardSpec(note: 'Nothing happens'),
+    );
+    await tester.pumpWidget(_harness(bastion, _roll(event)));
+    await tester.pumpAndSettle();
+
+    final fillers = await GetIt.I<FillerStore>().read('b1');
+    expect(fillers, isNotEmpty);
+    expect(fillers.last.title, isNotEmpty);
   });
 }

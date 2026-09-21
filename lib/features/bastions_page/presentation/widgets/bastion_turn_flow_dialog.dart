@@ -13,9 +13,11 @@ import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
+import 'package:maura_bastion_system/features/bastions_page/data/filler_store.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_web_news.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
+import 'package:maura_bastion_system/features/news_paper/logic/filler_article_generator.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 enum _Phase { dispatch, reward }
@@ -127,8 +129,24 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           GetIt.I<NewspaperApi>().create(article).then((_) {}, onError: (_) {}),
         );
       } catch (_) {}
+    } else {
+      _generateFiller();
     }
     setState(() => _phase = _Phase.reward);
+  }
+
+  void _generateFiller() {
+    try {
+      final store = GetIt.I<FillerStore>();
+      final points = context.read<ChartPointsCubit>().state.points.points;
+      final filler = const FillerArticleGenerator().generate(
+        bastion: widget.bastion,
+        points: points,
+      );
+      unawaited(store.append(widget.bastion.id, filler));
+    } catch (_) {
+      // Filler is cosmetic; never let it break the turn flow.
+    }
   }
 
   @override
