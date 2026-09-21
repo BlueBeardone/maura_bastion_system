@@ -21,23 +21,40 @@ class ChartTurnEngine {
 
   const ChartTurnEngine({this.catalog = getChartEvents});
 
-  ChartTurnRoll rollTurn({required Map<EventChart, int> points, Random? rng}) {
+  ChartTurnRoll rollTurn({
+    required Map<EventChart, int> points,
+    int? earnedPoints,
+    Random? rng,
+  }) {
     final random = rng ?? Random();
     final events = catalog();
-    if (points.values.every((p) => p <= 0)) {
+    final assigned =
+        points.values.fold(0, (sum, p) => sum + (p > 0 ? p : 0));
+    final budget = earnedPoints ?? assigned;
+    if (budget <= 0) {
       return ChartTurnRoll(
         slice: null,
         event: _uneventfulEvents[random.nextInt(_uneventfulEvents.length)],
         tier: ChartTier.basic,
       );
     }
-    final slices = computeChartSlices(points);
+    final quiet = (budget - assigned).clamp(0, budget);
+    final quietShare = quiet * 100 ~/ budget;
     final roll = random.nextInt(100) + 1;
-    final slice = slices.firstWhere((s) => s.contains(roll));
+    if (roll <= quietShare) {
+      return ChartTurnRoll(
+        slice: null,
+        event: _uneventfulEvents[random.nextInt(_uneventfulEvents.length)],
+        tier: ChartTier.basic,
+      );
+    }
+    final scaledRoll =
+        1 + ((roll - quietShare) * 100 - 1) ~/ (100 - quietShare);
+    final slices = computeChartSlices(points);
+    final slice = slices.firstWhere((s) => s.contains(scaledRoll));
     final tier = ChartTier.forPoints(slice.points)!;
     final pool = events
-        .where((e) =>
-            !e.isArchetype && e.chart == slice.chart && e.tier == tier)
+        .where((e) => !e.isArchetype && e.chart == slice.chart && e.tier == tier)
         .toList();
     if (pool.isEmpty) {
       throw ArgumentError('No events for chart ${slice.chart} at tier $tier');

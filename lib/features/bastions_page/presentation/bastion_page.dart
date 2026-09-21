@@ -195,6 +195,7 @@ class BastionPage extends StatelessWidget {
     }
     final roll = const ChartTurnEngine().rollTurn(
       points: pointsCubit.state.points.points,
+      earnedPoints: pointsCubit.state.points.earnedPoints,
     );
     final rolledRow = roll.event.table == null
         ? null

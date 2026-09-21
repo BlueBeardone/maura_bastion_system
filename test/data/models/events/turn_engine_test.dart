@@ -82,6 +82,67 @@ void main() {
     });
   });
 
+  group('quiet turns from unassigned points', () {
+    test('earned == assigned never yields a quiet turn', () {
+      for (var i = 0; i < 200; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.wilds: 8},
+          earnedPoints: 8,
+          rng: Random(i),
+        );
+        expect(roll.event.id, isNot(startsWith('unt_')));
+      }
+    });
+
+    test('all points unassigned is always quiet', () {
+      for (var i = 0; i < 20; i++) {
+        final roll = engine.rollTurn(
+          points: const {},
+          earnedPoints: 6,
+          rng: Random(i),
+        );
+        expect(roll.event.id, startsWith('unt_'));
+      }
+    });
+
+    test('half-unassigned is roughly half quiet', () {
+      var quiet = 0;
+      for (var i = 0; i < 1000; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.wilds: 8},
+          earnedPoints: 16,
+          rng: Random(i),
+        );
+        if (roll.event.id.startsWith('unt_')) quiet++;
+      }
+      expect(quiet, inInclusiveRange(400, 600));
+    });
+
+    test('event turns still only come from funded charts', () {
+      for (var i = 0; i < 200; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.wilds: 4, EventChart.deeps: 4},
+          earnedPoints: 16,
+          rng: Random(500 + i),
+        );
+        if (roll.event.id.startsWith('unt_')) continue;
+        expect({EventChart.wilds, EventChart.deeps}.contains(roll.event.chart), isTrue);
+      }
+    });
+
+    test('without earnedPoints the old behavior is unchanged', () {
+      var quiet = 0;
+      for (var i = 0; i < 200; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.wilds: 8},
+          rng: Random(i),
+        );
+        if (roll.event.id.startsWith('unt_')) quiet++;
+      }
+      expect(quiet, 0);
+    });
+  });
+
   group('maybeRollArchetype', () {
     test('never fires without an unlocked archetype', () {
       for (var i = 0; i < 20; i++) {
