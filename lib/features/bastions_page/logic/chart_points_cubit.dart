@@ -18,7 +18,7 @@ class ChartPointsCubit extends Cubit<ChartPointsState> {
     emit(ChartPointsState(
       bastionId: bastion.id,
       points: ChartPoints(
-        earnedPoints: bastion.facilities.length.clamp(0, ChartPoints.maxPoints),
+        earnedPoints: ChartPoints.earnedPointsFor(bastion),
       ),
     ));
     unawaited(_restore(bastion.id));

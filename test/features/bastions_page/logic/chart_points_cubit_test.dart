@@ -48,20 +48,39 @@ void main() {
   test('load derives earned points from facilities, capped at 16', () {
     cubit.load(bastionWithFacilities(3));
     expect(cubit.state.bastionId, 'b1');
-    expect(cubit.state.points.earnedPoints, 3);
+    expect(cubit.state.points.earnedPoints, 4); // floor of four applies
+
+    cubit.load(bastionWithFacilities(6));
+    expect(cubit.state.points.earnedPoints, 6);
 
     cubit.load(bastionWithFacilities(20));
     expect(cubit.state.points.earnedPoints, ChartPoints.maxPoints);
   });
 
+  test('load counts only completed facilities and applies the floor', () {
+    final bastion = Bastion(
+      id: 'b1',
+      name: 'T',
+      description: '',
+      facilities: [
+        Facility(id: 'f1', name: 'F1', rank: Rank.D, description: '',
+            constructedTurns: 2, constructionTurns: 2),
+        Facility(id: 'f2', name: 'F2', rank: Rank.D, description: '',
+            constructedTurns: 0, constructionTurns: 2),
+      ],
+    );
+    cubit.load(bastion);
+    expect(cubit.state.points.earnedPoints, 4); // 1 completed < floor 4
+  });
+
   test('assign updates points within the loaded budget', () {
     cubit.load(bastionWithFacilities(3));
-    cubit.assign(EventChart.wilds, 3);
-    expect(cubit.state.points[EventChart.wilds], 3);
+    cubit.assign(EventChart.wilds, 4);
+    expect(cubit.state.points[EventChart.wilds], 4);
     cubit.assign(EventChart.wilds, 1);
-    expect(cubit.state.points[EventChart.wilds], 3);
+    expect(cubit.state.points[EventChart.wilds], 4);
     cubit.assign(EventChart.wilds, -1);
-    expect(cubit.state.points[EventChart.wilds], 2);
+    expect(cubit.state.points[EventChart.wilds], 3);
   });
 
   test('loading a different bastion resets the allocation', () {
@@ -69,7 +88,7 @@ void main() {
     cubit.assign(EventChart.wilds, 4);
     cubit.load(bastionWithFacilities(2));
     expect(cubit.state.points.assignedTotal, 0);
-    expect(cubit.state.points.earnedPoints, 2);
+    expect(cubit.state.points.earnedPoints, 4); // floor of four applies
   });
 
   test('load restores persisted points for the same bastion', () async {

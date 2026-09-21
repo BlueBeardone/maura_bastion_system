@@ -61,26 +61,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(cubit.state.points[EventChart.wilds], 1);
-    expect(find.text('1 of 2 points unassigned'), findsOneWidget);
+    expect(find.text('3 of 4 points unassigned'), findsOneWidget); // floor of four applies
     expect(find.textContaining('rolls 1'), findsOneWidget);
     expect(find.textContaining('Basic'), findsWidgets);
   });
 
   testWidgets('minus button unassigns and clamps at zero', (tester) async {
     final cubit = ChartPointsCubit();
-    cubit.load(_bastion(1));
+    cubit.load(_bastion(1)); // floor of four applies: earned 4
     await tester.pumpWidget(harness(cubit: cubit));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.add).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add).first);
-    await tester.pumpAndSettle();
-    expect(cubit.state.points[EventChart.wilds], 1);
+    for (var i = 0; i < 4; i++) {
+      await tester.tap(find.byIcon(Icons.add).first);
+      await tester.pumpAndSettle();
+    }
+    expect(cubit.state.points[EventChart.wilds], 4);
     expect(tester.widgetList(find.byIcon(Icons.add).first), isNotNull);
+
+    await tester.tap(find.byIcon(Icons.add).first); // budget exhausted
+    await tester.pumpAndSettle();
+    expect(cubit.state.points[EventChart.wilds], 4);
 
     await tester.tap(find.byIcon(Icons.remove).first);
     await tester.pumpAndSettle();
+    expect(cubit.state.points[EventChart.wilds], 3);
+
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byIcon(Icons.remove).first);
+      await tester.pumpAndSettle();
+    }
     expect(cubit.state.points[EventChart.wilds], 0);
 
     await tester.tap(find.byIcon(Icons.remove).first);

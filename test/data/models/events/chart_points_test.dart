@@ -1,6 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/events/chart_points.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 
@@ -97,6 +100,65 @@ void main() {
     test('zero earned points yields an empty map', () {
       const points = ChartPoints(earnedPoints: 0);
       expect(points.randomizedAllocation(rng: Random(1)), isEmpty);
+    });
+  });
+
+  group('earnedPointsFor', () {
+    Facility facility(int constructed, int construction) => Facility(
+          id: 'f',
+          name: 'F',
+          rank: Rank.D,
+          description: '',
+          constructedTurns: constructed,
+          constructionTurns: construction,
+        );
+
+    test('under-construction facilities earn nothing', () {
+      final bastion = Bastion(
+        id: 'b',
+        name: 'B',
+        description: '',
+        facilities: [facility(0, 3), facility(1, 2)],
+      );
+      expect(ChartPoints.earnedPointsFor(bastion), 4); // floor applies
+    });
+
+    test('completed facilities count', () {
+      final bastion = Bastion(
+        id: 'b',
+        name: 'B',
+        description: '',
+        facilities: [facility(3, 3), facility(2, 2), facility(0, 1)],
+      );
+      expect(ChartPoints.earnedPointsFor(bastion), 4); // 2 completed < floor
+    });
+
+    test('floor of four', () {
+      final bastion = Bastion(
+        id: 'b',
+        name: 'B',
+        description: '',
+        facilities: [facility(1, 1)],
+      );
+      expect(ChartPoints.earnedPointsFor(bastion), 4);
+    });
+
+    test('scales past the floor and caps at 16', () {
+      final bastion = Bastion(
+        id: 'b',
+        name: 'B',
+        description: '',
+        facilities: List.generate(9, (i) => facility(1, 1)),
+      );
+      expect(ChartPoints.earnedPointsFor(bastion), 9);
+
+      final huge = Bastion(
+        id: 'b',
+        name: 'B',
+        description: '',
+        facilities: List.generate(30, (i) => facility(1, 1)),
+      );
+      expect(ChartPoints.earnedPointsFor(huge), ChartPoints.maxPoints);
     });
   });
 }

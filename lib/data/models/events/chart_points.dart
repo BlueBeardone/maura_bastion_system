@@ -1,9 +1,17 @@
 import 'dart:math';
 
+import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 
 class ChartPoints {
   static const int maxPoints = 16;
+
+  static int earnedPointsFor(Bastion bastion) {
+    final completed = bastion.facilities
+        .where((f) => f.constructedTurns >= f.constructionTurns)
+        .length;
+    return min(max(4, completed), maxPoints);
+  }
 
   final Map<EventChart, int> points;
   final int earnedPoints;
