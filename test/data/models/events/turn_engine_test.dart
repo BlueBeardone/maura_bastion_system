@@ -2,6 +2,8 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maura_bastion_system/data/models/events/chart_event.dart';
+import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
@@ -140,6 +142,43 @@ void main() {
         if (roll.event.id.startsWith('unt_')) quiet++;
       }
       expect(quiet, 0);
+    });
+  });
+
+  group('empty pool fallback', () {
+    final basicHearth = ChartEvent(
+      id: 'hrt_basic_only',
+      name: 'Basic Hearth Event',
+      chart: EventChart.hearth,
+      tier: ChartTier.basic,
+      description: 'A basic hearth event.',
+      reward: RewardSpec(note: 'basic'),
+    );
+
+    test('degrades to the nearest populated tier in the same slice', () {
+      final engine = ChartTurnEngine(catalog: () => [basicHearth]);
+      for (var i = 0; i < 10; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.hearth: 16},
+          rng: Random(i),
+        );
+        expect(roll.slice!.chart, EventChart.hearth);
+        expect(roll.event.id, 'hrt_basic_only');
+        expect(roll.tier, ChartTier.basic);
+      }
+    });
+
+    test('falls back to the uneventful table when the chart has no events', () {
+      final engine = ChartTurnEngine(catalog: () => [basicHearth]);
+      for (var i = 0; i < 10; i++) {
+        final roll = engine.rollTurn(
+          points: {EventChart.wilds: 8},
+          rng: Random(i),
+        );
+        expect(roll.slice, isNull);
+        expect(roll.event.chart, isNull);
+        expect(roll.event.id, startsWith('unt_'));
+      }
     });
   });
 

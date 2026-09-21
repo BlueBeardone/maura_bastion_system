@@ -1,67 +1,73 @@
 # Maura Bastion System
 
-A Flutter application for bastion management and news aggregation.
+A Flutter companion app for running and tracking D&D bastions — the shared
+front-end for a tabletop campaign's bastion management.
 
-## Prerequisites
+Players build and upgrade facilities, recruit defenders and hirelings, and
+allocate points across six event charts (The Wilds, The Deeps, The Trade Road,
+The War March, The Hearth, The Arcane). Each turn, an event engine rolls
+against the funded charts, resolves dispatch missions with the bastion's
+units, and pays out rewards. Notable results are published to a shared
+newspaper; quiet turns generate small local filler articles in the same dry
+Guild-of-Heralds voice, stored per device and used to pad thin editions —
+never displacing the DM's shared content.
 
-- Flutter SDK 3.0+
-- Docker and Docker Compose (for containerized deployment)
+Out of scope on purpose: gold/accounts are tracked by a Discord bot, and
+character sheets live in D&D Beyond. This app knows nothing about either.
 
-## Docker
+## Features
 
-To run the web app use Docker:
+- **Bastions** — create and edit bastions; build, upgrade, and remove
+  facilities; purchase branch upgrades.
+- **Defenders & hirelings** — recruit (singly or in bulk), assign hirelings
+  to facilities, and track acquisition stories.
+- **The Chart Web** — allocate earned points across the six event charts;
+  the turn engine rolls events weighted by your allocations, with tier
+  scaling (basic → legend) and archetype events for converged charts.
+- **Dispatch** — send defenders and hirelings on event missions against
+  skill-check DCs; rewards scale with the event's tier.
+- **Newspaper** — a shared, DM-authored edition plus auto-published notable
+  events and per-device quiet-week fillers.
+- **Discord announcements** — construction, hires, recruits, and upgrades are
+  announced to the campaign's Discord (fire-and-forget).
 
-1. Ensure Docker and Docker Compose are installed.
-2. Run `docker compose up -d` to build and start the app.
-3. Access the app at http://localhost:8080.
+## Running
 
-
-
-Goal: Setting up Appwrite SDK in the project depending on if a project already exists or not.
-
-Following are the project details:
-
-```
-class Environment {
-  static const String appwriteProjectId = '6a5bc196000fb1f857a6';
-  static const String appwriteProjectName = 'Maura's Bastions';
-  static const String appwritePublicEndpoint = 'https://fra.cloud.appwrite.io/v1';
-}
-```
-
-Follow the steps depending on if a project already exists on user's working directory or not:
-
-## If a project already exists:
-
-Install the Appwrite Flutter SDK using the following command:
-
-```
-flutter pub add appwrite:25.3.0
-```
-
-From a suitable lib directory, export the Appwrite client as a global variable, hardcode the project details too:
-
-```
-final Client client = Client()
-  .setProject("6a5bc196000fb1f857a6")
-  .setEndpoint("https://fra.cloud.appwrite.io/v1");
-```
-
-On the homepage of the app, create a button that says "Send a ping" and when clicked, it should call the following function:
-
-```
-client.ping();
-```
-        
-
-## If a project does not exist:
-
-1. Clone the starter kit using the terminal. Make sure to clone in the current working directory so that the cloned files are directly available in the working directory.
+### Locally
 
 ```bash
-git clone https://github.com/appwrite/starter-for-flutter
-cd starter-for-flutter .
+flutter pub get
+flutter run -d chrome   # or any device
 ```
 
-2. Replace all occurrences of the environment variables described in the project details section with their corresponding values. This effectively hardcodes the project details wherever those environment variables are used. Use grep (or an equivalent search) to find and update all occurrences.
-3. Run the app on a connected device or simulator using `flutter run -d [device_name]`, then click the `Send a ping` button to verify the setup. Ask the user if the AI agent should run the command to run the app for them. Provide the full command while you ask for permission.
+### Docker (web build)
+
+```bash
+docker compose up -d
+# app at http://localhost:8080
+```
+
+The app talks to a REST backend (see `lib/api/` for endpoints); the backend
+service lives in a separate repository. Point builds at the right API host
+before deploying.
+
+## Tests
+
+```bash
+flutter test       # full suite
+flutter analyze    # lints
+```
+
+## Project structure
+
+```
+lib/
+  api/            REST client layer (bastions, defenders, hirelings, newspaper, Discord)
+  core/           DI, themes, Discord announcer, shared utils
+  data/           Models, enums, and the default event/reward/newspaper catalogs
+  features/       Feature pages (bastions, newspaper, login, …) in cubit/presentation/data split
+  widgets/        Shared scaffolding
+```
+
+Design docs and implementation plans live under `docs/superpowers/`
+(gitignored, local only).

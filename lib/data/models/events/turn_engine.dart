@@ -52,16 +52,35 @@ class ChartTurnEngine {
         1 + ((roll - quietShare) * 100 - 1) ~/ (100 - quietShare);
     final slices = computeChartSlices(points);
     final slice = slices.firstWhere((s) => s.contains(scaledRoll));
-    final tier = ChartTier.forPoints(slice.points)!;
-    final pool = events
-        .where((e) => !e.isArchetype && e.chart == slice.chart && e.tier == tier)
-        .toList();
-    if (pool.isEmpty) {
-      throw ArgumentError('No events for chart ${slice.chart} at tier $tier');
+    var tier = ChartTier.forPoints(slice.points)!;
+    final tierOrder = ChartTier.values;
+    var tierIndex = tierOrder.indexOf(tier);
+    ChartEvent? event;
+    while (event == null && tierIndex >= 0) {
+      final candidate = tierOrder[tierIndex];
+      final pool = events
+          .where((e) =>
+              !e.isArchetype &&
+              e.chart == slice.chart &&
+              e.tier == candidate)
+          .toList();
+      if (pool.isNotEmpty) {
+        event = pool[random.nextInt(pool.length)];
+        tier = candidate;
+      } else {
+        tierIndex--;
+      }
+    }
+    if (event == null) {
+      return ChartTurnRoll(
+        slice: null,
+        event: _uneventfulEvents[random.nextInt(_uneventfulEvents.length)],
+        tier: ChartTier.basic,
+      );
     }
     return ChartTurnRoll(
       slice: slice,
-      event: pool[random.nextInt(pool.length)],
+      event: event,
       tier: tier,
     );
   }
