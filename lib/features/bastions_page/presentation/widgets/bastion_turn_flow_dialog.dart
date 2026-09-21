@@ -32,7 +32,7 @@ class BastionTurnFlowDialog extends StatefulWidget {
     this.rolledRow,
   });
 
-  static Future<void> show(
+  static Future<String?> show(
     BuildContext context, {
     required Bastion bastion,
     required ChartTurnRoll roll,
@@ -65,6 +65,7 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
   final Set<String> _selectedIds = {};
   DispatchResult? _dispatchResult;
   TurnReward? _reward;
+  String? _rewardSummary;
   ChartEvent? _bonusArchetype;
   bool _granted = false;
 
@@ -108,6 +109,7 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
       event: widget.roll.event,
       dispatch: _dispatchResult,
     );
+    _rewardSummary = rewardSummaryText(_reward!);
     final pointsCubit = context.read<ChartPointsCubit>();
     _bonusArchetype = const ChartTurnEngine().maybeRollArchetype(
       points: pointsCubit.state.points.points,
@@ -173,8 +175,10 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
               Flexible(child: SingleChildScrollView(child: _buildBody())),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                onPressed: () => Navigator.of(context).pop(
+                  _rewardSummary == 'none' ? null : _rewardSummary,
+                ),
+                child: const Text('Done'),
               ),
             ],
           ),

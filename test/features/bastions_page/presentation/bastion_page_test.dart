@@ -321,8 +321,18 @@ void main() {
     expect(find.text('Bastion Turn'), findsOneWidget);
     expect(find.text('Individual Event'), findsOneWidget);
 
+    // Resolution now happens BEFORE the advance — the PUT only fires once
+    // the turn is resolved and the dialog is dismissed with Done.
+    if (find.text('Resolve').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Resolve'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
     // The Discord gate passed and the under-construction facility advanced.
     expect(puts, hasLength(1));
+    expect(find.text('Bastion Turn'), findsNothing);
   });
 
   testWidgets('bastion turn uses the chart web flow dialog', (tester) async {
@@ -384,6 +394,16 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Cleared the crypt');
     await tester.pump();
     await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    // The flow dialog is resolved BEFORE the advance, so it opens even when
+    // the Discord log later fails.
+    expect(find.text('Bastion Turn'), findsOneWidget);
+    if (find.text('Resolve').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Resolve'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
     expect(

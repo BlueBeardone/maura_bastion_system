@@ -174,4 +174,85 @@ void main() {
 
     expect(find.text('Rolled'), findsNothing);
   });
+
+  testWidgets('Done pops with the reward summary', (tester) async {
+    const event = ChartEvent(
+      id: 'evt_plain2',
+      name: 'Berry Thicket',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'A quiet harvest.',
+      reward: RewardSpec(note: 'quiet'),
+    );
+    String? popped;
+    await tester.pumpWidget(MaterialApp(
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: ChartPointsCubit()..load(_bastion())),
+        ],
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  popped = await BastionTurnFlowDialog.show(
+                    context,
+                    bastion: _bastion(),
+                    roll: _roll(event),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(popped, isNull); // no materials/gold/recruit — 'none' collapses to null
+  });
+
+  testWidgets('Done pops the summary string when there is something to send',
+      (tester) async {
+    const event = ChartEvent(
+      id: 'evt_recruit',
+      name: 'Wandering Hand',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'A hireling offers to join.',
+      reward: RewardSpec(kind: RewardKind.recruitHireling),
+    );
+    String? popped;
+    await tester.pumpWidget(MaterialApp(
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: ChartPointsCubit()..load(_bastion())),
+        ],
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  popped = await BastionTurnFlowDialog.show(
+                    context,
+                    bastion: _bastion(),
+                    roll: _roll(event),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(popped, 'a new hireling');
+  });
 }

@@ -196,12 +196,23 @@ class BastionPage extends StatelessWidget {
     final roll = const ChartTurnEngine().rollTurn(
       points: pointsCubit.state.points.points,
     );
+    final rolledRow = roll.event.table == null
+        ? null
+        : rollTableResult(roll.event.table!);
+    // The turn resolves BEFORE the advance — the reward summary the player
+    // confirms in the dialog rides the Discord payload.
+    final rewardSummary = await BastionTurnFlowDialog.show(
+      context,
+      bastion: bastion,
+      roll: roll,
+      rolledRow: rolledRow,
+    );
+    if (!context.mounted) return;
     final eventResult = BastionTurnEventResult(
       name: roll.event.name,
       description: roll.event.description,
-      rolledRow: roll.event.table == null
-          ? null
-          : rollTableResult(roll.event.table!),
+      rolledRow: rolledRow,
+      rewardSummary: rewardSummary,
     );
     final hadTarget = bastion.facilities.any(
       (f) => f.constructedTurns < f.constructionTurns,
@@ -235,12 +246,6 @@ class BastionPage extends StatelessWidget {
       );
       return;
     }
-    await BastionTurnFlowDialog.show(
-      context,
-      bastion: bastion,
-      roll: roll,
-      rolledRow: eventResult.rolledRow,
-    );
   }
 
   Widget _buildRankedFacilities(
