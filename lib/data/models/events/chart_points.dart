@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 
 class ChartPoints {
@@ -27,5 +29,17 @@ class ChartPoints {
     final updated = Map<EventChart, int>.from(points)
       ..[chart] = this[chart] + delta;
     return ChartPoints(points: updated, earnedPoints: earnedPoints);
+  }
+
+  Map<EventChart, int> randomizedAllocation({Random? rng}) {
+    final random = rng ?? Random();
+    final effective = Map<EventChart, int>.from(points);
+    var remaining = unassigned;
+    while (remaining > 0) {
+      final chart = EventChart.values[random.nextInt(EventChart.values.length)];
+      effective[chart] = (effective[chart] ?? 0) + 1;
+      remaining--;
+    }
+    return effective;
   }
 }

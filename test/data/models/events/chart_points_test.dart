@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/models/events/chart_points.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
@@ -63,5 +65,38 @@ void main() {
     final full = points.assign(EventChart.hearth, 16);
     expect(full.assignedTotal, 16);
     expect(full.canAssign(EventChart.hearth, 1), isFalse);
+  });
+
+  group('randomizedAllocation', () {
+    test('fully assigned allocation is returned unchanged', () {
+      final points = const ChartPoints(earnedPoints: 4).assign(EventChart.wilds, 4);
+      final effective = points.randomizedAllocation(rng: Random(1));
+      expect(effective, {EventChart.wilds: 4});
+    });
+
+    test('explicit assignments are preserved and totals fill to earned', () {
+      final points = const ChartPoints(earnedPoints: 6)
+          .assign(EventChart.wilds, 2)
+          .assign(EventChart.deeps, 1);
+      for (var i = 0; i < 20; i++) {
+        final effective = points.randomizedAllocation(rng: Random(i));
+        expect(effective[EventChart.wilds], greaterThanOrEqualTo(2));
+        expect(effective[EventChart.deeps], greaterThanOrEqualTo(1));
+        final total = EventChart.values.fold<int>(0, (s, c) => s + (effective[c] ?? 0));
+        expect(total, 6);
+      }
+    });
+
+    test('source allocation is not mutated', () {
+      final points = const ChartPoints(earnedPoints: 3);
+      points.randomizedAllocation(rng: Random(1));
+      expect(points.assignedTotal, 0);
+      expect(points.unassigned, 3);
+    });
+
+    test('zero earned points yields an empty map', () {
+      const points = ChartPoints(earnedPoints: 0);
+      expect(points.randomizedAllocation(rng: Random(1)), isEmpty);
+    });
   });
 }
