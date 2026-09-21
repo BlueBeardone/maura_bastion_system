@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:maura_bastion_system/api/newspaper_api.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/features/bastions_page/data/filler_store.dart';
 import 'package:maura_bastion_system/features/news_paper/logic/news_paper_cubit.dart';
 import 'package:maura_bastion_system/features/news_paper/logic/news_paper_state.dart';
 import 'package:maura_bastion_system/features/error/error_widget.dart';
@@ -14,7 +15,10 @@ class NewspaperLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => NewsPaperCubit(newspaperApi: GetIt.I<NewspaperApi>())..initNewsPaper(),
+      create: (_) => NewsPaperCubit(
+        newspaperApi: GetIt.I<NewspaperApi>(),
+        fillerStore: GetIt.I<FillerStore>(),
+      )..initNewsPaper(),
       child: BlocBuilder<NewsPaperCubit, NewsPaperMainState>(
         builder: (context, state) {
           if (state is DisplayNewsPaperState) {
