@@ -13,8 +13,6 @@ import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
-import 'package:maura_bastion_system/data/models/rewards/bastion_inventory.dart';
-import 'package:maura_bastion_system/features/bastions_page/logic/bastion_inventory_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_web_news.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
@@ -45,7 +43,6 @@ class BastionTurnFlowDialog extends StatefulWidget {
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider.value(value: context.read<ChartPointsCubit>()),
-          BlocProvider.value(value: context.read<BastionInventoryCubit>()),
         ],
         child: Dialog(
           backgroundColor: Colors.transparent,
@@ -111,7 +108,6 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
       event: widget.roll.event,
       dispatch: _dispatchResult,
     );
-    context.read<BastionInventoryCubit>().addRewards(_reward!.materials);
     final pointsCubit = context.read<ChartPointsCubit>();
     _bonusArchetype = const ChartTurnEngine().maybeRollArchetype(
       points: pointsCubit.state.points.points,
@@ -285,7 +281,6 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
 
   Widget _buildRewardSection() {
     final reward = _reward!;
-    final inventory = context.watch<BastionInventoryCubit>().state;
     final dispatch = _dispatchResult;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -351,18 +346,6 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
         if (reward.recruit == RewardKind.recruitHireling)
           _rewardLine(
               'A hireling offers to join — their arrival will be recorded at the next muster.'),
-        if (inventory.lastSold.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            'Storage full: sold ${inventory.lastSold.fold<int>(0, (s, g) => s + g.units)} units '
-            'for ${inventory.lastSold.fold<int>(0, (s, g) => s + g.units * valuePerUnit(g.reward, g.effectiveRank))} GP',
-            style: GoogleFonts.imFellEnglish(
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-              color: MedievalColors.sepiaSecondary,
-            ),
-          ),
-        ],
         if (reward.note != null) _rewardLine(reward.note!),
         if (_bonusArchetype != null) ...[
           const SizedBox(height: 12),
