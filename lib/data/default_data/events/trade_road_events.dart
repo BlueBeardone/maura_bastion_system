@@ -70,11 +70,11 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.skilled,
       description:
           'A shipment of exotic weave needs an armed escort over the ford. Honest pay for honest work.',
-      dispatch: DispatchSpec(prompt: 'Escort the silk shipment', maxUnits: 2, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Escort the silk shipment', maxUnits: 2, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -87,7 +87,7 @@ List<ChartEvent> tradeRoadEvents() {
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Or take 1500 GP instead (choice at resolution)',
       ),
     ),
@@ -121,11 +121,11 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.master,
       description:
           'A great caravan offers a standing contract: guard it across the wild country and share in the profits.',
-      dispatch: DispatchSpec(prompt: 'Guard the caravan', maxUnits: 4, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Guard the caravan', maxUnits: 4, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'The caravan crew shares its road-stories with your guards',
         failureNote: 'The caravan hires other guards',
       ),
@@ -137,7 +137,7 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.master,
       description:
           'A rival house has been undercutting your trade routes for a season. Sit them down at the table and out-haggle them.',
-      dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 13),
       reward: RewardSpec(
         note: 'Your hirelings celebrate the rival\'s favorable terms',
         failureNote: 'The rival house walks away smiling',
@@ -153,7 +153,7 @@ List<ChartEvent> tradeRoadEvents() {
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Exclusive contract: +500 GP to every future Trade Road reward (permanent)',
       ),
     ),

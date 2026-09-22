@@ -18,7 +18,7 @@ List<ChartEvent> arcaneEvents() {
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'The whisper names a herb worth finding',
       ),
     ),
@@ -29,11 +29,11 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.basic,
       description:
           'Pale lights the size of hands drift over the hedgerows at dusk. Where they land, strange flora blooms.',
-      dispatch: DispatchSpec(prompt: 'Follow the moth lights', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Follow the moth lights', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -68,7 +68,7 @@ List<ChartEvent> arcaneEvents() {
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'The price: one random material from your stores',
       ),
     ),
@@ -79,11 +79,11 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.skilled,
       description:
           'Where two ley lines cross in the orchard, the trees have flowered out of season. The blooms hum faintly in a chord.',
-      dispatch: DispatchSpec(prompt: 'Gather the ley blooms', maxUnits: 3, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Gather the ley blooms', maxUnits: 3, dc: 13),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -116,11 +116,11 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.master,
       description:
           'A star came down in the night, trailing glass, and now half of Maura is racing to the crater. The flora growing in its light is the real prize.',
-      dispatch: DispatchSpec(prompt: 'Race to the crater', maxUnits: 4, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Race to the crater', maxUnits: 4, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Race the other claim-jumpers to the crater',
       ),
     ),
@@ -135,7 +135,7 @@ List<ChartEvent> arcaneEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.herb, RewardCategory.weave],
         picks: 2,
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -145,11 +145,11 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.master,
       description:
           'A lost creature of elsewhere stands in the cattle field, homesick and enormous. Guide it home and it will pay in things from beyond.',
-      dispatch: DispatchSpec(prompt: 'Guide the wanderer home', maxUnits: 3, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Guide the wanderer home', maxUnits: 3, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Guide the lost planar home for a fee',
       ),
     ),
@@ -160,11 +160,11 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.legend,
       description:
           'A door stands open in the hillside that was solid earth last week. Beyond it: a hall of everything anyone has ever lost, and a price for everything taken.',
-      dispatch: DispatchSpec(prompt: 'Enter the door in the hill', maxUnits: 4, dc: 20),
+      dispatch: DispatchSpec(prompt: 'Enter the door in the hill', maxUnits: 4, dc: 18),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb, RewardCategory.weave],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Walk away and the door takes a point from your chart',
       ),
     ),

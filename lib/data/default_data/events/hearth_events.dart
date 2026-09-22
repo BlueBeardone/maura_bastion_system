@@ -36,7 +36,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.basic,
       description:
           'The kitchen caught alight mid-roast. Save the stores and there may be salvage worth keeping.',
-      dispatch: DispatchSpec(prompt: 'Fight the kitchen fire', maxUnits: 2, dc: 10),
+      dispatch: DispatchSpec(prompt: 'Fight the kitchen fire', maxUnits: 2, dc: 8),
       reward: RewardSpec(
         note: 'Your hirelings salvage what the flames spared',
         failureNote: 'The fire wins this round; the kitchen smells of smoke for days',
@@ -49,7 +49,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.basic,
       description:
           'The cellar rats have grown fat, bold, and enormous. The village pays a bounty per tail.',
-      dispatch: DispatchSpec(prompt: 'Clear the cellar rats', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Clear the cellar rats', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         note: 'Your hirelings split the rat-catching bounty over drinks',
         failureNote: 'The rats keep the cellar for now',
@@ -62,7 +62,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.skilled,
       description:
           'A swarm of giant honeybees has settled in the barn. They can be driven off — or a brave soul might domesticate them.',
-      dispatch: DispatchSpec(prompt: 'Deal with the bees', maxUnits: 2, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Deal with the bees', maxUnits: 2, dc: 12),
       reward: RewardSpec(
         note: 'Domesticate for a permanent +1 to herb rewards, or drive them off',
       ),
@@ -120,7 +120,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.master,
       description:
           'Half the hirelings have signed a complaint about the other half. Settle it fairly and morale soars; fumble it and the work suffers.',
-      dispatch: DispatchSpec(prompt: 'Hear the grievance', maxUnits: 2, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Hear the grievance', maxUnits: 2, dc: 14),
       reward: RewardSpec(
         note: 'Settled fairly: +2 to the next Hearth dispatch',
         failureNote: 'The grievance festers, and the work suffers',
@@ -133,7 +133,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.master,
       description:
           'A visiting tailor has seen your workshops and wants a commission done to your house\'s standard. Payment is generous; the deadline is not.',
-      dispatch: DispatchSpec(prompt: 'Fulfil the masterwork order', maxUnits: 2, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Fulfil the masterwork order', maxUnits: 2, dc: 13),
       reward: RewardSpec(
         note: 'Your workshops take on the tailor\'s commission with pride',
         failureNote: 'The tailor takes his commission elsewhere',
@@ -146,7 +146,7 @@ List<ChartEvent> hearthEvents() {
       tier: ChartTier.legend,
       description:
           'For one golden turn, everything works: the fires burn clean, the ale is sweet, and every hireling remembers why they came. Something like this can last, if you tend it.',
-      dispatch: DispatchSpec(prompt: 'Tend the heart of the bastion', maxUnits: 4, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Tend the heart of the bastion', maxUnits: 4, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.recruitHireling,
         note: 'Permanent: +1 to all Hearth dispatch totals',

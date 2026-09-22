@@ -15,7 +15,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.basic,
       description:
           'A pack of dire wolves has been shadowing your supply carts. Drive them off and take the pelts.',
-      dispatch: DispatchSpec(prompt: 'Drive off the wolf pack', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Drive off the wolf pack', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
@@ -29,7 +29,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.basic,
       description:
           'Deserters turned scavengers have been raiding the fields. Run them off and reclaim what they stole.',
-      dispatch: DispatchSpec(prompt: 'Rout the scavengers', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Rout the scavengers', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         note: 'Your defenders reclaim the stolen goods for the bastion',
         failureNote: 'The scavengers slip away with their loot',
@@ -65,7 +65,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.skilled,
       description:
           'Your outriders found the bandit camp that has been bleeding the roads. Take it, and everything in it.',
-      dispatch: DispatchSpec(prompt: 'Storm the bandit camp', maxUnits: 3, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Storm the bandit camp', maxUnits: 3, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
@@ -98,7 +98,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.skilled,
       description:
           'The raiders who burned the east fields are camped, drunk, and unaware. Return the favor.',
-      dispatch: DispatchSpec(prompt: 'Raid the raiders\' camp', maxUnits: 4, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Raid the raiders\' camp', maxUnits: 4, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
@@ -114,7 +114,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.skilled,
       description:
           'Raiders prowl your walls all night looking for a way in. A stubborn watch sends them looking for easier pickings.',
-      dispatch: DispatchSpec(prompt: 'Hold the walls through the night', maxUnits: 4, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Hold the walls through the night', maxUnits: 4, dc: 13),
       reward: RewardSpec(
         note: 'The raiders withdraw before dawn; the watch toasts its stubbornness',
         failureNote: 'The raiders find their way in — the morning tells the cost',
@@ -127,11 +127,11 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.master,
       description:
           'A warlord of Maura sends a formal challenge: her champion against yours, winner takes the field and the warlord\'s purse.',
-      dispatch: DispatchSpec(prompt: 'Answer the challenge', maxUnits: 2, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Answer the challenge', maxUnits: 2, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'The warlord\'s purse funds a victory feast for the whole bastion',
         failureNote: 'Your champion falls, and the field is the warlord\'s',
       ),
@@ -155,7 +155,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.master,
       description:
           'The war-camp arming Maura\'s enemies has a forge that never cools. Break it, and carry off whatever they were stockpiling.',
-      dispatch: DispatchSpec(prompt: 'Break the enemy forge', maxUnits: 4, dc: 17),
+      dispatch: DispatchSpec(prompt: 'Break the enemy forge', maxUnits: 4, dc: 15),
       reward: RewardSpec(
         note: 'Your defenders break the forge and carry off the stockpile',
         failureNote: 'The forge burns on, arming Maura\'s enemies',
@@ -168,7 +168,7 @@ List<ChartEvent> warMarchEvents() {
       tier: ChartTier.legend,
       description:
           'The Black Banner — the war-band that has never lost a siege — marches on Maura, and yours stands in its road. Beat it, and the legend is yours.',
-      dispatch: DispatchSpec(prompt: 'Face the Black Banner', maxUnits: 4, dc: 20),
+      dispatch: DispatchSpec(prompt: 'Face the Black Banner', maxUnits: 4, dc: 18),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],

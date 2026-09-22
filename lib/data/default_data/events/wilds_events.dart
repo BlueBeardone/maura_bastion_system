@@ -15,11 +15,11 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.basic,
       description:
           'Your hirelings spent the turn combing the forest floors of Maura. Send them out again to see what the season has left behind.',
-      dispatch: DispatchSpec(prompt: 'Send foragers into the forests of Maura', maxUnits: 4, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Send foragers into the forests of Maura', maxUnits: 4, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -29,7 +29,7 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.basic,
       description:
           'Wolves have grown bold near the pastures. Thin the pack and the hides are yours.',
-      dispatch: DispatchSpec(prompt: 'Send defenders against the wolves', maxUnits: 2, dc: 10),
+      dispatch: DispatchSpec(prompt: 'Send defenders against the wolves', maxUnits: 2, dc: 8),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
@@ -46,7 +46,7 @@ List<ChartEvent> wildsEvents() {
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -69,12 +69,12 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.skilled,
       description:
           'A great herd crosses the plains. Each hunter who lands a blow brings home meat and blood alike.',
-      dispatch: DispatchSpec(prompt: 'Send hunters after the herd', maxUnits: 4, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Send hunters after the herd', maxUnits: 4, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.meat, RewardCategory.blood],
         picks: 2,
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -84,11 +84,11 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.skilled,
       description:
           'A ghost-pale flower blooms only in the dark. Harvest now and risk trampling it, or wait and risk losing it.',
-      dispatch: DispatchSpec(prompt: 'Send gatherers to the bloom by night', maxUnits: 2, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Send gatherers to the bloom by night', maxUnits: 2, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Harvest at night or the bloom is lost',
       ),
     ),
@@ -99,12 +99,12 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.skilled,
       description:
           'A tusked boar has been goring livestock. Bring it down and the butchering is generous.',
-      dispatch: DispatchSpec(prompt: 'Send hunters against the boar', maxUnits: 3, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Send hunters against the boar', maxUnits: 3, dc: 13),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart, RewardCategory.meat],
         picks: 2,
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -114,11 +114,11 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.skilled,
       description:
           'An owlbear den has been found in the high crags. The mother is away — mostly.',
-      dispatch: DispatchSpec(prompt: 'Raid the owlbear den', maxUnits: 3, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Raid the owlbear den', maxUnits: 3, dc: 13),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Cubs may be tamed at DM discretion',
       ),
     ),
@@ -129,11 +129,11 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.master,
       description:
           'The Great Stag of Maura haunts the deep woods. Each extra round of pursuit promises a finer trophy — and sharper antlers.',
-      dispatch: DispatchSpec(prompt: 'Pursue the Great Stag', maxUnits: 3, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Pursue the Great Stag', maxUnits: 3, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
         note: 'Each additional pursuit round raises the reward rank',
       ),
     ),
@@ -144,12 +144,12 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.master,
       description:
           'Grassfire sweeps the plains and the beasts flee before it. Salvage what the smoke leaves behind.',
-      dispatch: DispatchSpec(prompt: 'Salvage game from the fire line', maxUnits: 4, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Salvage game from the fire line', maxUnits: 4, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart, RewardCategory.meat],
         picks: 2,
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -159,12 +159,12 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.master,
       description:
           'An owl the size of a horse has roosted in the old pines. Its feathers shed moonlight, and its nest hides herbs.',
-      dispatch: DispatchSpec(prompt: 'Approach the Ancient Owl', maxUnits: 3, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Approach the Ancient Owl', maxUnits: 3, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart, RewardCategory.herb],
         picks: 2,
-        unitDice: UnitDice(1, 2),
+        unitDice: UnitDice(1, 1),
       ),
     ),
     ChartEvent(
@@ -174,7 +174,7 @@ List<ChartEvent> wildsEvents() {
       tier: ChartTier.legend,
       description:
           'The Beast of Maura has woken. It is two turns of hunting, ruin, and terror — but a pelt of it is worth more than a small farm.',
-      dispatch: DispatchSpec(prompt: 'Join the great hunt for the Beast', maxUnits: 4, dc: 20),
+      dispatch: DispatchSpec(prompt: 'Join the great hunt for the Beast', maxUnits: 4, dc: 18),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
