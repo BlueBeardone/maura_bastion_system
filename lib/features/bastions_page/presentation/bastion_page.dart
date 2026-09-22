@@ -359,9 +359,26 @@ class BastionPage extends StatelessWidget {
     return FacilityExpandableCard(
       facility: facility,
       hirelingCount: bastion.facilityHirelingCount(facility.id),
-      onOpen: isUserBastion
-          ? () {
-              Navigator.of(context)
+      onOpen: () {
+        if (!isUserBastion) {
+          // Read-only view for other players' bastions.
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (_) => FacilityPage(
+                    facility: facility,
+                    bastion: bastion,
+                    isUserBastion: false,
+                    bastionCubit: cubit,
+                  ),
+                ),
+              )
+              .then((_) {
+            if (context.mounted) cubit.loadBastions();
+          });
+          return;
+        }
+        Navigator.of(context)
                   .push(
                     MaterialPageRoute(
                       builder: (_) => FacilityPage(
@@ -433,12 +450,11 @@ class BastionPage extends StatelessWidget {
                             : null,
                       ),
                     ),
-                  )
+)
                   .then((_) {
                 if (context.mounted) cubit.loadBastions();
               });
-            }
-          : null,
+      },
     );
   }
 

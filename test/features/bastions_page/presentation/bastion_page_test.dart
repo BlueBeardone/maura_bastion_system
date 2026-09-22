@@ -295,6 +295,31 @@ void main() {
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
+  testWidgets(
+      'non-user bastion opens the facility page read-only without upgrade or remove actions',
+      (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: false,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(
+          id: 'keep',
+          name: 'Keep',
+          description: 'A sturdy keep.',
+        ),
+      ]),
+    );
+
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open facility'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Assigned Hirelings'), findsOneWidget);
+    expect(find.textContaining('Upgrade to Rank'), findsNothing);
+    expect(find.text('Remove Facility'), findsNothing);
+  });
+
   testWidgets('FAB takes a turn: advances construction and opens the flow dialog',
       (tester) async {
     final puts = <http.Request>[];
