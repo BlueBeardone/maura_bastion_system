@@ -45,13 +45,13 @@ class BastionTurnFlowDialog extends StatefulWidget {
     this.rolledRow,
   });
 
-  static Future<String?> show(
+  static Future<({String? rewardSummary, DispatchResult? dispatch})?> show(
     BuildContext context, {
     required Bastion bastion,
     required ChartTurnRoll roll,
     String? rolledRow,
   }) {
-    return showDialog(
+    return showDialog<({String? rewardSummary, DispatchResult? dispatch})>(
       context: context,
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -247,8 +247,10 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
                     ? null
                     : () {
                         final summary = _effectiveRewardSummary;
-                        Navigator.of(context)
-                            .pop(summary == 'none' ? null : summary);
+                        Navigator.of(context).pop((
+                          rewardSummary: summary == 'none' ? null : summary,
+                          dispatch: _dispatchResult,
+                        ));
                       },
                 child: const Text('Done'),
               ),

@@ -281,7 +281,7 @@ void main() {
       description: 'A quiet harvest.',
       reward: RewardSpec(note: 'quiet'),
     );
-    String? popped;
+    ({String? rewardSummary, DispatchResult? dispatch})? popped;
     await tester.pumpWidget(MaterialApp(
       home: MultiBlocProvider(
         providers: [
@@ -309,7 +309,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(popped, isNull); // no materials/recruit — 'none' collapses to null
+    expect(popped?.rewardSummary, isNull); // 'none' collapses to null
+    expect(popped?.dispatch, isNull);
   });
 
   testWidgets('Done pops the summary string when there is something to send',
@@ -322,7 +323,7 @@ void main() {
       description: 'A hireling offers to join.',
       reward: RewardSpec(kind: RewardKind.recruitHireling),
     );
-    String? popped;
+    ({String? rewardSummary, DispatchResult? dispatch})? popped;
     await tester.pumpWidget(MaterialApp(
       home: MultiBlocProvider(
         providers: [
@@ -350,7 +351,59 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(popped, 'a new hireling');
+    expect(popped?.rewardSummary, 'a new hireling');
+    expect(popped?.dispatch, isNull);
+  });
+
+  testWidgets('Done returns the dispatch outcome', (tester) async {
+    const event = ChartEvent(
+      id: 'evt_disp_out',
+      name: 'Wolf Cull',
+      chart: EventChart.wilds,
+      tier: ChartTier.basic,
+      description: 'Wolves.',
+      dispatch: DispatchSpec(prompt: 'Send defenders', maxUnits: 2, dc: 1),
+    );
+    ({String? rewardSummary, DispatchResult? dispatch})? popped;
+    await tester.pumpWidget(MaterialApp(
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: ChartPointsCubit()..load(_bastion())),
+        ],
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  popped = await BastionTurnFlowDialog.show(
+                    context,
+                    bastion: _bastion(),
+                    roll: _roll(event),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Resolve'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(popped?.dispatch, isNotNull);
+    final dispatch = popped!.dispatch!;
+    expect(dispatch.unitRolls, hasLength(1));
+    expect(dispatch.unitRolls.single.unit.name, 'Aldric');
+    expect(dispatch.dc, 1);
+    expect(dispatch.success, isTrue);
+    expect(popped?.rewardSummary, isNull);
   });
 
   testWidgets('uneventful turn appends a local filler article', (tester) async {
@@ -512,7 +565,7 @@ void main() {
       (tester) async {
     _registerRecruitApis();
     addTearDown(GetIt.I.reset);
-    String? popped;
+    ({String? rewardSummary, DispatchResult? dispatch})? popped;
     await tester.pumpWidget(MaterialApp(
       home: MultiBlocProvider(
         providers: [
@@ -546,14 +599,14 @@ void main() {
 
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(popped, 'a new hireling');
+    expect(popped?.rewardSummary, 'a new hireling');
   });
 
   testWidgets('Done returns the named summary after the recruit is created',
       (tester) async {
     _registerRecruitApis();
     addTearDown(GetIt.I.reset);
-    String? popped;
+    ({String? rewardSummary, DispatchResult? dispatch})? popped;
     await tester.pumpWidget(MaterialApp(
       home: MultiBlocProvider(
         providers: [
@@ -585,6 +638,6 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
-    expect(popped, startsWith('a hireling, '));
+    expect(popped?.rewardSummary, startsWith('a hireling, '));
   });
 }

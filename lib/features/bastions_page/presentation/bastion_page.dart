@@ -205,13 +205,14 @@ class BastionPage extends StatelessWidget {
         : rollTableResult(roll.event.table!);
     // The turn resolves BEFORE the advance — the reward summary the player
     // confirms in the dialog rides the Discord payload.
-    final rewardSummary = await BastionTurnFlowDialog.show(
+    final turnResult = await BastionTurnFlowDialog.show(
       context,
       bastion: bastion,
       roll: roll,
       rolledRow: rolledRow,
     );
     if (!context.mounted) return;
+    final rewardSummary = turnResult?.rewardSummary;
     final facilityResults = bastion.eligibleFacilities
         .where((f) => f.table != null)
         .map((f) => BastionTurnFacilityResult(
@@ -219,11 +220,28 @@ class BastionPage extends StatelessWidget {
               rolledRow: rollTableResult(f.table!),
             ))
         .toList();
+    final dispatch = turnResult?.dispatch;
     final eventResult = BastionTurnEventResult(
       name: roll.event.name,
       description: roll.event.description,
       rolledRow: rolledRow,
       rewardSummary: rewardSummary,
+      dispatch: dispatch == null
+          ? null
+          : BastionTurnDispatchResult(
+              units: [
+                for (final r in dispatch.unitRolls)
+                  BastionTurnDispatchUnitResult(
+                    name: r.unit.name,
+                    rolls: r.rolls,
+                    subtotal: r.subtotal,
+                  ),
+              ],
+              bonus: dispatch.bonus,
+              total: dispatch.total,
+              dc: dispatch.dc,
+              success: dispatch.success,
+            ),
     );
     final hadTarget = bastion.facilities.any(
       (f) => f.constructedTurns < f.constructionTurns,
