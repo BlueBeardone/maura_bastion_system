@@ -15,7 +15,7 @@ List<ChartEvent> archetypeEvents() {
       tier: ChartTier.skilled,
       description:
           'An alchemist of the Arcane court posts a commission: planar-touched game, taken alive or fresh. The hunters who can read the marks will eat well this winter.',
-      dispatch: DispatchSpec(prompt: 'Hunt planar-touched game', maxUnits: 3, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Hunt planar-touched game', maxUnits: 3, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
@@ -104,7 +104,7 @@ List<ChartEvent> archetypeEvents() {
       tier: ChartTier.skilled,
       description:
           'The same ridge promised to the foresters is wanted by the mine. Both crews are yours, and only one survey can be filed this turn.',
-      dispatch: DispatchSpec(prompt: 'File the survey — forest or mine?', maxUnits: 3, dc: 14),
+      dispatch: DispatchSpec(prompt: 'File the survey — forest or mine?', maxUnits: 3, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb, RewardCategory.stone],
@@ -121,7 +121,7 @@ List<ChartEvent> archetypeEvents() {
       tier: ChartTier.skilled,
       description:
           'The roads are dangerous and the pay for guards is high — but your own walls are hungry for hands. Escort the shipment, or garrison the bastion?',
-      dispatch: DispatchSpec(prompt: 'Escort fee or the wall?', maxUnits: 3, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Escort fee or the wall?', maxUnits: 3, dc: 12),
       reward: RewardSpec(
         note: 'The escort crew returns with road-stories and full purses',
         failureNote: 'The escort crew returns lighter than it left',

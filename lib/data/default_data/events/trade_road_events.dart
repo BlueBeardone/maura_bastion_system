@@ -70,7 +70,7 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.skilled,
       description:
           'A shipment of exotic weave needs an armed escort over the ford. Honest pay for honest work.',
-      dispatch: DispatchSpec(prompt: 'Escort the silk shipment', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Escort the silk shipment', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
@@ -121,7 +121,7 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.master,
       description:
           'A great caravan offers a standing contract: guard it across the wild country and share in the profits.',
-      dispatch: DispatchSpec(prompt: 'Guard the caravan', maxUnits: 4, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Guard the caravan', maxUnits: 4, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
@@ -137,7 +137,7 @@ List<ChartEvent> tradeRoadEvents() {
       tier: ChartTier.master,
       description:
           'A rival house has been undercutting your trade routes for a season. Sit them down at the table and out-haggle them.',
-      dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 13),
+      dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 11),
       reward: RewardSpec(
         note: 'Your hirelings celebrate the rival\'s favorable terms',
         failureNote: 'The rival house walks away smiling',

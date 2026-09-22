@@ -29,7 +29,7 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.basic,
       description:
           'Pale lights the size of hands drift over the hedgerows at dusk. Where they land, strange flora blooms.',
-      dispatch: DispatchSpec(prompt: 'Follow the moth lights', maxUnits: 2, dc: 10),
+      dispatch: DispatchSpec(prompt: 'Follow the moth lights', maxUnits: 2, dc: 8),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
@@ -79,7 +79,7 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.skilled,
       description:
           'Where two ley lines cross in the orchard, the trees have flowered out of season. The blooms hum faintly in a chord.',
-      dispatch: DispatchSpec(prompt: 'Gather the ley blooms', maxUnits: 3, dc: 13),
+      dispatch: DispatchSpec(prompt: 'Gather the ley blooms', maxUnits: 3, dc: 11),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb],
@@ -116,7 +116,7 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.master,
       description:
           'A star came down in the night, trailing glass, and now half of Maura is racing to the crater. The flora growing in its light is the real prize.',
-      dispatch: DispatchSpec(prompt: 'Race to the crater', maxUnits: 4, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Race to the crater', maxUnits: 4, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
@@ -145,7 +145,7 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.master,
       description:
           'A lost creature of elsewhere stands in the cattle field, homesick and enormous. Guide it home and it will pay in things from beyond.',
-      dispatch: DispatchSpec(prompt: 'Guide the wanderer home', maxUnits: 3, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Guide the wanderer home', maxUnits: 3, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
@@ -160,7 +160,7 @@ List<ChartEvent> arcaneEvents() {
       tier: ChartTier.legend,
       description:
           'A door stands open in the hillside that was solid earth last week. Beyond it: a hall of everything anyone has ever lost, and a price for everything taken.',
-      dispatch: DispatchSpec(prompt: 'Enter the door in the hill', maxUnits: 4, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Enter the door in the hill', maxUnits: 4, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.herb, RewardCategory.weave],

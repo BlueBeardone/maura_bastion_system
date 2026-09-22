@@ -15,7 +15,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.basic,
       description:
           'The picks have struck a promising seam. Work it before the shift ends.',
-      dispatch: DispatchSpec(prompt: 'Work the new seam', maxUnits: 4, dc: 10),
+      dispatch: DispatchSpec(prompt: 'Work the new seam', maxUnits: 4, dc: 8),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal, RewardCategory.stone],
@@ -56,7 +56,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.basic,
       description:
           'The lower galleries need new timbers. Good honest work, and the old beams can be reclaimed and sold.',
-      dispatch: DispatchSpec(prompt: 'Send crews to shore the galleries', maxUnits: 3, dc: 10),
+      dispatch: DispatchSpec(prompt: 'Send crews to shore the galleries', maxUnits: 3, dc: 8),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal],
@@ -71,7 +71,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.skilled,
       description:
           'The main shaft has caved. Dig for the trapped crew, or salvage the exposed seam while it lasts — either pays.',
-      dispatch: DispatchSpec(prompt: 'Answer the collapse', maxUnits: 4, dc: 14),
+      dispatch: DispatchSpec(prompt: 'Answer the collapse', maxUnits: 4, dc: 12),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal, RewardCategory.stone],
@@ -100,7 +100,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.skilled,
       description:
           'The vein keeps going where the maps stop. Follow it down; the ore gets richer and the air gets worse.',
-      dispatch: DispatchSpec(prompt: 'Follow the vein downward', maxUnits: 4, dc: 13),
+      dispatch: DispatchSpec(prompt: 'Follow the vein downward', maxUnits: 4, dc: 11),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal],
@@ -114,7 +114,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.skilled,
       description:
           'The old mine was sealed a generation ago — for the collapse, they said. The equipment left behind was worth sealing it for.',
-      dispatch: DispatchSpec(prompt: 'Explore the abandoned mine', maxUnits: 2, dc: 12),
+      dispatch: DispatchSpec(prompt: 'Explore the abandoned mine', maxUnits: 2, dc: 10),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal, RewardCategory.stone],
@@ -129,7 +129,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.master,
       description:
           'Below the water table lies the Glimmerdeep, where the stone itself glitters. Every step deeper is richer — and one step too far is your last.',
-      dispatch: DispatchSpec(prompt: 'Descend into the Glimmerdeep', maxUnits: 4, dc: 16),
+      dispatch: DispatchSpec(prompt: 'Descend into the Glimmerdeep', maxUnits: 4, dc: 14),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal, RewardCategory.stone],
@@ -158,7 +158,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.master,
       description:
           'The miners have uncovered a golem of living stone, dormant so far. Its body is a fortune in raw ore — if it stays asleep.',
-      dispatch: DispatchSpec(prompt: 'Dismantle the sleeping golem', maxUnits: 3, dc: 15),
+      dispatch: DispatchSpec(prompt: 'Dismantle the sleeping golem', maxUnits: 3, dc: 13),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.metal],
@@ -173,7 +173,7 @@ List<ChartEvent> deepsEvents() {
       tier: ChartTier.legend,
       description:
           'Every miner dreams of it once: a single stone at the mountain\'s core, older than the world above. Bring it up and the deeps will remember your name.',
-      dispatch: DispatchSpec(prompt: 'Descend to the mountain\'s heart', maxUnits: 4, dc: 18),
+      dispatch: DispatchSpec(prompt: 'Descend to the mountain\'s heart', maxUnits: 4, dc: 16),
       reward: RewardSpec(
         kind: RewardKind.material,
         categories: [RewardCategory.stone],
