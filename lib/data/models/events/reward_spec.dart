@@ -5,23 +5,25 @@ import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 
-enum RewardKind { material, gold, recruitDefender, recruitHireling, none }
+enum RewardKind { material, recruitDefender, recruitHireling, none }
 
 class RewardSpec {
   final RewardKind kind;
   final List<RewardCategory> categories;
   final int picks;
   final UnitDice unitDice;
-  final UnitDice? goldDice;
   final String? note;
+
+  /// Shown on failed dispatch; falls back to [note].
+  final String? failureNote;
 
   const RewardSpec({
     this.kind = RewardKind.none,
     this.categories = const [],
     this.picks = 1,
     this.unitDice = const UnitDice(1, 2),
-    this.goldDice,
     this.note,
+    this.failureNote,
   });
 }
 
@@ -46,19 +48,17 @@ class RewardGrant {
 
 class TurnReward {
   final List<RewardGrant> materials;
-  final int gold;
   final RewardKind recruit;
   final String? note;
 
   const TurnReward({
     required this.materials,
-    required this.gold,
     required this.recruit,
     this.note,
   });
 
   static const TurnReward empty =
-      TurnReward(materials: [], gold: 0, recruit: RewardKind.none);
+      TurnReward(materials: [], recruit: RewardKind.none);
 }
 
 List<RewardGrant> rollMaterialRewards({

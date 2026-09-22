@@ -4,6 +4,7 @@ class BastionTurnResult {
   final String quest;
   final BastionTurnAdvancedFacility? advancedFacility;
   final BastionTurnEventResult? event;
+  final List<BastionTurnFacilityResult> facilityResults;
 
   const BastionTurnResult({
     required this.bastionId,
@@ -11,6 +12,7 @@ class BastionTurnResult {
     required this.quest,
     this.advancedFacility,
     this.event,
+    this.facilityResults = const [],
   });
 
   factory BastionTurnResult.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,10 @@ class BastionTurnResult {
       event: json['event'] == null
           ? null
           : BastionTurnEventResult.fromJson(json['event'] as Map<String, dynamic>),
+      facilityResults: (json['facilityResults'] as List? ?? [])
+          .map((r) => BastionTurnFacilityResult.fromJson(
+              r as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -35,6 +41,7 @@ class BastionTurnResult {
       'quest': quest,
       'advancedFacility': advancedFacility?.toJson(),
       'event': event?.toJson(),
+      'facilityResults': facilityResults.map((r) => r.toJson()).toList(),
     };
   }
 }
@@ -67,6 +74,30 @@ class BastionTurnAdvancedFacility {
       'rankTitle': rankTitle,
       'constructedTurns': constructedTurns,
       'constructionTurns': constructionTurns,
+    };
+  }
+}
+
+class BastionTurnFacilityResult {
+  final String name;
+  final String? rolledRow;
+
+  const BastionTurnFacilityResult({
+    required this.name,
+    this.rolledRow,
+  });
+
+  factory BastionTurnFacilityResult.fromJson(Map<String, dynamic> json) {
+    return BastionTurnFacilityResult(
+      name: json['name'] as String,
+      rolledRow: json['rolledRow'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'rolledRow': rolledRow,
     };
   }
 }

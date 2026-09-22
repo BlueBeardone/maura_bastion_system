@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/core/juice/juice.dart';
+import 'package:maura_bastion_system/core/juice/juice_sfx.dart';
+import 'package:maura_bastion_system/core/juice/reveal_widgets.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_article.dart';
 import 'package:maura_bastion_system/data/models/news_paper/news_paper_data.dart';
@@ -9,14 +12,37 @@ import 'package:maura_bastion_system/features/news_paper/presentation/articles/n
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/ornamental_divider.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
-class NewspaperPage extends StatelessWidget {
+class NewspaperPage extends StatefulWidget {
   final NewspaperData newspaperData;
 
   const NewspaperPage({super.key, required this.newspaperData});
 
   @override
+  State<NewspaperPage> createState() => _NewspaperPageState();
+}
+
+class _NewspaperPageState extends State<NewspaperPage> {
+  int _replaySeed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Juice.sfx(SfxClip.pageTurn);
+  }
+
+  @override
+  void didUpdateWidget(covariant NewspaperPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.newspaperData.date != widget.newspaperData.date) {
+      setState(() => _replaySeed++);
+      Juice.sfx(SfxClip.pageTurn);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
+      key: ValueKey('reveal_${widget.newspaperData.date}_$_replaySeed'),
       decoration: BoxDecoration(
         gradient: RadialGradient(
           center: Alignment.center,
@@ -44,16 +70,25 @@ class NewspaperPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              NewsPaperTitle(newspaperData: newspaperData),
+              StampIn(
+                child: NewsPaperTitle(newspaperData: widget.newspaperData),
+              ),
               const SizedBox(height: 12),
-              MainNewsArticle(article: newspaperData.leadArticle),
-              const SizedBox(height: 16),
-              _buildSecondaryArticles(
-                newspaperData.otherArticles,
-                newspaperData.date,
+              FadeSlide(
+                delay: const Duration(milliseconds: 150),
+                child:
+                    MainNewsArticle(article: widget.newspaperData.leadArticle),
               ),
               const SizedBox(height: 16),
-              OrnamentalDivider(),
+              _buildSecondaryArticles(
+                widget.newspaperData.otherArticles,
+                widget.newspaperData.date,
+              ),
+              const SizedBox(height: 16),
+              FadeSlide(
+                delay: const Duration(milliseconds: 600),
+                child: OrnamentalDivider(),
+              ),
               const SizedBox(height: 10),
               _buildFooter(),
             ],
@@ -81,12 +116,16 @@ class NewspaperPage extends StatelessWidget {
 
         if (columns == 1) {
           return Column(
-            children: articles
-                .map((a) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: NewsArticle(article: a, date: date),
-                    ))
-                .toList(),
+            children: articles.indexed.map((indexed) {
+              final (i, a) = indexed;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: FadeSlide(
+                  delay: Duration(milliseconds: 250 + 100 * i),
+                  child: NewsArticle(article: a, date: date),
+                ),
+              );
+            }).toList(),
           );
         }
 
@@ -95,8 +134,11 @@ class NewspaperPage extends StatelessWidget {
           rows.add(articles.skip(i).take(columns).toList());
         }
 
+        var articleIndex = 0;
         return Column(
           children: rows.map((row) {
+            final rowStart = articleIndex;
+            articleIndex += row.length;
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -112,9 +154,13 @@ class NewspaperPage extends StatelessWidget {
                           ),
                         ),
                       Expanded(
-                        child: NewsArticle(
-                          article: row[i],
-                          date: date,
+                        child: FadeSlide(
+                          delay:
+                              Duration(milliseconds: 250 + 100 * (rowStart + i)),
+                          child: NewsArticle(
+                            article: row[i],
+                            date: date,
+                          ),
                         ),
                       ),
                     ],

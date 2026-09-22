@@ -15,7 +15,6 @@ NewspaperArticle? notableResultArticle({
     (g) => g.effectiveRank.index <= Rank.B.index,
   );
   final notable = notableMaterial ||
-      reward.gold >= 500 ||
       reward.recruit != RewardKind.none ||
       event.tier == ChartTier.legend ||
       bonusArchetype != null;

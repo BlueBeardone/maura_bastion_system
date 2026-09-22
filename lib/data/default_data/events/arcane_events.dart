@@ -44,8 +44,7 @@ List<ChartEvent> arcaneEvents() {
       description:
           'A child of the bastion traded lunch for a little brass thing to a stranger with too many fingers. It appraises well.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(3, 6),
+        note: 'The child\'s brass trinket becomes the bastion\'s favorite curiosity',
       ),
     ),
     ChartEvent(
@@ -107,9 +106,7 @@ List<ChartEvent> arcaneEvents() {
       description:
           'A chart fell from nowhere onto the scriptorium desk, inked in no constellation you know. A collector in town pays handsomely for the impossible.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 10),
-        note: 'Sold to a collector',
+        note: 'Your hirelings sell the chart to a collector and toast the sale',
       ),
     ),
     ChartEvent(

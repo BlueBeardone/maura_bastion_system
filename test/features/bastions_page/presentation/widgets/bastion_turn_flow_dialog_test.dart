@@ -247,13 +247,13 @@ void main() {
       reward: RewardSpec(note: 'A quiet harvest indeed'),
     );
     await tester.pumpWidget(
-      _harness(_bastion(), _roll(event), rolledRow: '1 — Bonus gold'),
+      _harness(_bastion(), _roll(event), rolledRow: '1 — Bonus flavor'),
     );
     await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text('Rolled'), findsOneWidget);
-    expect(find.text('1 — Bonus gold'), findsOneWidget);
+    expect(find.text('1 — Bonus flavor'), findsOneWidget);
   });
 
   testWidgets('no rolled row means no Rolled callout', (tester) async {
@@ -309,7 +309,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(popped, isNull); // no materials/gold/recruit — 'none' collapses to null
+    expect(popped, isNull); // no materials/recruit — 'none' collapses to null
   });
 
   testWidgets('Done pops the summary string when there is something to send',

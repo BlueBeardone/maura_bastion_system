@@ -35,7 +35,6 @@ List<ChartEvent> archetypeEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.metal],
         unitDice: UnitDice(1, 1),
-        goldDice: UnitDice(2, 100),
       ),
       relatedCharts: {EventChart.deeps, EventChart.tradeRoad},
       minPointsPerChart: 4,
@@ -67,7 +66,6 @@ List<ChartEvent> archetypeEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.stone],
         unitDice: UnitDice(1, 2),
-        goldDice: UnitDice(2, 100),
       ),
       relatedCharts: {EventChart.deeps, EventChart.tradeRoad, EventChart.hearth},
       minPointsPerChart: 4,
@@ -94,9 +92,7 @@ List<ChartEvent> archetypeEvents() {
       description:
           'A guild scribe arrives with a charter, a wax seal, and a proposal: your bastion as the charter-house for three trades at once.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(3, 100),
-        note: 'Charter-sealing fees and goodwill',
+        note: 'Your hirelings take pride in hosting the charter-house',
       ),
       relatedCharts: {EventChart.tradeRoad, EventChart.hearth, EventChart.arcane},
       minPointsPerChart: 4,
@@ -127,9 +123,8 @@ List<ChartEvent> archetypeEvents() {
           'The roads are dangerous and the pay for guards is high — but your own walls are hungry for hands. Escort the shipment, or garrison the bastion?',
       dispatch: DispatchSpec(prompt: 'Escort fee or the wall?', maxUnits: 3, dc: 16),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
-        note: 'Escort pay — hard coin for a hard road',
+        note: 'The escort crew returns with road-stories and full purses',
+        failureNote: 'The escort crew returns lighter than it left',
       ),
       relatedCharts: {EventChart.tradeRoad, EventChart.warMarch},
       minPointsPerChart: 8,

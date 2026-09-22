@@ -24,7 +24,7 @@ void main() {
     expect(counts[ChartTier.legend], 1);
   });
 
-  test('no material categories — hearth rewards are gold, recruits, or notes', () {
+  test('no material categories — hearth rewards are recruits or notes', () {
     for (final e in events) {
       expect(e.chart, EventChart.hearth);
       expect(e.isArchetype, isFalse);
@@ -37,15 +37,14 @@ void main() {
     }
   });
 
-  test('at least two recruit events and three gold events', () {
+  test('at least two recruit events and every event carries a flavor note', () {
     expect(
       events.where((e) => e.reward.kind == RewardKind.recruitHireling).length,
       greaterThanOrEqualTo(2),
     );
-    expect(
-      events.where((e) => e.reward.kind == RewardKind.gold).length,
-      greaterThanOrEqualTo(3),
-    );
+    for (final e in events) {
+      expect(e.reward.note, isNotNull, reason: e.id);
+    }
   });
 
   test('legend event is Heart of the Bastion', () {

@@ -74,4 +74,39 @@ void main() {
       expect(BastionTurnEventResult.fromJson(absent.toJson()).rewardSummary, isNull);
     });
   });
+
+  group('facilityResults', () {
+    test('round-trips populated list', () {
+      const result = BastionTurnResult(
+        bastionId: 'b',
+        bastionName: 'n',
+        quest: 'q',
+        facilityResults: [
+          BastionTurnFacilityResult(
+            name: 'Kitchen',
+            rolledRow: '3 | Hearty meal | Everyone is fed',
+          ),
+          BastionTurnFacilityResult(name: 'Training Yard'),
+        ],
+      );
+      final back = BastionTurnResult.fromJson(result.toJson());
+      expect(back.facilityResults.length, 2);
+      expect(back.facilityResults[0].name, 'Kitchen');
+      expect(back.facilityResults[0].rolledRow,
+          '3 | Hearty meal | Everyone is fed');
+      expect(back.facilityResults[1].name, 'Training Yard');
+      expect(back.facilityResults[1].rolledRow, isNull);
+    });
+
+    test('defaults to empty and round-trips absent as empty', () {
+      const result = BastionTurnResult(
+        bastionId: 'b',
+        bastionName: 'n',
+        quest: 'q',
+      );
+      expect(result.facilityResults, isEmpty);
+      final back = BastionTurnResult.fromJson(result.toJson());
+      expect(back.facilityResults, isEmpty);
+    });
+  });
 }

@@ -35,12 +35,19 @@ void main() {
     }
   });
 
-  test('gold-heavy events roll gold dice', () {
-    final goldEvents =
-        events.where((e) => e.reward.kind == RewardKind.gold).toList();
-    expect(goldEvents.length, greaterThanOrEqualTo(5));
-    for (final e in goldEvents) {
-      expect(e.reward.goldDice, isNotNull, reason: e.id);
+  test('former gold events are flavor-only', () {
+    const formerGold = [
+      'trd_peddlers_cart',
+      'trd_market_day',
+      'trd_letter_of_credit',
+      'trd_the_fair',
+      'trd_diamond_rough',
+      'trd_merchant_rival',
+    ];
+    for (final id in formerGold) {
+      final e = events.singleWhere((e) => e.id == id);
+      expect(e.reward.kind, RewardKind.none, reason: e.id);
+      expect(e.reward.note, isNotNull, reason: e.id);
     }
   });
 

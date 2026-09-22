@@ -7,6 +7,7 @@ import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/core/juice/juice.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
@@ -25,6 +26,7 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/facilit
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_flow_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/quest_input_dialog.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
@@ -210,6 +212,13 @@ class BastionPage extends StatelessWidget {
       rolledRow: rolledRow,
     );
     if (!context.mounted) return;
+    final facilityResults = bastion.eligibleFacilities
+        .where((f) => f.table != null)
+        .map((f) => BastionTurnFacilityResult(
+              name: f.name,
+              rolledRow: rollTableResult(f.table!),
+            ))
+        .toList();
     final eventResult = BastionTurnEventResult(
       name: roll.event.name,
       description: roll.event.description,
@@ -236,6 +245,7 @@ class BastionPage extends StatelessWidget {
                   constructionTurns: advancedFacility.constructionTurns,
                 ),
           event: eventResult,
+          facilityResults: facilityResults,
         );
         await GetIt.I<DiscordApi>().sendIndividualBastionTurn(result);
         loggedResult = result;
@@ -248,6 +258,13 @@ class BastionPage extends StatelessWidget {
       );
       return;
     }
+    await BastionTurnDialog.show(
+      context,
+      advancedFacility: advanced,
+      event: roll.event,
+      result: loggedResult,
+      facilityResults: facilityResults,
+    );
   }
 
   Widget _buildRankedFacilities(
@@ -358,6 +375,7 @@ class BastionPage extends StatelessWidget {
                                 return;
                               }
                               if (context.mounted) {
+                                Juice.reward(context);
                                 Navigator.of(context).pop();
                               }
                             }
@@ -376,6 +394,7 @@ class BastionPage extends StatelessWidget {
                                 return;
                               }
                               if (context.mounted) {
+                                Juice.reward(context);
                                 Navigator.of(context).pop();
                               }
                             }
@@ -999,6 +1018,7 @@ class BastionPage extends StatelessWidget {
                                   return;
                                 }
                                 if (context.mounted) {
+                                  Juice.reward(context);
                                   Navigator.of(context).pop();
                                 }
                               }
@@ -1022,6 +1042,7 @@ class BastionPage extends StatelessWidget {
                                   return;
                                 }
                                 if (context.mounted) {
+                                  Juice.reward(context);
                                   Navigator.of(context).pop();
                                 }
                               }

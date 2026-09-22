@@ -92,12 +92,12 @@ void main() {
   group('rewardSummaryText', () {
     test('empty reward reads none', () {
       expect(
-        rewardSummaryText(const TurnReward(materials: [], gold: 0, recruit: RewardKind.none)),
+        rewardSummaryText(const TurnReward(materials: [], recruit: RewardKind.none)),
         'none',
       );
     });
 
-    test('materials, gold and recruits are joined', () {
+    test('materials and recruits are joined', () {
       final metal = Reward(
         id: 'rew_m',
         name: 'Adamantine',
@@ -107,10 +107,9 @@ void main() {
       );
       final summary = rewardSummaryText(TurnReward(
         materials: [RewardGrant(reward: metal, effectiveRank: Rank.D, units: 2)],
-        gold: 320,
         recruit: RewardKind.recruitHireling,
       ));
-      expect(summary, '2 × Adamantine (Rank D), 320 GP, a new hireling');
+      expect(summary, '2 × Adamantine (Rank D), a new hireling');
     });
   });
 }

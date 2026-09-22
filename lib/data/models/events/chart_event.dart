@@ -46,10 +46,16 @@ TurnReward rollTurnReward({
 }) {
   final spec = event.reward;
   final tier = event.tier;
-  if (!success || spec.kind == RewardKind.none) {
+  if (!success) {
     return TurnReward(
       materials: const [],
-      gold: 0,
+      recruit: RewardKind.none,
+      note: spec.failureNote ?? spec.note,
+    );
+  }
+  if (spec.kind == RewardKind.none) {
+    return TurnReward(
+      materials: const [],
       recruit: RewardKind.none,
       note: spec.note,
     );
@@ -63,14 +69,12 @@ TurnReward rollTurnReward({
           unitDice: spec.unitDice,
           rng: rng,
         );
-  final gold = spec.goldDice?.roll(rng ?? Random()) ?? 0;
   final recruit = spec.kind == RewardKind.recruitDefender ||
           spec.kind == RewardKind.recruitHireling
       ? spec.kind
       : RewardKind.none;
   return TurnReward(
     materials: materials,
-    gold: gold,
     recruit: recruit,
     note: spec.note,
   );

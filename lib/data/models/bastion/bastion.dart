@@ -34,6 +34,14 @@ class Bastion {
   int facilityHirelingCount(String facilityId) =>
       hirelings.where((h) => h.facilityId == facilityId).length;
 
+  /// Facilities ready to grant their benefit this turn: construction is
+  /// complete and the minimum hireling complement is staffed.
+  List<Facility> get eligibleFacilities => facilities
+      .where((f) =>
+          f.constructedTurns >= f.constructionTurns &&
+          facilityHirelingCount(f.id) >= f.minimumRequiredHirelings)
+      .toList();
+
   static const Object _unchanged = Object();
 
   Bastion copyWith({

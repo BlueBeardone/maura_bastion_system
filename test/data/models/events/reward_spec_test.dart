@@ -37,13 +37,11 @@ void main() {
     expect(spec.categories, isEmpty);
     expect(spec.picks, 1);
     expect(spec.unitDice, const UnitDice(1, 2));
-    expect(spec.goldDice, isNull);
     expect(spec.note, isNull);
   });
 
   test('TurnReward.empty', () {
     expect(TurnReward.empty.materials, isEmpty);
-    expect(TurnReward.empty.gold, 0);
     expect(TurnReward.empty.recruit, RewardKind.none);
   });
 

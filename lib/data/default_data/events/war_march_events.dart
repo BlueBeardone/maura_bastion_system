@@ -31,9 +31,8 @@ List<ChartEvent> warMarchEvents() {
           'Deserters turned scavengers have been raiding the fields. Run them off and reclaim what they stole.',
       dispatch: DispatchSpec(prompt: 'Rout the scavengers', maxUnits: 2, dc: 12),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
-        note: 'Recovered stolen goods',
+        note: 'Your defenders reclaim the stolen goods for the bastion',
+        failureNote: 'The scavengers slip away with their loot',
       ),
     ),
     ChartEvent(
@@ -68,10 +67,11 @@ List<ChartEvent> warMarchEvents() {
           'Your outriders found the bandit camp that has been bleeding the roads. Take it, and everything in it.',
       dispatch: DispatchSpec(prompt: 'Storm the bandit camp', maxUnits: 3, dc: 14),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
+        kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
+        note: 'Everything in the camp is yours to carry off',
+        failureNote: 'The bandits scatter into the hills with their plunder',
       ),
     ),
     ChartEvent(
@@ -84,8 +84,7 @@ List<ChartEvent> warMarchEvents() {
       dispatch: DispatchSpec(
         prompt: 'Send your champion',
         maxUnits: 1,
-        dc: 15,
-        diceOverride: {DispatchUnitType.knight: UnitDice(2, 6)},
+        dc: 4,
       ),
       reward: RewardSpec(
         kind: RewardKind.recruitDefender,
@@ -101,11 +100,11 @@ List<ChartEvent> warMarchEvents() {
           'The raiders who burned the east fields are camped, drunk, and unaware. Return the favor.',
       dispatch: DispatchSpec(prompt: 'Raid the raiders\' camp', maxUnits: 4, dc: 16),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
+        kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
-        note: 'Recovered loot and war-beast remains',
+        note: 'Your defenders haul back the raiders\' loot and war-beast remains',
+        failureNote: 'The raiders wake, and your raiding party slips away empty-handed',
       ),
     ),
     ChartEvent(
@@ -117,9 +116,8 @@ List<ChartEvent> warMarchEvents() {
           'Raiders prowl your walls all night looking for a way in. A stubborn watch sends them looking for easier pickings.',
       dispatch: DispatchSpec(prompt: 'Hold the walls through the night', maxUnits: 4, dc: 15),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(3, 100),
-        note: 'The raiders withdraw before dawn',
+        note: 'The raiders withdraw before dawn; the watch toasts its stubbornness',
+        failureNote: 'The raiders find their way in — the morning tells the cost',
       ),
     ),
     ChartEvent(
@@ -131,10 +129,11 @@ List<ChartEvent> warMarchEvents() {
           'A warlord of Maura sends a formal challenge: her champion against yours, winner takes the field and the warlord\'s purse.',
       dispatch: DispatchSpec(prompt: 'Answer the challenge', maxUnits: 2, dc: 18),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
+        kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 2),
+        note: 'The warlord\'s purse funds a victory feast for the whole bastion',
+        failureNote: 'Your champion falls, and the field is the warlord\'s',
       ),
     ),
     ChartEvent(
@@ -158,9 +157,8 @@ List<ChartEvent> warMarchEvents() {
           'The war-camp arming Maura\'s enemies has a forge that never cools. Break it, and carry off whatever they were stockpiling.',
       dispatch: DispatchSpec(prompt: 'Break the enemy forge', maxUnits: 4, dc: 17),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
-        note: 'Break the forge, carry off the stock',
+        note: 'Your defenders break the forge and carry off the stockpile',
+        failureNote: 'The forge burns on, arming Maura\'s enemies',
       ),
     ),
     ChartEvent(
@@ -172,11 +170,11 @@ List<ChartEvent> warMarchEvents() {
           'The Black Banner — the war-band that has never lost a siege — marches on Maura, and yours stands in its road. Beat it, and the legend is yours.',
       dispatch: DispatchSpec(prompt: 'Face the Black Banner', maxUnits: 4, dc: 20),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(3, 100),
+        kind: RewardKind.material,
         categories: [RewardCategory.creaturePart],
         unitDice: UnitDice(1, 1),
-        note: '250 GP per rank on victory; the banner\'s knight joins your bastion',
+        note: 'The Black Banner breaks, and its legend passes to your bastion',
+        failureNote: 'The Black Banner marches on',
       ),
     ),
   ];

@@ -48,9 +48,29 @@ void main() {
         rng: Random(1),
       );
       expect(result.materials, isEmpty);
-      expect(result.gold, 0);
       expect(result.recruit, RewardKind.none);
       expect(result.note, 'lost');
+    });
+
+    test('failure yields the failure note when present', () {
+      final result = rollTurnReward(
+        event: eventWith(const RewardSpec(
+          note: 'success flavor',
+          failureNote: 'failure flavor',
+        )),
+        success: false,
+        rng: Random(1),
+      );
+      expect(result.note, 'failure flavor');
+    });
+
+    test('failure falls back to the plain note when no failure note', () {
+      final result = rollTurnReward(
+        event: eventWith(const RewardSpec(note: 'quiet')),
+        success: false,
+        rng: Random(1),
+      );
+      expect(result.note, 'quiet');
     });
 
     test('kind none yields nothing but the note', () {
@@ -61,7 +81,6 @@ void main() {
       );
       expect(result, isA<TurnReward>());
       expect(result.materials, isEmpty);
-      expect(result.gold, 0);
       expect(result.note, 'quiet');
     });
 
@@ -79,18 +98,17 @@ void main() {
       expect(withinRewardCap(result.materials.single.reward.rank, Rank.D), isTrue);
     });
 
-    test('gold success rolls the gold dice', () {
-      for (var i = 0; i < 20; i++) {
-        final result = rollTurnReward(
-          event: eventWith(RewardSpec(
-            kind: RewardKind.gold,
-            goldDice: const UnitDice(2, 10),
-          )),
-          success: true,
-          rng: Random(100 + i),
-        );
-        expect(result.gold, inInclusiveRange(2, 20));
-      }
+    test('flavor-only success yields just the note', () {
+      final result = rollTurnReward(
+        event: eventWith(const RewardSpec(
+          note: 'Your hirelings split the bounty over drinks',
+        )),
+        success: true,
+        rng: Random(7),
+      );
+      expect(result.materials, isEmpty);
+      expect(result.recruit, RewardKind.none);
+      expect(result.note, 'Your hirelings split the bounty over drinks');
     });
 
     test('recruit kind carries through', () {
@@ -103,18 +121,18 @@ void main() {
       expect(result.materials, isEmpty);
     });
 
-    test('material + gold combine for mixed rewards', () {
+    test('material success carries the note', () {
       final result = rollTurnReward(
         event: eventWith(const RewardSpec(
           kind: RewardKind.material,
           categories: [RewardCategory.stone],
-          goldDice: UnitDice(2, 10),
+          note: 'the stockpile is yours',
         )),
         success: true,
         rng: Random(4),
       );
       expect(result.materials.length, 1);
-      expect(result.gold, inInclusiveRange(2, 20));
+      expect(result.note, 'the stockpile is yours');
     });
   });
 }

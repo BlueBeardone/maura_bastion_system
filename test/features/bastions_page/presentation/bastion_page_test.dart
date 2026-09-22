@@ -280,7 +280,7 @@ void main() {
             table: {
               'table': [
                 ['d4', 'Effect'],
-                ['1', 'Bonus gold'],
+                ['1', 'Bonus flavor'],
               ],
             },
           ),
@@ -332,6 +332,18 @@ void main() {
 
     // The Discord gate passed and the under-construction facility advanced.
     expect(puts, hasLength(1));
+
+    // The turn summary dialog now appears: construction progress plus the
+    // rolled result from the eligible facility (keep).
+    expect(find.text('Construction advanced: Barracks (1/2 turns)'),
+        findsOneWidget);
+    expect(find.text('Facility Results'), findsOneWidget);
+    expect(find.text('Keep'), findsWidgets);
+    expect(find.text('1 | Bonus flavor'), findsOneWidget);
+
+    // Closing the summary dialog clears it.
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
     expect(find.text('Bastion Turn'), findsNothing);
   });
 

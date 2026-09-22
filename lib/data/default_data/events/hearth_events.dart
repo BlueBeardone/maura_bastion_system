@@ -38,9 +38,8 @@ List<ChartEvent> hearthEvents() {
           'The kitchen caught alight mid-roast. Save the stores and there may be salvage worth keeping.',
       dispatch: DispatchSpec(prompt: 'Fight the kitchen fire', maxUnits: 2, dc: 10),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(1, 60),
-        note: 'Salvaged what the flames spared',
+        note: 'Your hirelings salvage what the flames spared',
+        failureNote: 'The fire wins this round; the kitchen smells of smoke for days',
       ),
     ),
     ChartEvent(
@@ -52,9 +51,8 @@ List<ChartEvent> hearthEvents() {
           'The cellar rats have grown fat, bold, and enormous. The village pays a bounty per tail.',
       dispatch: DispatchSpec(prompt: 'Clear the cellar rats', maxUnits: 2, dc: 12),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
-        note: 'Rat-catching bounty',
+        note: 'Your hirelings split the rat-catching bounty over drinks',
+        failureNote: 'The rats keep the cellar for now',
       ),
     ),
     ChartEvent(
@@ -100,9 +98,8 @@ List<ChartEvent> hearthEvents() {
       description:
           'The bastion hosts the season\'s festival. Stall fees, drinking songs, and a remarkably honest dice game.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
-        note: 'Stall fees and games',
+        note:
+            'Your hirelings come home from the festival with full pockets and loud songs',
       ),
     ),
     ChartEvent(
@@ -113,9 +110,7 @@ List<ChartEvent> hearthEvents() {
       description:
           'A bard whose name opens doors in three kingdoms has chosen YOUR common room for a residency. The crowds follow.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
-        note: 'The common room is full for a week',
+        note: 'Your hirelings bask in a week of a full common room',
       ),
     ),
     ChartEvent(
@@ -128,6 +123,7 @@ List<ChartEvent> hearthEvents() {
       dispatch: DispatchSpec(prompt: 'Hear the grievance', maxUnits: 2, dc: 16),
       reward: RewardSpec(
         note: 'Settled fairly: +2 to the next Hearth dispatch',
+        failureNote: 'The grievance festers, and the work suffers',
       ),
     ),
     ChartEvent(
@@ -139,9 +135,8 @@ List<ChartEvent> hearthEvents() {
           'A visiting tailor has seen your workshops and wants a commission done to your house\'s standard. Payment is generous; the deadline is not.',
       dispatch: DispatchSpec(prompt: 'Fulfil the masterwork order', maxUnits: 2, dc: 15),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
-        note: 'A visiting tailor commissions work',
+        note: 'Your workshops take on the tailor\'s commission with pride',
+        failureNote: 'The tailor takes his commission elsewhere',
       ),
     ),
     ChartEvent(
@@ -155,6 +150,7 @@ List<ChartEvent> hearthEvents() {
       reward: RewardSpec(
         kind: RewardKind.recruitHireling,
         note: 'Permanent: +1 to all Hearth dispatch totals',
+        failureNote: 'The heart of the bastion dims, and the hirelings feel it',
       ),
     ),
   ];

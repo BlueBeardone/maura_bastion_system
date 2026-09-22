@@ -15,9 +15,9 @@ class UnitDice {
 UnitDice defaultDiceFor(DispatchUnitType type) {
   switch (type) {
     case DispatchUnitType.beast:
-      return const UnitDice(2, 6);
+      return const UnitDice(1, 10);
     case DispatchUnitType.knight:
-      return const UnitDice(1, 8);
+      return const UnitDice(1, 12);
     case DispatchUnitType.bastionDefender:
     case DispatchUnitType.hireling:
       return const UnitDice(1, 6);

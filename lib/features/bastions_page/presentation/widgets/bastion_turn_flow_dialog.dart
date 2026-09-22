@@ -438,21 +438,6 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
             ),
           ),
         ],
-        if (reward.gold > 0) ...[
-          const SizedBox(height: 8),
-          staggered(
-            sparkle(
-              Text(
-                '${reward.gold} GP',
-                style: GoogleFonts.cinzel(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: MedievalColors.vermillion,
-                ),
-              ),
-            ),
-          ),
-        ],
         if (reward.materials.isNotEmpty) ...[
           const SizedBox(height: 8),
           for (final grant in reward.materials)

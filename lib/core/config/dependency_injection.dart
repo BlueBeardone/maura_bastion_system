@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:maura_bastion_system/core/juice/juice_settings.dart';
+import 'package:maura_bastion_system/core/juice/juice_sfx.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
 import 'package:maura_bastion_system/api/defender_api.dart';
@@ -12,10 +14,16 @@ import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/features/bastions_page/data/filler_store.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DependencyInjection {
   static Future<void> init() async {
     GetIt.I.registerLazySingleton<AuthSessionStore>(() => AuthSessionStore());
+    final prefs = await SharedPreferences.getInstance();
+    GetIt.I.registerLazySingleton<JuiceSettings>(
+        () => JuiceSettings(prefs: prefs));
+    GetIt.I.registerLazySingleton<Sfx>(
+        () => Sfx(settings: GetIt.I<JuiceSettings>()));
     _registerApiClient();
     _registerApiServices();
     _registerCubits();

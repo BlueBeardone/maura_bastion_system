@@ -16,9 +16,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'A peddler\'s cart creaks up to your gates, full of things nobody needs and everybody wants.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 100),
-        note: 'Trinkets and pin-money',
+        note: 'Your hirelings haggle the peddler down to trinkets and pin-money',
       ),
     ),
     ChartEvent(
@@ -29,8 +27,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'Tolls, stall rents, and a small cut of everything sold. Market day is a good day.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(3, 100),
+        note: 'Your hirelings enjoy market day on their share of the tolls',
       ),
     ),
     ChartEvent(
@@ -41,8 +38,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'A merchant house settles an old debt with a letter of credit. It is worth the ink it is written in — this time.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(2, 120),
+        note: 'Your hirelings toast the settled debt',
       ),
     ),
     ChartEvent(
@@ -64,9 +60,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'A traveling fair sets up beneath your walls. A rented stall and a generous purse of prizes draw the crowds — and their coin.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
-        note: 'After 25 GP of stall fees',
+        note: 'Your hirelings spend the stall fees on fair-day treats',
       ),
     ),
     ChartEvent(
@@ -117,9 +111,7 @@ List<ChartEvent> tradeRoadEvents() {
       description:
           'A desperate traveler sells you a battered case of oddities for pocket change. Appraising it takes a careful eye — and a willingness to be wrong.',
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(6, 100),
-        note: 'Buy low, sell high — or keep it',
+        note: 'Your hirelings turn a tidy profit on the oddities',
       ),
     ),
     ChartEvent(
@@ -134,7 +126,8 @@ List<ChartEvent> tradeRoadEvents() {
         kind: RewardKind.material,
         categories: [RewardCategory.weave],
         unitDice: UnitDice(1, 2),
-        goldDice: UnitDice(3, 100),
+        note: 'The caravan crew shares its road-stories with your guards',
+        failureNote: 'The caravan hires other guards',
       ),
     ),
     ChartEvent(
@@ -146,9 +139,8 @@ List<ChartEvent> tradeRoadEvents() {
           'A rival house has been undercutting your trade routes for a season. Sit them down at the table and out-haggle them.',
       dispatch: DispatchSpec(prompt: 'Out-negotiate the rival house', maxUnits: 2, dc: 15),
       reward: RewardSpec(
-        kind: RewardKind.gold,
-        goldDice: UnitDice(4, 100),
-        note: 'The rival signs favorable terms',
+        note: 'Your hirelings celebrate the rival\'s favorable terms',
+        failureNote: 'The rival house walks away smiling',
       ),
     ),
     ChartEvent(

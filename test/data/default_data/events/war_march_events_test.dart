@@ -2,7 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/default_data/events/war_march_events.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
-import 'package:maura_bastion_system/data/models/events/dispatch.dart';
+
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 
@@ -45,13 +45,11 @@ void main() {
     expect(events.where((e) => e.dispatch != null).length, greaterThanOrEqualTo(7));
   });
 
-  test('the duel is a single-knight affair with a dice override', () {
+  test('the duel is a single-knight affair on the knight\'s default dice', () {
     final duel = events.singleWhere((e) => e.id == 'wrm_duel');
     expect(duel.dispatch!.maxUnits, 1);
-    expect(
-      duel.dispatch!.diceOverride![DispatchUnitType.knight],
-      const UnitDice(2, 6),
-    );
+    expect(duel.dispatch!.diceOverride, isNull);
+    expect(duel.dispatch!.dc, 4);
   });
 
   test('legend event is The Black Banner', () {

@@ -13,7 +13,6 @@ Bastion _bastion() => Bastion(id: 'b1', name: 'Highfell', description: '', facil
 
 TurnReward _rewardWith(RewardGrant grant) => TurnReward(
       materials: [grant],
-      gold: 0,
       recruit: RewardKind.none,
     );
 
@@ -42,22 +41,12 @@ void main() {
     expect(article.content, contains('Adamantine'));
   });
 
-  test('gold of 500 or more is notable', () {
-    final article = notableResultArticle(
-      bastion: _bastion(),
-      event: _basicEvent(),
-      reward: const TurnReward(materials: [], gold: 500, recruit: RewardKind.none),
-    );
-    expect(article, isNotNull);
-    expect(article!.content, contains('500 GP'));
-  });
-
   test('recruit and legend and bonus archetype are notable', () {
     expect(
       notableResultArticle(
         bastion: _bastion(),
         event: _basicEvent(),
-        reward: const TurnReward(materials: [], gold: 0, recruit: RewardKind.recruitDefender),
+        reward: const TurnReward(materials: [], recruit: RewardKind.recruitDefender),
       ),
       isNotNull,
     );
@@ -65,7 +54,7 @@ void main() {
       notableResultArticle(
         bastion: _bastion(),
         event: _legendEvent(),
-        reward: const TurnReward(materials: [], gold: 0, recruit: RewardKind.none),
+        reward: const TurnReward(materials: [], recruit: RewardKind.none),
       ),
       isNotNull,
     );
@@ -73,7 +62,7 @@ void main() {
       notableResultArticle(
         bastion: _bastion(),
         event: _basicEvent(),
-        reward: const TurnReward(materials: [], gold: 0, recruit: RewardKind.none),
+        reward: const TurnReward(materials: [], recruit: RewardKind.none),
         bonusArchetype: _bonusEvent(),
       ),
       isNotNull,

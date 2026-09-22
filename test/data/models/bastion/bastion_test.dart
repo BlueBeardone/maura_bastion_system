@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility.dart';
+import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 
 void main() {
   group('Bastion', () {
@@ -100,6 +103,73 @@ void main() {
         );
 
         expect(bastion.belongsTo('user_1'), isFalse);
+      });
+    });
+
+    group('eligibleFacilities', () {
+      test('includes facilities fully built with enough hirelings', () {
+        final bastion = Bastion(
+          id: 'b1',
+          name: 'Keep',
+          description: '',
+          facilities: [
+            Facility(
+              id: 'f1',
+              name: 'Kitchen',
+              rank: Rank.D,
+              description: '',
+              constructionTurns: 2,
+              constructedTurns: 2,
+              minimumRequiredHirelings: 1,
+            ),
+          ],
+          hirelings: [
+            Hireling(id: 'h1', name: 'Cook', bastionId: 'b1', facilityId: 'f1'),
+          ],
+        );
+        expect(bastion.eligibleFacilities.map((f) => f.id), ['f1']);
+      });
+
+      test('excludes facilities still under construction', () {
+        final bastion = Bastion(
+          id: 'b1',
+          name: 'Keep',
+          description: '',
+          facilities: [
+            Facility(
+              id: 'f1',
+              name: 'Kitchen',
+              rank: Rank.D,
+              description: '',
+              constructionTurns: 2,
+              constructedTurns: 1,
+            ),
+          ],
+        );
+        expect(bastion.eligibleFacilities, isEmpty);
+      });
+
+      test('excludes facilities with too few hirelings', () {
+        final bastion = Bastion(
+          id: 'b1',
+          name: 'Keep',
+          description: '',
+          facilities: [
+            Facility(
+              id: 'f1',
+              name: 'Kitchen',
+              rank: Rank.D,
+              description: '',
+              constructionTurns: 2,
+              constructedTurns: 2,
+              minimumRequiredHirelings: 2,
+            ),
+          ],
+          hirelings: [
+            Hireling(id: 'h1', name: 'Cook', bastionId: 'b1', facilityId: 'f1'),
+          ],
+        );
+        expect(bastion.eligibleFacilities, isEmpty);
       });
     });
   });

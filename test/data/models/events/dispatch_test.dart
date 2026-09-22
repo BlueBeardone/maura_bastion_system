@@ -23,8 +23,8 @@ void main() {
   });
 
   test('default dice per unit type', () {
-    expect(defaultDiceFor(DispatchUnitType.beast), const UnitDice(2, 6));
-    expect(defaultDiceFor(DispatchUnitType.knight), const UnitDice(1, 8));
+    expect(defaultDiceFor(DispatchUnitType.beast), const UnitDice(1, 10));
+    expect(defaultDiceFor(DispatchUnitType.knight), const UnitDice(1, 12));
     expect(defaultDiceFor(DispatchUnitType.bastionDefender), const UnitDice(1, 6));
     expect(defaultDiceFor(DispatchUnitType.hireling), const UnitDice(1, 6));
   });
@@ -38,7 +38,7 @@ void main() {
         diceOverride: {DispatchUnitType.knight: UnitDice(2, 6)},
       );
       expect(spec.diceFor(DispatchUnitType.knight), const UnitDice(2, 6));
-      expect(spec.diceFor(DispatchUnitType.beast), const UnitDice(2, 6));
+      expect(spec.diceFor(DispatchUnitType.beast), const UnitDice(1, 10));
       expect(spec.diceFor(DispatchUnitType.hireling), const UnitDice(1, 6));
     });
 
@@ -74,9 +74,9 @@ void main() {
         bonus: 2,
       );
       expect(result.unitRolls.length, 2);
-      expect(result.unitRolls[0].rolls.length, 1); // knight 1d8
+      expect(result.unitRolls[0].rolls.length, 1); // knight 1d12
       expect(result.unitRolls[0].unit.name, 'Aldric');
-      expect(result.unitRolls[1].rolls.length, 2); // beast 2d6
+      expect(result.unitRolls[1].rolls.length, 1); // beast 1d10
       final expectedTotal = result.unitRolls.fold<int>(0, (s, r) => s + r.subtotal) + 2;
       expect(result.total, expectedTotal);
       expect(result.success, expectedTotal >= 10);

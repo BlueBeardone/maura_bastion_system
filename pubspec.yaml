@@ -39,6 +39,7 @@ dependencies:
   http: ^1.6.0
   shared_preferences: ^2.5.0
   flutter_launcher_icons: ^0.14.4
+  audioplayers: ^6.8.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -55,4 +56,6 @@ flutter_launcher_icons:
 flutter:
 
   uses-material-design: true
+  assets:
+    - assets/sfx/
 
