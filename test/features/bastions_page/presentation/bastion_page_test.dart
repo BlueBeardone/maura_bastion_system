@@ -253,6 +253,36 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('facility containers expand to show benefits and open the page',
+      (tester) async {
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: bastionTurnMockClient([
+        turnFacilityJson(
+          id: 'keep',
+          name: 'Keep',
+          description: 'A sturdy keep.',
+        ),
+      ]),
+    );
+
+    // Collapsed: description hidden.
+    expect(find.textContaining('A sturdy keep.'), findsNothing);
+
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+
+    // Expanded: full description + Open facility button.
+    expect(find.textContaining('A sturdy keep.'), findsOneWidget);
+    expect(find.text('Open facility'), findsOneWidget);
+
+    await tester.tap(find.text('Open facility'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Assigned Hirelings'), findsOneWidget);
+  });
+
   testWidgets('FAB is hidden for non-user bastions', (tester) async {
     await pumpBastionPage(
       tester,
@@ -554,6 +584,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Barracks'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open facility'));
     await tester.pumpAndSettle();
 
     expect(find.text('Upgrade to Rank C — 900 GP'), findsOneWidget);

@@ -26,6 +26,7 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/facilit
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_expandable_card.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_flow_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/quest_input_dialog.dart';
@@ -321,14 +322,14 @@ class BastionPage extends StatelessWidget {
       );
 
       widgets.add(
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        Column(
           children: [
             ...facilities.map((facility) {
-              return _buildFacilityCard(context, facility, bastion);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildFacilityContainer(context, facility, bastion),
+              );
             }),
-            if (isUserBastion && !allBuilt) const SizedBox(height: 16),
             if (isUserBastion && !allBuilt) _buildPlusCard(context, bastion),
           ],
         ),
@@ -337,13 +338,8 @@ class BastionPage extends StatelessWidget {
 
     if (widgets.isEmpty && isUserBastion && !allBuilt) {
       widgets.add(
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            const SizedBox(height: 16),
-            _buildPlusCard(context, bastion),
-          ],
+        Column(
+          children: [_buildPlusCard(context, bastion)],
         ),
       );
     }
@@ -354,226 +350,95 @@ class BastionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFacilityCard(
+  Widget _buildFacilityContainer(
     BuildContext context,
     Facility facility,
     Bastion bastion,
   ) {
-    final bool isConstructing =
-        facility.constructedTurns < facility.constructionTurns;
-    return SizedBox(
-      width: _cardWidth,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            final cubit = context.read<BastionCubit>();
-            Navigator.of(context)
-                .push(
-                  MaterialPageRoute(
-                    builder: (_) => FacilityPage(
-                      facility: facility,
-                      bastion: bastion,
-                      isUserBastion: isUserBastion,
-                      bastionCubit: cubit,
-                      onUpgrade: isUserBastion
-                          ? () async {
-                              final upgraded = await cubit.upgradeFacility(
-                                bastion.id,
-                                facility,
-                              );
-                              if (!context.mounted) return;
-                              if (upgraded == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to upgrade facility'),
-                                  ),
+    final cubit = context.read<BastionCubit>();
+    return FacilityExpandableCard(
+      facility: facility,
+      hirelingCount: bastion.facilityHirelingCount(facility.id),
+      onOpen: isUserBastion
+          ? () {
+              Navigator.of(context)
+                  .push(
+                    MaterialPageRoute(
+                      builder: (_) => FacilityPage(
+                        facility: facility,
+                        bastion: bastion,
+                        isUserBastion: isUserBastion,
+                        bastionCubit: cubit,
+                        onUpgrade: isUserBastion
+                            ? () async {
+                                final upgraded = await cubit.upgradeFacility(
+                                  bastion.id,
+                                  facility,
                                 );
-                                return;
+                                if (!context.mounted) return;
+                                if (upgraded == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Failed to upgrade facility'),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (context.mounted) {
+                                  Juice.reward(context);
+                                  Navigator.of(context).pop();
+                                }
                               }
-                              if (context.mounted) {
-                                Juice.reward(context);
-                                Navigator.of(context).pop();
+                            : null,
+                        onPurchaseBranchUpgrade: isUserBastion
+                            ? () async {
+                                final purchased = await cubit
+                                    .purchaseBranchUpgrade(bastion.id, facility);
+                                if (!context.mounted) return;
+                                if (purchased == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Failed to purchase upgrade'),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (context.mounted) {
+                                  Juice.reward(context);
+                                  Navigator.of(context).pop();
+                                }
                               }
-                            }
-                          : null,
-                      onPurchaseBranchUpgrade: isUserBastion
-                          ? () async {
-                              final purchased = await cubit
-                                  .purchaseBranchUpgrade(bastion.id, facility);
-                              if (!context.mounted) return;
-                              if (purchased == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to purchase upgrade'),
-                                  ),
+                            : null,
+                        onRemove: isUserBastion
+                            ? () async {
+                                final removed = await cubit.removeFacility(
+                                  bastion.id,
+                                  facility,
                                 );
-                                return;
+                                if (!context.mounted) return;
+                                if (!removed) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Failed to remove facility'),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
                               }
-                              if (context.mounted) {
-                                Juice.reward(context);
-                                Navigator.of(context).pop();
-                              }
-                            }
-                          : null,
-                      onRemove: isUserBastion
-                          ? () async {
-                              final removed = await cubit.removeFacility(
-                                bastion.id,
-                                facility,
-                              );
-                              if (!context.mounted) return;
-                              if (!removed) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to remove facility'),
-                                  ),
-                                );
-                                return;
-                              }
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                              }
-                            }
-                          : null,
+                            : null,
+                      ),
                     ),
-                  ),
-                )
-                .then((_) {
-                  if (context.mounted) cubit.loadBastions();
-                });
-          },
-          child: Opacity(
-            opacity: isConstructing ? 0.5 : 1.0,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const RadialGradient(
-                  center: Alignment.center,
-                  radius: 0.9,
-                  colors: [
-                    MedievalColors.parchmentLight,
-                    MedievalColors.parchmentDark,
-                  ],
-                  stops: [0.6, 1.0],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(50),
-                    blurRadius: 6,
-                    offset: const Offset(2, 3),
-                  ),
-                ],
-              ),
-              child: CustomPaint(
-                painter: ParchmentBorderPainter(),
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        facility.name,
-                        style: GoogleFonts.cinzel(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: MedievalColors.vermillion,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildFramedImage(facility.imgUrl),
-                      const SizedBox(height: 8),
-                      Text(
-                        facility.description,
-                        style: GoogleFonts.imFellEnglish(
-                          fontSize: 15,
-                          height: 1.4,
-                          color: MedievalColors.sepiaInk,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildFacilityInfoRow(facility, bastion, isConstructing),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFacilityInfoRow(
-    Facility facility,
-    Bastion bastion,
-    bool isConstructing,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.meeting_room,
-              size: 12,
-              color: MedievalColors.sepiaSecondary,
-            ),
-            const SizedBox(width: 3),
-            Text(
-              'Rank ${facility.rank.title}',
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 13,
-                color: MedievalColors.sepiaSecondary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.group, size: 12, color: MedievalColors.sepiaSecondary),
-            const SizedBox(width: 3),
-            Text(
-              '${bastion.facilityHirelingCount(facility.id)}',
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 13,
-                color: MedievalColors.sepiaSecondary,
-              ),
-            ),
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isConstructing)
-                      Icon(
-                        Icons.timer_rounded,
-                        size: 12,
-                        color: MedievalColors.sepiaSecondary,
-                      ),
-                    if (isConstructing) const SizedBox(width: 3),
-                    if (isConstructing)
-                      Text(
-                        '${facility.constructedTurns}/${facility.constructionTurns}t',
-                        style: GoogleFonts.imFellEnglish(
-                          fontSize: 13,
-                          color: MedievalColors.sepiaSecondary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            if (isConstructing) const SizedBox(width: 4),
-          ],
-        ),
-      ],
+                  )
+                  .then((_) {
+                if (context.mounted) cubit.loadBastions();
+              });
+            }
+          : null,
     );
   }
 
