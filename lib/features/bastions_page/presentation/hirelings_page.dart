@@ -6,11 +6,10 @@ import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
-import 'package:maura_bastion_system/core/utils/url_validator.dart';
-import 'package:maura_bastion_system/core/widgets/busy_button.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/hireling_create_form.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 class HirelingsPage extends StatelessWidget {
@@ -46,13 +45,6 @@ class _HirelingsView extends StatefulWidget {
 
 class _HirelingsViewState extends State<_HirelingsView> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _formKey = GlobalKey<FormState>();
-
-  String _name = '';
-  String _role = '';
-  String _description = '';
-  String _imgUrl = '';
-  String _acquisitionStory = '';
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +67,17 @@ class _HirelingsViewState extends State<_HirelingsView> {
       ),
       endDrawer: Drawer(
         width: 360,
-        child: _buildAddHirelingForm(),
+        child: HirelingCreateForm(
+          cubit: context.read<HirelingsCubit>(),
+          bastionId: widget.bastion?.id ?? '',
+          bastionName: widget.bastion?.name,
+          onCreated: (_) {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Hireling recruited!')),
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -174,157 +176,6 @@ class _HirelingsViewState extends State<_HirelingsView> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddHirelingForm() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment.center,
-          radius: 0.9,
-          colors: [
-            MedievalColors.parchmentLight,
-            MedievalColors.parchmentDark,
-          ],
-          stops: [0.6, 1.0],
-        ),
-      ),
-      child: CustomPaint(
-        painter: ParchmentBorderPainter(),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.person, color: MedievalColors.vermillion),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Recruit a Hireling',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: MedievalColors.vermillion,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                initialValue: _name,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  prefixIcon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _name = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _role,
-                decoration: const InputDecoration(
-                  labelText: 'Role',
-                  prefixIcon: Icon(Icons.work),
-                ),
-                onSaved: (value) => _role = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _description,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  prefixIcon: Icon(Icons.description),
-                ),
-                maxLines: 3,
-                onSaved: (value) => _description = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _imgUrl,
-                decoration: const InputDecoration(
-                  labelText: 'Image URL',
-                  prefixIcon: Icon(Icons.image),
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return null;
-                  return UrlValidator.isValidFormat(v.trim())
-                      ? null
-                      : 'Please enter a valid URL (https://...)';
-                },
-                onSaved: (value) => _imgUrl = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _acquisitionStory,
-                decoration: const InputDecoration(
-                  labelText: 'Acquisition Story',
-                  prefixIcon: Icon(Icons.auto_stories),
-                ),
-                maxLines: 2,
-                onSaved: (value) => _acquisitionStory = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 20),
-              BlocBuilder<HirelingsCubit, HirelingsState>(
-                builder: (btnContext, state) {
-                  return BusyButton(
-                    busy: state.isMutating,
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        _formKey.currentState?.save();
-                        if (_imgUrl.isNotEmpty) {
-                          final result = await UrlValidator.check(_imgUrl);
-                          if (!btnContext.mounted) return;
-                          if (result == UrlCheckResult.unreachable) {
-                            ScaffoldMessenger.of(btnContext).showSnackBar(
-                              const SnackBar(
-                                content: Text('Image URL is unreachable'),
-                              ),
-                            );
-                            return;
-                          }
-                        }
-                        final cubit = btnContext.read<HirelingsCubit>();
-                        final ok = await cubit.addHireling(
-                          name: _name,
-                          role: _role.isNotEmpty ? _role : null,
-                          description:
-                              _description.isNotEmpty ? _description : null,
-                          imgUrl: _imgUrl.isNotEmpty ? _imgUrl : null,
-                          acquisitionStory: _acquisitionStory.isNotEmpty ? _acquisitionStory : null,
-                        );
-                        if (!btnContext.mounted) return;
-                        if (!ok) return;
-                        _formKey.currentState?.reset();
-                        setState(() {
-                          _name = '';
-                          _role = '';
-                          _description = '';
-                          _imgUrl = '';
-                          _acquisitionStory = '';
-                        });
-                        Navigator.of(btnContext).pop();
-                        ScaffoldMessenger.of(btnContext).showSnackBar(
-                          const SnackBar(content: Text('Hireling recruited!')),
-                        );
-                      }
-                    },
-                    child: const Text('Recruit Hireling'),
-                  );
-                },
-              ),
-            ],
-          ),
         ),
       ),
     );
