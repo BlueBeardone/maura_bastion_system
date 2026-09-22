@@ -5,10 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/defender_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
-import 'package:maura_bastion_system/core/widgets/busy_button.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_create_form.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_detail_sheet.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/defender_type_icon.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bulk_recruit_form.dart';
@@ -35,16 +35,25 @@ class DefendersPage extends StatelessWidget {
         discordAnnouncer: GetIt.I<DiscordAnnouncer>(),
         bastionName: bastionName,
       )..loadDefenders(),
-      child: _DefendersView(bastionName: bastionName, canManage: canManage),
+      child: _DefendersView(
+        bastionId: bastionId,
+        bastionName: bastionName,
+        canManage: canManage,
+      ),
     );
   }
 }
 
 class _DefendersView extends StatefulWidget {
+  final String bastionId;
   final String bastionName;
   final bool canManage;
 
-  const _DefendersView({required this.bastionName, required this.canManage});
+  const _DefendersView({
+    required this.bastionId,
+    required this.bastionName,
+    required this.canManage,
+  });
 
   @override
   State<_DefendersView> createState() => _DefendersViewState();
@@ -52,12 +61,6 @@ class _DefendersView extends StatefulWidget {
 
 class _DefendersViewState extends State<_DefendersView> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _formKey = GlobalKey<FormState>();
-
-  String _name = '';
-  DefenderType? _type;
-  String _description = '';
-  String _acquisitionStory = '';
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +101,18 @@ class _DefendersViewState extends State<_DefendersView> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          _buildAddDefenderForm(),
+                          DefenderCreateForm(
+                            cubit: context.read<DefendersCubit>(),
+                            bastionId: widget.bastionId,
+                            bastionName: widget.bastionName,
+                            onCreated: (_) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Defender enlisted!')),
+                              );
+                            },
+                          ),
                           const BulkRecruitForm(),
                         ],
                       ),
@@ -212,144 +226,6 @@ class _DefendersViewState extends State<_DefendersView> {
             ),
           );
         },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddDefenderForm() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment.center,
-          radius: 0.9,
-          colors: [
-            MedievalColors.parchmentLight,
-            MedievalColors.parchmentDark,
-          ],
-          stops: [0.6, 1.0],
-        ),
-      ),
-      child: CustomPaint(
-        painter: ParchmentBorderPainter(),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.shield, color: MedievalColors.vermillion),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Enlist a New Defender',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: MedievalColors.vermillion,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                initialValue: _name,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  prefixIcon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _name = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<DefenderType>(
-                initialValue: _type,
-                decoration: const InputDecoration(
-                  labelText: 'Type',
-                ),
-                items: DefenderType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.title),
-                  );
-                }).toList(),
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a type';
-                  }
-                  return null;
-                },
-                onChanged: (value) => setState(() => _type = value),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _description,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  prefixIcon: Icon(Icons.description),
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _description = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _acquisitionStory,
-                decoration: const InputDecoration(
-                  labelText: 'How did you gain this defender?',
-                  prefixIcon: Icon(Icons.auto_stories),
-                ),
-                maxLines: 2,
-                onSaved: (value) => _acquisitionStory = value?.trim() ?? '',
-              ),
-              const SizedBox(height: 20),
-              BlocBuilder<DefendersCubit, DefendersState>(
-                builder: (btnContext, state) {
-                  return BusyButton(
-                    busy: state.isMutating,
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        _formKey.currentState?.save();
-                        final cubit = btnContext.read<DefendersCubit>();
-                        final ok = await cubit.addDefender(
-                          name: _name,
-                          type: _type!,
-                          description: _description,
-                          acquisitionStory: _acquisitionStory,
-                        );
-                        if (!btnContext.mounted) return;
-                        if (!ok) return;
-                        _formKey.currentState?.reset();
-                        setState(() {
-                          _name = '';
-                          _type = null;
-                          _description = '';
-                          _acquisitionStory = '';
-                        });
-                        Navigator.of(btnContext).pop();
-                        ScaffoldMessenger.of(btnContext).showSnackBar(
-                          const SnackBar(content: Text('Defender enlisted!')),
-                        );
-                      }
-                    },
-                    child: const Text('Enlist Defender'),
-                  );
-                },
-              ),
-            ],
-          ),
         ),
       ),
     );
