@@ -11,6 +11,9 @@ import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
+typedef RecruitCreated = void Function(
+    ({String name, DefenderType? defenderType, String? role}));
+
 class DefenderCreateForm extends StatefulWidget {
   final String bastionId;
   final String? bastionName;
@@ -19,7 +22,7 @@ class DefenderCreateForm extends StatefulWidget {
   final DefendersCubit? cubit;
   final String headerText;
   final String? initialAcquisitionStory;
-  final ValueChanged<String>? onCreated;
+  final RecruitCreated? onCreated;
 
   const DefenderCreateForm({
     super.key,
@@ -173,6 +176,7 @@ class _DefenderCreateFormState extends State<DefenderCreateForm> {
                         if (!ok) return;
                         Juice.reward(btnContext);
                         final createdName = _name;
+                        final createdType = _type;
                         _formKey.currentState?.reset();
                         setState(() {
                           _name = '';
@@ -181,7 +185,13 @@ class _DefenderCreateFormState extends State<DefenderCreateForm> {
                           _acquisitionStory =
                               widget.initialAcquisitionStory ?? '';
                         });
-                        widget.onCreated?.call(createdName);
+                        widget.onCreated?.call(
+                          (
+                            name: createdName,
+                            defenderType: createdType,
+                            role: null,
+                          ),
+                        );
                       }
                     },
                     child: const Text('Enlist Defender'),

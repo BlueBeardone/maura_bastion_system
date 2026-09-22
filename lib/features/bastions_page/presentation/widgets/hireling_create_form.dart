@@ -8,8 +8,12 @@ import 'package:maura_bastion_system/core/juice/juice.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/url_validator.dart';
 import 'package:maura_bastion_system/core/widgets/busy_button.dart';
+import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/hirelings_cubit.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
+
+typedef RecruitCreated = void Function(
+    ({String name, DefenderType? defenderType, String? role}));
 
 class HirelingCreateForm extends StatefulWidget {
   final String bastionId;
@@ -19,7 +23,7 @@ class HirelingCreateForm extends StatefulWidget {
   final HirelingsCubit? cubit;
   final String headerText;
   final String? initialAcquisitionStory;
-  final ValueChanged<String>? onCreated;
+  final RecruitCreated? onCreated;
 
   const HirelingCreateForm({
     super.key,
@@ -184,6 +188,7 @@ class _HirelingCreateFormState extends State<HirelingCreateForm> {
                         if (!ok) return;
                         Juice.reward(btnContext);
                         final createdName = _name;
+                        final createdRole = _role.isNotEmpty ? _role : null;
                         _formKey.currentState?.reset();
                         setState(() {
                           _name = '';
@@ -193,7 +198,9 @@ class _HirelingCreateFormState extends State<HirelingCreateForm> {
                           _acquisitionStory =
                               widget.initialAcquisitionStory ?? '';
                         });
-                        widget.onCreated?.call(createdName);
+                        widget.onCreated?.call(
+                          (name: createdName, defenderType: null, role: createdRole),
+                        );
                       }
                     },
                     child: const Text('Recruit Hireling'),

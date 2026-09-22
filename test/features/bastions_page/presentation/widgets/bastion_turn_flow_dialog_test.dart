@@ -447,7 +447,7 @@ void main() {
     await tester.tap(find.text('Let the bastion handle it'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('A defender, '), findsOneWidget);
+    expect(find.textContaining('A knight, '), findsOneWidget);
     expect(find.textContaining('joined your bastion.'), findsOneWidget);
     expect(find.byType(DefenderCreateForm), findsNothing);
   });
@@ -504,7 +504,7 @@ void main() {
     await tester.tap(find.text('Enlist Defender'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('A defender, Gareth Vane'), findsOneWidget);
+    expect(find.textContaining('A bastion defender, Gareth Vane'), findsOneWidget);
     expect(find.textContaining('joined your bastion.'), findsOneWidget);
   });
 

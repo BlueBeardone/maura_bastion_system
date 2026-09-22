@@ -12,6 +12,7 @@ import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/juice/juice_sfx.dart';
 import 'package:maura_bastion_system/core/juice/reveal_widgets.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
@@ -84,6 +85,8 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
   DefendersCubit? _defendersCubit;
   HirelingsCubit? _hirelingsCubit;
   String? _recruitName;
+  DefenderType? _recruitType;
+  String? _recruitRole;
   bool _recruitDismissed = false;
   bool _creatingRecruit = false;
 
@@ -507,8 +510,8 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
         auto: true,
         child: _rewardLine(
           isDefender
-              ? 'A defender, $_recruitName, joined your bastion.'
-              : 'A hireling, $_recruitName, joined your bastion.',
+              ? 'A ${_recruitType?.title.toLowerCase() ?? 'defender'}, $_recruitName, joined your bastion.'
+              : _hirelingJoinedLine,
         ),
       );
     }
@@ -559,6 +562,14 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
     );
   }
 
+  String get _hirelingJoinedLine {
+    final role = _recruitRole;
+    if (role == null || role.isEmpty) {
+      return 'A hireling, $_recruitName, joined your bastion.';
+    }
+    return 'A hireling, $_recruitName ($role), joined your bastion.';
+  }
+
   Future<void> _automateRecruit() async {
     if (_creatingRecruit) return;
     setState(() => _creatingRecruit = true);
@@ -581,7 +592,11 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           _showRecruitError();
           return;
         }
-        setState(() => _recruitName = recruit.name);
+        setState(() {
+          _recruitName = recruit.name;
+          _recruitType = recruit.defenderType;
+          _recruitRole = null;
+        });
       } else if (_reward!.recruit == RewardKind.recruitHireling) {
         final recruit = generator.generateHireling(
           event: event,
@@ -598,7 +613,11 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           _showRecruitError();
           return;
         }
-        setState(() => _recruitName = recruit.name);
+        setState(() {
+          _recruitName = recruit.name;
+          _recruitType = null;
+          _recruitRole = recruit.role;
+        });
       }
     } finally {
       if (mounted) setState(() => _creatingRecruit = false);
@@ -634,8 +653,10 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
             bastionName: widget.bastion.name,
             headerText: 'Enlist Your New Defender',
             initialAcquisitionStory: story,
-            onCreated: (name) => setState(() {
-              _recruitName = name;
+            onCreated: (created) => setState(() {
+              _recruitName = created.name;
+              _recruitType = created.defenderType;
+              _recruitRole = created.role;
               _phase = _Phase.reward;
             }),
           ),
@@ -656,8 +677,10 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
           bastionName: widget.bastion.name,
           headerText: 'Recruit Your New Hireling',
           initialAcquisitionStory: story,
-          onCreated: (name) => setState(() {
-            _recruitName = name;
+          onCreated: (created) => setState(() {
+            _recruitName = created.name;
+            _recruitType = created.defenderType;
+            _recruitRole = created.role;
             _phase = _Phase.reward;
           }),
         ),
@@ -677,10 +700,13 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
     if (name == null) return base;
     final kind = _reward?.recruit;
     if (kind == RewardKind.recruitDefender) {
-      return base.replaceFirst('a new defender', 'a defender, $name');
+      return base.replaceFirst('a new defender',
+          'a ${_recruitType?.title.toLowerCase() ?? 'defender'}, $name');
     }
     if (kind == RewardKind.recruitHireling) {
-      return base.replaceFirst('a new hireling', 'a hireling, $name');
+      final role = _recruitRole;
+      return base.replaceFirst('a new hireling',
+          role == null || role.isEmpty ? 'a hireling, $name' : 'a hireling, $name ($role)');
     }
     return base;
   }
