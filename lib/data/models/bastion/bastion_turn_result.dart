@@ -102,17 +102,86 @@ class BastionTurnFacilityResult {
   }
 }
 
+class BastionTurnDispatchUnitResult {
+  final String name;
+  final List<int> rolls;
+  final int subtotal;
+
+  const BastionTurnDispatchUnitResult({
+    required this.name,
+    required this.rolls,
+    required this.subtotal,
+  });
+
+  factory BastionTurnDispatchUnitResult.fromJson(Map<String, dynamic> json) {
+    return BastionTurnDispatchUnitResult(
+      name: json['name'] as String,
+      rolls: (json['rolls'] as List? ?? []).map((r) => r as int).toList(),
+      subtotal: json['subtotal'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'rolls': rolls,
+      'subtotal': subtotal,
+    };
+  }
+}
+
+class BastionTurnDispatchResult {
+  final List<BastionTurnDispatchUnitResult> units;
+  final int bonus;
+  final int total;
+  final int dc;
+  final bool success;
+
+  const BastionTurnDispatchResult({
+    required this.units,
+    required this.bonus,
+    required this.total,
+    required this.dc,
+    required this.success,
+  });
+
+  factory BastionTurnDispatchResult.fromJson(Map<String, dynamic> json) {
+    return BastionTurnDispatchResult(
+      units: (json['units'] as List? ?? [])
+          .map((u) => BastionTurnDispatchUnitResult.fromJson(
+              u as Map<String, dynamic>))
+          .toList(),
+      bonus: json['bonus'] as int? ?? 0,
+      total: json['total'] as int,
+      dc: json['dc'] as int,
+      success: json['success'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'units': units.map((u) => u.toJson()).toList(),
+      'bonus': bonus,
+      'total': total,
+      'dc': dc,
+      'success': success,
+    };
+  }
+}
+
 class BastionTurnEventResult {
   final String name;
   final String description;
   final String? rolledRow;
   final String? rewardSummary;
+  final BastionTurnDispatchResult? dispatch;
 
   const BastionTurnEventResult({
     required this.name,
     required this.description,
     this.rolledRow,
     this.rewardSummary,
+    this.dispatch,
   });
 
   factory BastionTurnEventResult.fromJson(Map<String, dynamic> json) {
@@ -121,6 +190,10 @@ class BastionTurnEventResult {
       description: json['description'] as String,
       rolledRow: json['rolledRow'] as String?,
       rewardSummary: json['rewardSummary'] as String?,
+      dispatch: json['dispatch'] == null
+          ? null
+          : BastionTurnDispatchResult.fromJson(
+              json['dispatch'] as Map<String, dynamic>),
     );
   }
 
@@ -130,6 +203,7 @@ class BastionTurnEventResult {
       'description': description,
       'rolledRow': rolledRow,
       'rewardSummary': rewardSummary,
+      'dispatch': dispatch?.toJson(),
     };
   }
 }

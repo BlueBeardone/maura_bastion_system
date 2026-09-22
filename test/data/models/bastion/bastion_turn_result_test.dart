@@ -109,4 +109,67 @@ void main() {
       expect(back.facilityResults, isEmpty);
     });
   });
+
+  group('dispatch', () {
+    test('event with dispatch round-trips', () {
+      const event = BastionTurnEventResult(
+        name: 'Wolf Cull',
+        description: 'Wolves.',
+        dispatch: BastionTurnDispatchResult(
+          units: [
+            BastionTurnDispatchUnitResult(
+              name: 'Aldric',
+              rolls: [4, 3],
+              subtotal: 7,
+            ),
+          ],
+          bonus: 2,
+          total: 9,
+          dc: 10,
+          success: false,
+        ),
+      );
+      final back = BastionTurnEventResult.fromJson(event.toJson());
+      expect(back.dispatch, isNotNull);
+      expect(back.dispatch!.units, hasLength(1));
+      expect(back.dispatch!.units.first.name, 'Aldric');
+      expect(back.dispatch!.units.first.rolls, [4, 3]);
+      expect(back.dispatch!.units.first.subtotal, 7);
+      expect(back.dispatch!.bonus, 2);
+      expect(back.dispatch!.total, 9);
+      expect(back.dispatch!.dc, 10);
+      expect(back.dispatch!.success, isFalse);
+      expect(event.toJson()['dispatch'], isA<Map<String, dynamic>>());
+    });
+
+    test('event without dispatch serializes dispatch as null', () {
+      const event = BastionTurnEventResult(name: 'A', description: 'B');
+      expect(event.toJson()['dispatch'], isNull);
+      final back = BastionTurnEventResult.fromJson(event.toJson());
+      expect(back.dispatch, isNull);
+    });
+
+    test('full BastionTurnResult round-trips dispatch inside event', () {
+      const result = BastionTurnResult(
+        bastionId: 'b',
+        bastionName: 'n',
+        quest: 'q',
+        event: BastionTurnEventResult(
+          name: 'Wolf Cull',
+          description: 'Wolves.',
+          dispatch: BastionTurnDispatchResult(
+            units: [
+              BastionTurnDispatchUnitResult(name: 'A', rolls: [1], subtotal: 1),
+            ],
+            bonus: 0,
+            total: 5,
+            dc: 5,
+            success: true,
+          ),
+        ),
+      );
+      final back = BastionTurnResult.fromJson(result.toJson());
+      expect(back.event?.dispatch?.success, isTrue);
+    });
+  });
 }
