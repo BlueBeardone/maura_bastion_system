@@ -81,7 +81,7 @@ const recruitHirelingEvent = ChartEvent(
   reward: RewardSpec(kind: RewardKind.recruitHireling),
 );
 
-void _registerRecruitApis() {
+void _registerRecruitApis({bool defenderCreateFails = false}) {
   final apiClient = ApiClient(
     baseUrl: 'http://example.test',
     client: MockClient((request) async {
@@ -89,6 +89,14 @@ void _registerRecruitApis() {
           request.body.isEmpty ? <String, dynamic>{} : jsonDecode(request.body) as Map<String, dynamic>;
       if (request.method == 'POST' &&
           request.url.path == '/maura/v1/defenders') {
+        if (defenderCreateFails) {
+          // The established failure shape: success:false envelope over HTTP 200.
+          return http.Response(
+            jsonEncode({'success': false, 'message': 'creation failed'}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           jsonEncode({
             'success': true,
@@ -442,6 +450,23 @@ void main() {
     expect(find.textContaining('A defender, '), findsOneWidget);
     expect(find.textContaining('joined your bastion.'), findsOneWidget);
     expect(find.byType(DefenderCreateForm), findsNothing);
+  });
+
+  testWidgets('automated path failure shows a snackbar and keeps the offer',
+      (tester) async {
+    _registerRecruitApis(defenderCreateFails: true);
+    addTearDown(GetIt.I.reset);
+    await tester.pumpWidget(_harness(_bastion(), _roll(recruitDefenderEvent)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Let the bastion handle it'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Something went wrong — please try again'),
+        findsOneWidget);
+    // The record was not created, so the offer is still open.
+    expect(find.text('Let the bastion handle it'), findsOneWidget);
+    expect(find.textContaining('A defender, '), findsNothing);
   });
 
   testWidgets('manual path shows the defender form inline and names the reward',

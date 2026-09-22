@@ -240,10 +240,13 @@ class _BastionTurnFlowDialogState extends State<BastionTurnFlowDialog> {
               Flexible(child: SingleChildScrollView(child: _buildBody())),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () {
-                  final summary = _effectiveRewardSummary;
-                  Navigator.of(context).pop(summary == 'none' ? null : summary);
-                },
+                onPressed: _creatingRecruit
+                    ? null
+                    : () {
+                        final summary = _effectiveRewardSummary;
+                        Navigator.of(context)
+                            .pop(summary == 'none' ? null : summary);
+                      },
                 child: const Text('Done'),
               ),
             ],
