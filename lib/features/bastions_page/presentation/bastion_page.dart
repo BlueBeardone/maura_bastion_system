@@ -20,6 +20,7 @@ import 'package:maura_bastion_system/data/models/bastion/table.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
+import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
@@ -150,7 +151,7 @@ class BastionPage extends StatelessWidget {
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.hub_outlined),
                           label: Text(
-                            'Chart Web',
+                            'Individual Bastion Turns',
                             style: GoogleFonts.cinzel(
                               color: MedievalColors.vermillion,
                             ),
@@ -213,6 +214,11 @@ class BastionPage extends StatelessWidget {
       rolledRow: rolledRow,
     );
     if (!context.mounted) return;
+    final eventDispatch = turnResult?.dispatch;
+    final dispatchFailed = eventDispatch != null && !eventDispatch.success;
+    final closedFacility = dispatchFailed
+        ? facilityKnockedOffline(bastion, roll.event.facilityId)
+        : null;
     final rewardSummary = turnResult?.rewardSummary;
     final facilityBuffs = bastion.eligibleFacilities.map((f) {
       final shouldRoll = f.table != null && f.table!.rollable;
@@ -234,7 +240,11 @@ class BastionPage extends StatelessWidget {
     final dispatch = turnResult?.dispatch;
     final eventResult = BastionTurnEventResult(
       name: roll.event.name,
-      description: roll.event.description,
+      description: closedFacility == null
+          ? roll.event.description
+          : '${roll.event.description}\n\nThe ${closedFacility.name} is out '
+              'of action until it is repaired over one construction turn.',
+      closedFacilityName: closedFacility?.name,
       rolledRow: rolledRow,
       rewardSummary: rewardSummary,
       dispatch: dispatch == null
@@ -260,6 +270,7 @@ class BastionPage extends StatelessWidget {
     BastionTurnResult? loggedResult;
     final advanced = await cubit.advanceBastionTurn(
       bastion.id,
+      closeFacilityId: closedFacility?.id,
       gate: (advancedFacility) async {
         final result = BastionTurnResult(
           bastionId: bastion.id,

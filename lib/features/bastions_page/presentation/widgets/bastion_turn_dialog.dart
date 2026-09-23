@@ -175,6 +175,7 @@ class BastionTurnDialog extends StatelessWidget {
     final rolledRow = result?.event?.rolledRow;
     final rewardSummary = result?.event?.rewardSummary;
     final dispatch = result?.event?.dispatch;
+    final closedFacilityName = result?.event?.closedFacilityName;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -221,6 +222,14 @@ class BastionTurnDialog extends StatelessWidget {
         if (dispatch != null) ...[
           const SizedBox(height: 8),
           _buildCallout(title: 'Dispatch', body: _dispatchBody(dispatch)),
+        ],
+        if (closedFacilityName != null) ...[
+          const SizedBox(height: 8),
+          _buildCallout(
+            title: 'Out of action',
+            body: '$closedFacilityName is offline \u2014 '
+                '1 construction turn to repair.',
+          ),
         ],
       ],
     );

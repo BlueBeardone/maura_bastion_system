@@ -211,4 +211,44 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('closed facility shows the out-of-action callout',
+      (tester) async {
+    await tester.pumpWidget(_harness(
+      event: _event,
+      result: const BastionTurnResult(
+        bastionId: 'b',
+        bastionName: 'n',
+        quest: 'q',
+        event: BastionTurnEventResult(
+          name: 'Berry Thicket',
+          description: 'A quiet harvest.',
+          closedFacilityName: 'Kitchen',
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Out of action'), findsOneWidget);
+    expect(find.textContaining('Kitchen is offline'), findsOneWidget);
+  });
+
+  testWidgets('no closed facility means no out-of-action callout',
+      (tester) async {
+    await tester.pumpWidget(_harness(
+      event: _event,
+      result: const BastionTurnResult(
+        bastionId: 'b',
+        bastionName: 'n',
+        quest: 'q',
+        event: BastionTurnEventResult(
+          name: 'Berry Thicket',
+          description: 'A quiet harvest.',
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Out of action'), findsNothing);
+  });
 }
