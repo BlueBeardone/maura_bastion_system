@@ -5,8 +5,8 @@ import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/models/events/archetypes.dart';
 import 'package:maura_bastion_system/data/models/events/chart_points.dart';
 import 'package:maura_bastion_system/data/models/events/chart_slices.dart';
-import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
+import 'package:maura_bastion_system/data/models/rewards/reward.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 
 class ChartWebPanel extends StatelessWidget {
@@ -121,9 +121,30 @@ class _ChartRow extends StatelessWidget {
     return 'rolls ${slice!.rollMin}\u2013${slice!.rollMax}';
   }
 
-  String _tierLabel(ChartTier? tier) {
-    if (tier == null) return '\u2014';
-    return tier.name[0].toUpperCase() + tier.name.substring(1);
+  String get _categoryText {
+    if (chart.rewardCategories.isEmpty) return 'no materials';
+    return chart.rewardCategories.map(_categoryLabel).join(', ');
+  }
+
+  static String _categoryLabel(RewardCategory category) {
+    switch (category) {
+      case RewardCategory.creaturePart:
+        return 'creature parts';
+      case RewardCategory.meat:
+        return 'meat';
+      case RewardCategory.blood:
+        return 'blood';
+      case RewardCategory.metal:
+        return 'metal';
+      case RewardCategory.stone:
+        return 'stone';
+      case RewardCategory.wood:
+        return 'wood';
+      case RewardCategory.weave:
+        return 'weave';
+      case RewardCategory.herb:
+        return 'herbs';
+    }
   }
 
   @override
@@ -131,41 +152,55 @@ class _ChartRow extends StatelessWidget {
     final value = points[chart];
     final dimmed = value == 0;
     final color = dimmed ? MedievalColors.sepiaMuted : MedievalColors.sepiaInk;
-    final tier = ChartTier.forPoints(value);
 
-    return ListTile(
-      title: Text(
-        chart.displayName,
-        style: GoogleFonts.cinzel(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
         children: [
-          Text(
-            '$value points \u00b7 ${_tierLabel(tier)}',
-            style: GoogleFonts.imFellEnglish(fontSize: 14, color: color),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  chart.displayName,
+                  style: GoogleFonts.cinzel(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  '$_categoryText \u00b7 $_sliceText',
+                  style: GoogleFonts.imFellEnglish(fontSize: 14, color: color),
+                ),
+              ],
+            ),
           ),
-          Text(
-            _sliceText,
-            style: GoogleFonts.imFellEnglish(fontSize: 14, color: color),
+          IconButton(
+            icon: const Icon(Icons.remove),
+            onPressed: points.canAssign(chart, -1)
+                ? () => context.read<ChartPointsCubit>().assign(chart, -1)
+                : null,
+          ),
+          SizedBox(
+            width: 24,
+            child: Text(
+              '$value',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.cinzel(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: points.canAssign(chart, 1)
+                ? () => context.read<ChartPointsCubit>().assign(chart, 1)
+                : null,
           ),
         ],
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.remove),
-        onPressed: points.canAssign(chart, -1)
-            ? () => context.read<ChartPointsCubit>().assign(chart, -1)
-            : null,
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: points.canAssign(chart, 1)
-            ? () => context.read<ChartPointsCubit>().assign(chart, 1)
-            : null,
       ),
     );
   }
