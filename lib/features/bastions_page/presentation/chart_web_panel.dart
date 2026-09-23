@@ -59,6 +59,19 @@ class ChartWebPanel extends StatelessWidget {
       body: Column(
         children: [
           Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Text(
+              'Assign your bastion\'s earned event points across the charts '
+              'below. Each point widens that chart\'s slice of the 1d100 turn '
+              'roll, making its events more likely; a chart with no points '
+              'never fires. Reassign freely — your layout is saved as you go.',
+              style: GoogleFonts.imFellEnglish(
+                fontSize: 14,
+                color: MedievalColors.sepiaSecondary,
+              ),
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
               '${points.unassigned} of ${points.earnedPoints} points unassigned',
