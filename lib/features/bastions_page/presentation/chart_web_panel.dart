@@ -42,7 +42,7 @@ class ChartWebPanel extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: MedievalColors.parchmentDark,
         title: Text(
-          'The Chart Web',
+          'The Individual Bastion Turns',
           style: GoogleFonts.cinzel(
             color: MedievalColors.vermillion,
             fontWeight: FontWeight.bold,

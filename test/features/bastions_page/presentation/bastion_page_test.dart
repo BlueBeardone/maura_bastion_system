@@ -322,7 +322,7 @@ void main() {
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
 
-    // The chart web flow dialog is up (either phase).
+    // The Individual Bastion Turns flow dialog is up (either phase).
     expect(find.text('Bastion Turn'), findsOneWidget);
     expect(find.text('Individual Event'), findsOneWidget);
 
@@ -360,7 +360,7 @@ void main() {
     expect(find.text('Bastion Turn'), findsNothing);
   });
 
-  testWidgets('bastion turn uses the chart web flow dialog', (tester) async {
+  testWidgets('bastion turn uses the Individual Bastion Turns flow dialog', (tester) async {
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -648,7 +648,7 @@ void main() {
     expect(find.text('Empty Bastion'), findsOneWidget);
   });
 
-  testWidgets('Chart Web button opens the allocation panel', (tester) async {
+  testWidgets('Individual Bastion Turns button opens the allocation panel', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await pumpBastionPage(
       tester,
@@ -658,14 +658,14 @@ void main() {
       ]),
     );
 
-    await tester.tap(find.text('Chart Web'));
+    await tester.tap(find.text('Individual Bastion Turns'));
     await tester.pumpAndSettle();
 
-    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.text('The Individual Bastion Turns'), findsOneWidget);
     expect(find.byIcon(Icons.add), findsWidgets);
   });
 
-  testWidgets('reopening Chart Web preserves allocations', (tester) async {
+  testWidgets('reopening Individual Bastion Turns preserves allocations', (tester) async {
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -679,7 +679,7 @@ void main() {
       ]),
     );
 
-    await tester.tap(find.text('Chart Web'));
+    await tester.tap(find.text('Individual Bastion Turns'));
     await tester.pumpAndSettle();
 
     final pointsCubit =
@@ -691,10 +691,10 @@ void main() {
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Chart Web'));
+    await tester.tap(find.text('Individual Bastion Turns'));
     await tester.pumpAndSettle();
 
-    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.text('The Individual Bastion Turns'), findsOneWidget);
     expect(find.text('4 of 6 points unassigned'), findsOneWidget);
   });
 

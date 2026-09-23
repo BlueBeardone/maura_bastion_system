@@ -43,7 +43,7 @@ void main() {
     await tester.pumpWidget(harness(cubit: cubit));
     await tester.pumpAndSettle();
 
-    expect(find.text('The Chart Web'), findsOneWidget);
+    expect(find.text('The Individual Bastion Turns'), findsOneWidget);
     expect(find.textContaining('The Wilds'), findsOneWidget);
     expect(find.textContaining('The Arcane'), findsOneWidget);
     expect(find.text('6 of 6 points unassigned'), findsOneWidget);

@@ -21,7 +21,7 @@ character sheets live in D&D Beyond. This app knows nothing about either.
   facilities; purchase branch upgrades.
 - **Defenders & hirelings** — recruit (singly or in bulk), assign hirelings
   to facilities, and track acquisition stories.
-- **The Chart Web** — allocate earned points across the six event charts;
+- **The Individual Bastion Turns** — allocate earned points across the six event charts;
   the turn engine rolls events weighted by your allocations, with tier
   scaling (basic → legend) and archetype events for converged charts.
 - **Dispatch** — send defenders and hirelings on event missions against
