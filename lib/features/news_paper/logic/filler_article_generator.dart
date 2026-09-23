@@ -17,6 +17,7 @@ enum _FillerKind {
   defenderGossip,
   facilityGag,
   chartEmphasis,
+  factionGossip,
   evergreen,
 }
 
@@ -45,6 +46,8 @@ class FillerArticleGenerator {
         return _facilityGag(bastion, next);
       case _FillerKind.chartEmphasis:
         return _chartEmphasis(bastion, points, next);
+      case _FillerKind.factionGossip:
+        return _factionGossip(next);
       case _FillerKind.evergreen:
         return _evergreen(next);
     }
@@ -54,7 +57,7 @@ class FillerArticleGenerator {
 
   /// Kind order is part of the observable contract (tests index into it):
   /// bastion, hirelingGossip, defenderGossip, facilityGag, chartEmphasis,
-  /// evergreen.
+  /// factionGossip, evergreen.
   static List<_FillerKind> _availableKinds({
     required Bastion bastion,
     required Map<EventChart, int> points,
@@ -66,6 +69,7 @@ class FillerArticleGenerator {
           _FillerKind.defenderGossip,
         if (bastion.facilities.isNotEmpty) _FillerKind.facilityGag,
         if (points.values.any((p) => p > 0)) _FillerKind.chartEmphasis,
+        _FillerKind.factionGossip,
         _FillerKind.evergreen,
       ];
 
@@ -491,6 +495,57 @@ class FillerArticleGenerator {
       ),
     ],
   };
+
+  NewspaperArticle _factionGossip(RandomInt next) {
+    const templates = <({String title, String content})>[
+      (
+        title: "SKELETOR'S CREW DENY WELL INCIDENT; WELL 'IMPROVED'",
+        content:
+            "Skeletor's Crew has issued a statement denying that anything "
+            'happened at the well, that the well was like that already, and '
+            "that the hamlet's cough was ever their concern. All three "
+            'denials, the Guild notes, arrived before any accusation.\n\n'
+            'The Crew further wishes it known that its workers receive two '
+            'meal breaks and a pension, and that the Guild should perhaps sit '
+            'with that for a while.',
+      ),
+      (
+        title: 'MYSTERY BARD PLAYS THREE CROSSINGS AT ONCE; GUILD "NOT COUNTING"',
+        content:
+            'Witnesses at three separate crossings report the same performer, '
+            'the same set, and the same quiet certainty that the song was '
+            'about them personally. The Guild has declined to investigate, on '
+            'the grounds that some arithmetic is best left alone.\n\n'
+            'Anyone able to describe the bard from memory is asked to try, and '
+            'then to notice that they cannot.',
+      ),
+      (
+        title: 'TWINSTERS SEEN WALKING NORTH ROAD IN STEP; ROAD "CO-OPERATING" BY LEAVING',
+        content:
+            'The Twinsters were observed walking the north road this week, in '
+            'step, in the manner the town has learned to read as a warning. '
+            'The road was empty within the hour and remained so behind them.\n\n'
+            'The family sends its regards. The regards are addressed to '
+            'everyone.',
+      ),
+      (
+        title: 'WHISPERS CLOSE "DOOR THAT SHOULD NOT HAVE BEEN THERE"; DOOR DISAGREES',
+        content:
+            'The Whispers report that a door which should not have existed has '
+            'been closed, and that the screaming is "closing noise" and no '
+            'cause for alarm. They declined further comment, which the Guild '
+            'has, for the first time, accepted.\n\n'
+            'Residents near the orchard are advised that the seam in the air '
+            'is gone, and that they should stop looking for it.',
+      ),
+    ];
+    return _render(
+      templates[next(templates.length)],
+      'MAURA',
+      next,
+      'A Correspondent',
+    );
+  }
 
   NewspaperArticle _evergreen(RandomInt next) {
     const templates = <({String title, String content})>[

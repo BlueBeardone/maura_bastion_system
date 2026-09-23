@@ -187,4 +187,28 @@ void main() {
       expect(article.content, isNotEmpty);
     }
   });
+
+  test('faction gossip is reachable and renders its first template', () {
+    // kinds for this bastion: [bastion, factionGossip, evergreen] — pick
+    // factionGossip (index 1), then template 0.
+    var pickCall = 0;
+    final article = generator.generate(
+      bastion: _bastion(defenders: const []),
+      pick: (max) => pickCall++ == 0 ? 1 : 0,
+    );
+    expect(article.title, contains('SKELETOR'));
+    expect(article.content, isNotEmpty);
+  });
+
+  test('every faction template renders non-empty title and content', () {
+    for (var template = 0; template < 4; template++) {
+      var pickCall = 0;
+      final article = generator.generate(
+        bastion: _bastion(defenders: const []),
+        pick: (max) => pickCall++ == 0 ? 1 : template,
+      );
+      expect(article.title, isNotEmpty);
+      expect(article.content, isNotEmpty);
+    }
+  });
 }
