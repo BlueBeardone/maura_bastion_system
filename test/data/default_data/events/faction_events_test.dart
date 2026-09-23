@@ -52,6 +52,9 @@ void main() {
       for (final category in e.reward.categories) {
         expect(allowed.contains(category), isTrue, reason: e.id);
       }
+      if (e.reward.kind == RewardKind.material) {
+        expect(e.reward.categories, isNotEmpty, reason: e.id);
+      }
     }
   });
 

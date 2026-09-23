@@ -87,8 +87,8 @@ void main() {
   });
 
   test('chart emphasis picks the highest-point chart theme', () {
-    // kinds: [bastion, defenderGossip, chartEmphasis, evergreen] — pick chart
-    // (index 2), template index 0.
+    // kinds: [bastion, defenderGossip, chartEmphasis, factionGossip,
+    // evergreen] — pick chart (index 2), template index 0.
     final article = generator.generate(
       bastion: _bastion(),
       points: {EventChart.warMarch: 5, EventChart.hearth: 1},
@@ -101,8 +101,8 @@ void main() {
     final bastion = _bastion(
       defenders: [_defender('Aldric', DefenderType.bastionDefender)],
     );
-    // kinds: [bastion, defenderGossip, evergreen] — pick defenderGossip
-    // (index 1), defender index 0, template index 0.
+    // kinds: [bastion, defenderGossip, factionGossip, evergreen] — pick
+    // defenderGossip (index 1), defender index 0, template index 0.
     var pickCall = 0;
     final article = generator.generate(
       bastion: bastion,
@@ -118,7 +118,7 @@ void main() {
       points: {},
       pick: (max) => max - 1,
     );
-    // kinds: [bastion, evergreen] — last kind is evergreen.
+    // kinds: [bastion, factionGossip, evergreen] — last kind is evergreen.
     expect(article.title, contains('LOST'));
   });
 
