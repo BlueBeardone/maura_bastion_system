@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
-import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 
 void main() {
@@ -38,16 +37,15 @@ void main() {
   });
 
   group('rollable facility tables', () {
-    test('only genuinely random tables are rollable', () {
+    test('no facility table is rolled per turn', () {
       final catalog = getFacilityCatalog();
-      Facility byName(String name) => catalog.firstWhere((f) => f.name == name);
-
-      expect(byName('Training Area').table!.rollable, isTrue);
-      expect(byName('Gaming Hall').table!.rollable, isTrue);
-
-      expect(byName('Kitchen').table!.rollable, isFalse);
-      expect(byName('Workshop').table!.rollable, isFalse);
-      expect(byName('Trading Hub').table!.rollable, isFalse);
+      for (final facility in catalog.where((f) => f.table != null)) {
+        expect(
+          facility.table!.rollable,
+          isFalse,
+          reason: '${facility.name} should not roll per turn',
+        );
+      }
     });
   });
 }

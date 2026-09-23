@@ -438,10 +438,8 @@ Gambler's Lucky Dice: When you make a D20 test, you may expend one Gambler's Luc
       minimumRequiredHirelings: 3,
       constructionTurns: 6,
       cost: 4500,
-      table: FacilityTable(
-        rollable: true,
-        table: [
-          ['Round', '1-2', '3-5', '6'],
+      table: FacilityTable(table: [
+        ['Round', '1-2', '3-5', '6'],
         ['One (1d6)', 'Bust', 'A gemstone worth 100 GP', 'A gemstone worth 200 GP'],
         [
           'Two (1d6)',
@@ -557,10 +555,8 @@ Individual Bastion Turn Order: You get one Trainer's benefit.''',
       minimumRequiredHirelings: 4,
       constructionTurns: 6,
       cost: 4500,
-      table: FacilityTable(
-        rollable: true,
-        table: [
-          ['Trainer', 'Benefit per Bastion Turn'],
+      table: FacilityTable(table: [
+        ['Trainer', 'Benefit per Bastion Turn'],
         [
           'Battle Expert',
           'Once per turn, you can reduce physical damage taken from any sources by 2, provided you don\'t have the Incapacitated condition.'

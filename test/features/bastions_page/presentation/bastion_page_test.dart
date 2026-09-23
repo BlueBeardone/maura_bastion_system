@@ -165,6 +165,7 @@ void main() {
   MockClient bastionTurnMockClient(List<Map<String, dynamic>> facilities,
       {List<Map<String, dynamic>> hirelings = const [],
       List<http.Request>? capturedPuts,
+      List<http.Request>? capturedDiscordPosts,
       bool discordTurnSucceeds = true}) {
     return _withEmptyBrowsePage((request) async {
       if (request.method == 'GET' &&
@@ -211,6 +212,7 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        capturedDiscordPosts?.add(request);
         return http.Response(
           jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
           200,
@@ -269,6 +271,7 @@ void main() {
   testWidgets('FAB takes a turn: advances construction and opens the flow dialog',
       (tester) async {
     final puts = <http.Request>[];
+    final posts = <http.Request>[];
     await pumpBastionPage(
       tester,
       isUserBastion: true,
@@ -279,7 +282,6 @@ void main() {
             name: 'Keep',
             description: 'A sturdy keep.',
             table: {
-              'rollable': true,
               'table': [
                 ['d4', 'Effect'],
                 ['1', 'Bonus flavor'],
@@ -292,7 +294,7 @@ void main() {
               id: 'kitchen',
               name: 'Kitchen',
               rank: 'c',
-              requiredHirelings: 2),
+              requiredHirelings: 1),
         ],
         hirelings: [
           {
@@ -303,6 +305,7 @@ void main() {
           },
         ],
         capturedPuts: puts,
+        capturedDiscordPosts: posts,
       ),
     );
 
@@ -335,15 +338,21 @@ void main() {
     // The Discord gate passed and the under-construction facility advanced.
     expect(puts, hasLength(1));
 
-    // The turn summary dialog now appears: construction progress plus an
-    // expandable facility buff card for the eligible facility (keep).
+    // The turn summary dialog now appears: construction progress plus
+    // expandable facility buff cards for the eligible facilities (keep and
+    // kitchen). Facility tables are reference/choice lists, never rolled, so
+    // no "Rolled" callout is shown and nothing rides the Discord payload.
     expect(find.text('Construction advanced: Barracks (1/2 turns)'),
         findsOneWidget);
     expect(find.text('Facilities granting benefits'), findsOneWidget);
-    expect(find.text('Keep'), findsWidgets);
+    expect(find.byType(FacilityBuffCard), findsNWidgets(2));
     await tester.tap(find.byType(FacilityBuffCard).first);
     await tester.pumpAndSettle();
-    expect(find.text('1 | Bonus flavor'), findsOneWidget);
+    expect(find.text('Bonus flavor'), findsOneWidget);
+    expect(find.textContaining('Rolled'), findsNothing);
+
+    final body = jsonDecode(posts.single.body) as Map<String, dynamic>;
+    expect(body['facilityResults'] as List, isEmpty);
 
     // Closing the summary dialog clears it.
     await tester.tap(find.text('Close'));
