@@ -1,6 +1,7 @@
 import 'package:maura_bastion_system/data/default_data/events/arcane_events.dart';
 import 'package:maura_bastion_system/data/default_data/events/archetype_events.dart';
 import 'package:maura_bastion_system/data/default_data/events/deeps_events.dart';
+import 'package:maura_bastion_system/data/default_data/events/faction_events.dart';
 import 'package:maura_bastion_system/data/default_data/events/hearth_events.dart';
 import 'package:maura_bastion_system/data/default_data/events/trade_road_events.dart';
 import 'package:maura_bastion_system/data/default_data/events/war_march_events.dart';
@@ -16,5 +17,6 @@ List<ChartEvent> getChartEvents() {
     ...hearthEvents(),
     ...arcaneEvents(),
     ...archetypeEvents(),
+    ...factionEvents(),
   ];
 }

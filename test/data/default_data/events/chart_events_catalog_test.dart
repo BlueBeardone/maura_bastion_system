@@ -6,16 +6,16 @@ import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 void main() {
   final events = getChartEvents();
 
-  test('has 80 unique events', () {
-    expect(events.length, 80);
-    expect(events.map((e) => e.id).toSet().length, 80);
+  test('has 92 unique events', () {
+    expect(events.length, 92);
+    expect(events.map((e) => e.id).toSet().length, 92);
   });
 
-  test('every non-archetype chart has 12 events', () {
+  test('every non-archetype chart has 14 events', () {
     for (final chart in EventChart.values) {
       final count =
           events.where((e) => !e.isArchetype && e.chart == chart).length;
-      expect(count, 12, reason: chart.name);
+      expect(count, 14, reason: chart.name);
     }
   });
 
