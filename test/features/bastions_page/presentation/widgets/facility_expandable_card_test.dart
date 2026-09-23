@@ -60,7 +60,7 @@ void main() {
     expect(
         find.textContaining('long rest in your Bastion'), findsOneWidget);
     expect(find.text('Bonus flavor'), findsOneWidget);
-    expect(find.text('Open facility'), findsNothing);
+    expect(find.text('Open facility'), findsOneWidget);
   });
 
   testWidgets('Open facility invokes the callback', (tester) async {

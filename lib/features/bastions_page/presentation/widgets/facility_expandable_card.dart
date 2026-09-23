@@ -157,15 +157,13 @@ class _FacilityExpandableCardState extends State<FacilityExpandableCard> {
                             FacilityTableView(table: facility.table!),
                           ],
                           const SizedBox(height: 8),
-                          if (widget.onOpen != null) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: widget.onOpen,
-                                child: const Text('Open facility'),
-                              ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: widget.onOpen,
+                              child: const Text('Open facility'),
                             ),
-                          ],
+                          ),
                         ],
                       ],
                     ),
