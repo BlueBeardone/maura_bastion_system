@@ -19,6 +19,7 @@ import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_c
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_buff_card.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 import 'package:maura_bastion_system/features/login/logic/auth_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -278,6 +279,7 @@ void main() {
             name: 'Keep',
             description: 'A sturdy keep.',
             table: {
+              'rollable': true,
               'table': [
                 ['d4', 'Effect'],
                 ['1', 'Bonus flavor'],
@@ -333,12 +335,14 @@ void main() {
     // The Discord gate passed and the under-construction facility advanced.
     expect(puts, hasLength(1));
 
-    // The turn summary dialog now appears: construction progress plus the
-    // rolled result from the eligible facility (keep).
+    // The turn summary dialog now appears: construction progress plus an
+    // expandable facility buff card for the eligible facility (keep).
     expect(find.text('Construction advanced: Barracks (1/2 turns)'),
         findsOneWidget);
-    expect(find.text('Facility Results'), findsOneWidget);
+    expect(find.text('Facilities granting benefits'), findsOneWidget);
     expect(find.text('Keep'), findsWidgets);
+    await tester.tap(find.byType(FacilityBuffCard).first);
+    await tester.pumpAndSettle();
     expect(find.text('1 | Bonus flavor'), findsOneWidget);
 
     // Closing the summary dialog clears it.

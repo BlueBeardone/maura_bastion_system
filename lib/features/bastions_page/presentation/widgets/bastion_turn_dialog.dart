@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_turn_facility_buff.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_buff_card.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/facility_table_view.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
@@ -11,14 +13,16 @@ class BastionTurnDialog extends StatelessWidget {
   final Facility? advancedFacility;
   final ChartEvent? event;
   final BastionTurnResult? result;
-  final List<BastionTurnFacilityResult> facilityResults;
+  final int? eventRollNumber;
+  final List<BastionTurnFacilityBuff> facilityBuffs;
 
   const BastionTurnDialog({
     super.key,
     required this.advancedFacility,
     this.event,
     this.result,
-    this.facilityResults = const [],
+    this.eventRollNumber,
+    this.facilityBuffs = const [],
   });
 
   static Future<void> show(
@@ -26,7 +30,8 @@ class BastionTurnDialog extends StatelessWidget {
     required Facility? advancedFacility,
     ChartEvent? event,
     BastionTurnResult? result,
-    List<BastionTurnFacilityResult> facilityResults = const [],
+    int? eventRollNumber,
+    List<BastionTurnFacilityBuff> facilityBuffs = const [],
   }) {
     return showDialog(
       context: context,
@@ -34,7 +39,8 @@ class BastionTurnDialog extends StatelessWidget {
         advancedFacility: advancedFacility,
         event: event,
         result: result,
-        facilityResults: facilityResults,
+        eventRollNumber: eventRollNumber,
+        facilityBuffs: facilityBuffs,
       ),
     );
   }
@@ -93,7 +99,7 @@ class BastionTurnDialog extends StatelessWidget {
                 const SizedBox(height: 12),
                 Flexible(
                   child: SingleChildScrollView(
-                    child: _buildFacilityResultsSection(),
+                    child: _buildFacilityBuffsSection(),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -166,6 +172,9 @@ class BastionTurnDialog extends StatelessWidget {
         ),
       );
     }
+    final rolledRow = result?.event?.rolledRow;
+    final rewardSummary = result?.event?.rewardSummary;
+    final dispatch = result?.event?.dispatch;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -194,27 +203,43 @@ class BastionTurnDialog extends StatelessWidget {
             color: MedievalColors.sepiaInk,
           ),
         ),
-        if (result?.event?.rolledRow != null) ...[
+        if (rolledRow != null) ...[
           const SizedBox(height: 8),
           _buildCallout(
-            title: 'Rolled',
-            body: result!.event!.rolledRow!,
+            title: eventRollNumber == null ? 'Rolled' : 'Rolled $eventRollNumber',
+            body: rolledRow,
           ),
         ],
         if (e.table != null) ...[
           const SizedBox(height: 8),
           FacilityTableView(table: e.table!),
         ],
+        if (rewardSummary != null) ...[
+          const SizedBox(height: 8),
+          _buildCallout(title: 'Reward', body: rewardSummary),
+        ],
+        if (dispatch != null) ...[
+          const SizedBox(height: 8),
+          _buildCallout(title: 'Dispatch', body: _dispatchBody(dispatch)),
+        ],
       ],
     );
   }
 
-  Widget _buildFacilityResultsSection() {
-    final withRows =
-        facilityResults.where((r) => r.rolledRow != null).toList();
-    if (withRows.isEmpty) {
+  String _dispatchBody(BastionTurnDispatchResult dispatch) {
+    final lines = <String>[
+      for (final unit in dispatch.units)
+        '${unit.name}: ${unit.subtotal} (${unit.rolls.join(', ')})',
+      'Total ${dispatch.total} vs DC ${dispatch.dc} \u2014 '
+          '${dispatch.success ? 'success!' : 'failure.'}',
+    ];
+    return lines.join('\n');
+  }
+
+  Widget _buildFacilityBuffsSection() {
+    if (facilityBuffs.isEmpty) {
       return Text(
-        'Your facilities yielded nothing this turn.',
+        'No facilities are granting benefits this turn.',
         textAlign: TextAlign.center,
         style: GoogleFonts.imFellEnglish(
           fontSize: 15,
@@ -227,15 +252,15 @@ class BastionTurnDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Facility Results',
+          'Facilities granting benefits',
           style: GoogleFonts.imFellEnglish(
             fontSize: 14,
             color: MedievalColors.sepiaSecondary,
           ),
         ),
         const SizedBox(height: 4),
-        for (final r in withRows) ...[
-          _buildCallout(title: r.name, body: r.rolledRow!),
+        for (final buff in facilityBuffs) ...[
+          FacilityBuffCard(buff: buff),
           const SizedBox(height: 8),
         ],
       ],
@@ -268,14 +293,15 @@ class BastionTurnDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              body,
-              style: GoogleFonts.imFellEnglish(
-                fontSize: 15,
-                height: 1.4,
-                color: MedievalColors.sepiaInk,
+            for (final line in body.split('\n'))
+              Text(
+                line,
+                style: GoogleFonts.imFellEnglish(
+                  fontSize: 15,
+                  height: 1.4,
+                  color: MedievalColors.sepiaInk,
+                ),
               ),
-            ),
           ],
         ),
       ),

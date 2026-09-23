@@ -13,6 +13,7 @@ import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/bastion_turn_facility_buff.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion_turn_result.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
@@ -200,9 +201,9 @@ class BastionPage extends StatelessWidget {
       points: chartPoints.randomizedAllocation(),
       earnedPoints: chartPoints.earnedPoints,
     );
-    final rolledRow = roll.event.table == null
-        ? null
-        : rollTableResult(roll.event.table!);
+    final eventRoll =
+        roll.event.table == null ? null : rollTable(roll.event.table!);
+    final rolledRow = eventRoll?.row;
     // The turn resolves BEFORE the advance — the reward summary the player
     // confirms in the dialog rides the Discord payload.
     final turnResult = await BastionTurnFlowDialog.show(
@@ -213,11 +214,21 @@ class BastionPage extends StatelessWidget {
     );
     if (!context.mounted) return;
     final rewardSummary = turnResult?.rewardSummary;
-    final facilityResults = bastion.eligibleFacilities
-        .where((f) => f.table != null)
-        .map((f) => BastionTurnFacilityResult(
-              name: f.name,
-              rolledRow: rollTableResult(f.table!),
+    final facilityBuffs = bastion.eligibleFacilities.map((f) {
+      final shouldRoll = f.table != null && f.table!.rollable;
+      final facilityRoll = shouldRoll ? rollTable(f.table!) : null;
+      return BastionTurnFacilityBuff(
+        facility: f,
+        hirelingCount: bastion.facilityHirelingCount(f.id),
+        rolledNumber: facilityRoll?.roll,
+        rolledRow: facilityRoll?.row,
+      );
+    }).toList();
+    final facilityResults = facilityBuffs
+        .where((b) => b.rolledRow != null)
+        .map((b) => BastionTurnFacilityResult(
+              name: b.facility.name,
+              rolledRow: b.rolledRow,
             ))
         .toList();
     final dispatch = turnResult?.dispatch;
@@ -281,7 +292,8 @@ class BastionPage extends StatelessWidget {
       advancedFacility: advanced,
       event: roll.event,
       result: loggedResult,
-      facilityResults: facilityResults,
+      eventRollNumber: eventRoll?.roll,
+      facilityBuffs: facilityBuffs,
     );
   }
 
