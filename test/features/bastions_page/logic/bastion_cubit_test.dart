@@ -1090,6 +1090,197 @@ void main() {
 
       await cubit.close();
     });
+
+    test('closeFacilityId marks an operational facility one turn short',
+        () async {
+      final puts = <http.Request>[];
+      final mock = _withEmptyBrowsePage((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+                  facilityJson(
+                      id: 'cat_kitchen', name: 'Kitchen', constructed: 2, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final advanced = await cubit.advanceBastionTurn(
+        'bastion-1',
+        closeFacilityId: 'cat_kitchen',
+      );
+
+      expect(advanced, isNotNull);
+      expect(advanced!.name, 'Barracks');
+      expect(puts, hasLength(2));
+      final kitchenPut = puts
+          .firstWhere((r) => r.url.path == '/maura/v1/facilities/cat_kitchen');
+      final body = jsonDecode(kitchenPut.body) as Map<String, dynamic>;
+      expect(body['constructedTurns'], 1);
+      expect(body['constructionTurns'], 2);
+
+      await cubit.close();
+    });
+
+    test('closeFacilityId persists when nothing else is under construction',
+        () async {
+      final puts = <http.Request>[];
+      final gateArgs = <Facility?>[];
+      final mock = _withEmptyBrowsePage((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'cat_kitchen', name: 'Kitchen', constructed: 2, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      final advanced = await cubit.advanceBastionTurn(
+        'bastion-1',
+        closeFacilityId: 'cat_kitchen',
+        gate: (f) async => gateArgs.add(f),
+      );
+
+      expect(advanced, isNull);
+      expect(gateArgs, [null]);
+      expect(puts, hasLength(1));
+      expect(jsonDecode(puts.single.body)['constructedTurns'], 1);
+      expect(puts.single.url.path, '/maura/v1/facilities/cat_kitchen');
+
+      await cubit.close();
+    });
+
+    test('closeFacilityId is a no-op for an absent facility', () async {
+      final puts = <http.Request>[];
+      final mock = _withEmptyBrowsePage((request) async {
+        if (request.method == 'GET' &&
+            request.url.path == '/maura/v1/bastions') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': [
+                bastionJson([
+                  facilityJson(
+                      id: 'barracks', name: 'Barracks', constructed: 0, total: 2),
+                ]),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'PUT' &&
+            request.url.path.startsWith('/maura/v1/facilities/')) {
+          puts.add(request);
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'ok',
+              'data': jsonDecode(request.body),
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode({'success': false, 'message': 'unexpected'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://example.test', client: mock);
+      final cubit = BastionCubit(
+        bastionApi: BastionApi(client: apiClient),
+        facilityApi: FacilityApi(client: apiClient),
+      );
+      await cubit.loadBastions();
+
+      await cubit.advanceBastionTurn(
+        'bastion-1',
+        closeFacilityId: 'cat_kitchen',
+      );
+
+      expect(
+        puts.where((r) => r.url.path == '/maura/v1/facilities/cat_kitchen'),
+        isEmpty,
+      );
+
+      await cubit.close();
+    });
   });
 
   group('BastionCubit.upgradeFacility', () {

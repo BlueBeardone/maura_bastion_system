@@ -11,6 +11,7 @@ import 'package:maura_bastion_system/data/models/bastion/bastion_page.dart';
 import 'package:maura_bastion_system/data/models/bastion/branch_upgrade.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 
 part 'bastion_state.dart';
 
@@ -157,6 +158,7 @@ class BastionCubit extends Cubit<BastionState> {
 
   Future<Facility?> advanceBastionTurn(
     String bastionId, {
+    String? closeFacilityId,
     Future<void> Function(Facility? advanced)? gate,
   }) async {
     if (_advancingTurn) return null;
@@ -175,11 +177,12 @@ class BastionCubit extends Cubit<BastionState> {
         break;
       }
     }
+    final closeTarget = facilityKnockedOffline(bastion, closeFacilityId);
 
     try {
       _advancingTurn = true;
       _setMutating(true);
-      if (target == null) {
+      if (target == null && closeTarget == null) {
         if (gate != null) {
           try {
             await gate(null);
@@ -190,24 +193,34 @@ class BastionCubit extends Cubit<BastionState> {
         return null;
       }
 
-      var advanced = target.copyWith(
-        constructedTurns: target.constructedTurns + 1,
-      );
+      Facility? advanced;
+      final updates = <Facility>[];
 
-      // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance
-      // by reverting them to the base name/description.
-      final targetPerTurnUpgrade =
-          target.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
-      if (targetPerTurnUpgrade) {
-        advanced = advanced.revertBranchUpgrade();
-      }
-      final lapsed = <Facility>[];
-      for (final facility in bastion.facilities) {
-        if (facility.id == target.id) continue;
-        final isPerTurn = facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
-        if (isPerTurn) {
-          lapsed.add(facility.revertBranchUpgrade());
+      if (target != null) {
+        advanced = target.copyWith(
+          constructedTurns: target.constructedTurns + 1,
+        );
+
+        // Lapse per-turn branch upgrades (e.g. Pub of Legend) at turn advance
+        // by reverting them to the base name/description.
+        final targetPerTurnUpgrade =
+            target.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
+        if (targetPerTurnUpgrade) {
+          advanced = advanced.revertBranchUpgrade();
         }
+        for (final facility in bastion.facilities) {
+          if (facility.id == target.id) continue;
+          final isPerTurn =
+              facility.branchUpgrade?.kind == BranchUpgradeKind.perTurn;
+          if (isPerTurn) {
+            updates.add(facility.revertBranchUpgrade());
+          }
+        }
+        updates.insert(0, advanced);
+      }
+
+      if (closeTarget != null) {
+        updates.add(closeTarget);
       }
 
       if (gate != null) {
@@ -217,8 +230,7 @@ class BastionCubit extends Cubit<BastionState> {
           return null;
         }
       }
-      await _facilityApi.update(advanced.id, advanced, bastionId: bastion.id);
-      for (final facility in lapsed) {
+      for (final facility in updates) {
         await _facilityApi.update(facility.id, facility, bastionId: bastion.id);
       }
       await refreshUserBastion();
