@@ -54,7 +54,7 @@ void main() {
       expect(newspapers.first.newspaperName, 'Maura Weekly');
       expect(newspapers.first.leadArticle.title, isNotEmpty);
       expect(newspapers.first.leadArticle.imageUrl, isNull);
-      expect(newspapers.first.otherArticles.length, 5);
+      expect(newspapers.first.otherArticles.length, 9);
 
       await cubit.close();
     });

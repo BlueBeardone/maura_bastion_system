@@ -81,6 +81,46 @@ Residents inside the walls expressed quiet satisfaction with the arrangement. Re
           author: 'The Editor',
           imageUrl: null,
         ),
+        NewspaperArticle(
+          title: "SKELETOR'S CREW RAID WELL; WELL IMPROVES",
+          content: '''
+Skeletor's Crew has issued a statement denying that anything happened at the well, that the well was ever unwell, and that the hamlet's cough was any of their concern. The Guild notes that all three denials arrived before any accusation was made.
+
+The Crew further wishes it known that its workers receive two meal breaks, a fair wage, and a pension of unspecified bones, and that the Guild is invited to sit with that information for a while.
+          ''',
+          author: 'A Correspondent',
+          imageUrl: null,
+        ),
+        NewspaperArticle(
+          title: 'MYSTERY BARD SIGHTED AT THREE CROSSINGS IN ONE EVENING',
+          content: '''
+Witnesses at three separate crossings report the same performer, the same set, and the same quiet certainty that the song was about them personally. The Guild of Heralds has declined to investigate, on the grounds that some arithmetic is best left alone.
+
+Anyone able to describe the bard from memory is asked to try, and then to notice that they cannot.
+          ''',
+          author: 'A Correspondent',
+          imageUrl: null,
+        ),
+        NewspaperArticle(
+          title: 'THE TWINSTERS SEEN ON THE NORTH ROAD; TOWN WARNED, TOWN LISTENS',
+          content: '''
+The Twinsters were observed walking the north road this week, in step, in the manner the town has learned to read as a warning. The road was empty within the hour and remained empty behind them.
+
+The family sends its regards, which are addressed to everyone, and the watch advises that visibility is optional and currently discouraged.
+          ''',
+          author: 'The Editor',
+          imageUrl: null,
+        ),
+        NewspaperArticle(
+          title: 'WHISPERS CLOSE \'A DOOR THAT SHOULD NOT HAVE BEEN THERE\'',
+          content: '''
+The Whispers report that a door which should not have existed has been closed, and that the screaming is "closing noise" and no cause for alarm. They declined further comment, which the Guild has, for the first time on record, accepted.
+
+Residents near the orchard are advised that the seam in the air is gone, and are asked to stop looking for it.
+          ''',
+          author: 'A Correspondent',
+          imageUrl: null,
+        ),
       ],
     ),
   ];
