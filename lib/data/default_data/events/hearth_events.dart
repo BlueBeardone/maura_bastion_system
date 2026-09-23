@@ -33,6 +33,7 @@ List<ChartEvent> hearthEvents() {
       id: 'hrt_kitchen_fire',
       name: 'Kitchen Fire',
       chart: EventChart.hearth,
+      facilityId: 'cat_kitchen',
       tier: ChartTier.basic,
       description:
           'The kitchen caught alight mid-roast. Save the stores and there may be salvage worth keeping.',
@@ -46,6 +47,7 @@ List<ChartEvent> hearthEvents() {
       id: 'hrt_cellar_rats',
       name: 'Cellar Rats',
       chart: EventChart.hearth,
+      facilityId: 'cat_kitchen',
       tier: ChartTier.basic,
       description:
           'The cellar rats have grown fat, bold, and enormous. The village pays a bounty per tail.',

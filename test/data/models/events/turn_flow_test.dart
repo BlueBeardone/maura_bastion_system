@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/events/chart_event.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
@@ -110,6 +111,66 @@ void main() {
         recruit: RewardKind.recruitHireling,
       ));
       expect(summary, '2 × Adamantine (Rank D), a new hireling');
+    });
+  });
+
+  group('facilityKnockedOffline', () {
+    Bastion bastionWith(Facility facility) => Bastion(
+          id: 'b1',
+          name: 'T',
+          description: '',
+          facilities: [facility],
+        );
+
+    Facility kitchen({required int constructed, required int total}) => Facility(
+          id: 'cat_kitchen',
+          name: 'Kitchen',
+          rank: Rank.D,
+          description: 'desc',
+          constructedTurns: constructed,
+          constructionTurns: total,
+        );
+
+    test('returns null when facilityId is null', () {
+      expect(
+        facilityKnockedOffline(
+            bastionWith(kitchen(constructed: 2, total: 2)), null),
+        isNull,
+      );
+    });
+
+    test('returns null when the facility is absent', () {
+      expect(
+        facilityKnockedOffline(
+            bastionWith(kitchen(constructed: 2, total: 2)), 'cat_pub'),
+        isNull,
+      );
+    });
+
+    test('returns null when the facility is already offline', () {
+      expect(
+        facilityKnockedOffline(
+            bastionWith(kitchen(constructed: 1, total: 2)), 'cat_kitchen'),
+        isNull,
+      );
+    });
+
+    test('returns null when constructionTurns is zero', () {
+      expect(
+        facilityKnockedOffline(
+            bastionWith(kitchen(constructed: 0, total: 0)), 'cat_kitchen'),
+        isNull,
+      );
+    });
+
+    test('marks an operational facility one turn short', () {
+      final closed = facilityKnockedOffline(
+          bastionWith(kitchen(constructed: 2, total: 2)), 'cat_kitchen');
+      expect(closed, isNotNull);
+      expect(closed!.id, 'cat_kitchen');
+      expect(closed.name, 'Kitchen');
+      expect(closed.constructedTurns, 1);
+      expect(closed.constructionTurns, 2);
     });
   });
 }

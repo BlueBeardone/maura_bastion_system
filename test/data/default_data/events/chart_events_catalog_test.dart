@@ -34,4 +34,16 @@ void main() {
       expect(e.description.trim(), isNotEmpty, reason: e.id);
     }
   });
+
+  test('facility-affecting events name the kitchen', () {
+    final byId = {for (final e in events) e.id: e};
+    expect(byId['hrt_kitchen_fire']?.facilityId, 'cat_kitchen');
+    expect(byId['hrt_cellar_rats']?.facilityId, 'cat_kitchen');
+  });
+
+  test('only the two hearth events carry a facility link', () {
+    final linked =
+        events.where((e) => e.facilityId != null).map((e) => e.id).toSet();
+    expect(linked, {'hrt_kitchen_fire', 'hrt_cellar_rats'});
+  });
 }

@@ -18,6 +18,10 @@ class ChartEvent {
   final DispatchSpec? dispatch;
   final RewardSpec reward;
 
+  /// The catalog facility this event knocks offline when its dispatch fails.
+  /// Null for events that do not affect a facility.
+  final String? facilityId;
+
   /// Archetype gating: the charts this convergence/rivalry event involves.
   final Set<EventChart> relatedCharts;
   final int minPointsPerChart;
@@ -31,6 +35,7 @@ class ChartEvent {
     required this.description,
     this.dispatch,
     this.reward = const RewardSpec(),
+    this.facilityId,
     this.relatedCharts = const {},
     this.minPointsPerChart = 0,
     this.table,
