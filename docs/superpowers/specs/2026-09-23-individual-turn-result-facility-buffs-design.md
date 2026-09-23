@@ -30,10 +30,22 @@ In the Individual turn result dialog, and only there:
 2. Show a list of **every eligible facility** — fully constructed and staffed
    to its minimum hireling requirement (`Bastion.eligibleFacilities`).
 3. Tapping a facility expands it to reveal its rules description (the buff it
-   grants), its table (if any), and, when a roll was made, the number rolled
-   and the row obtained.
-4. Roll facilities only when their table is genuinely random, and show what
-   was rolled and what it yielded.
+   grants) and its table (if any).
+4. Show the numeric die result and produced row for the **individual event's**
+   table roll. Facility tables are reference/choice lists and are not rolled.
+
+### Decision — no facility table rolling (2026-09-23)
+
+An earlier draft marked the Training Area and Gaming Hall tables
+`rollable: true` and rolled them per turn. The final review found those tables
+cannot be parsed by `rollTable` (its parser requires a numeric first column;
+the catalog facilities' tables are rank/tool/beverage/trainer lists). In
+practice no catalog facility table has a numeric first column, so facility
+rolling never fired and the Discord `facilityResults` list was always empty.
+The human decided: **do not roll facility tables at all.** The
+`FacilityTable.rollable` field and the `rollTable` helper remain as
+infrastructure for future use, and no catalog table is marked rollable. The
+individual event table continues to roll and now shows its numeric result.
 
 ## Non-goals / out of scope
 
@@ -79,12 +91,11 @@ Rejected:
 - `FacilityTable` gains `final bool rollable` (default `false`), wired through
   the constructor, `fromJson` (`json['rollable'] as bool? ?? false`), and
   `toJson`.
-- `data/models/bastion/facility_catalog.dart`: set `rollable: true` on the
-  **Training Area** table (one Trainer's benefit) and the **Gaming Hall** table
-  (Fortune's Folly outcomes). All other facility tables remain reference or
-  choice lists and stay `rollable: false`.
-- Individual event tables are always rolled regardless of the flag (events
-  have a single outcome table by design); no event tables need the flag.
+- No catalog facility table is marked `rollable: true`. The flag is kept as
+  infrastructure so a future genuinely-random, parseable facility table can opt
+  in. (See "Decision" above.)
+- Individual event tables are always rolled regardless of the flag; no event
+  tables need the flag.
 
 ### 3. Presentation view-model — `bastion_turn_dialog.dart`
 
@@ -112,11 +123,11 @@ and table without extra lookups. The existing Discord model
 - Build `facilityBuffs` from `bastion.eligibleFacilities`:
   - Every eligible facility is included (including those with no table).
   - If the facility has a table with `rollable == true`, roll once and set
-    `rolledNumber` and `rolledRow`; otherwise leave both `null`.
-- Discord payload: `facilityResults` is now the subset of eligible facilities
-  that were actually rolled (rollable tables), each with its `rolledRow`. This
-  replaces the old "every facility with any table" rule. The payload shape is
-  unchanged; backend formatting is unaffected.
+    `rolledNumber` and `rolledRow`; otherwise leave both `null`. In practice no
+    facility table is rollable, so both stay `null` and the card shows no roll.
+- Discord payload: `facilityResults` is the subset of eligible facilities that
+  were actually rolled. With no rollable facility tables it is empty. The
+  payload shape is unchanged; backend formatting is unaffected.
 - Pass `facilityBuffs` to `BastionTurnDialog`. `result` continues to be passed
   so the dialog can render the event reward summary and dispatch outcome.
 
@@ -165,9 +176,9 @@ and table without extra lookups. The existing Discord model
 - `test/data/models/bastion/table_test.dart`: `rollTable` returns the numeric
   roll and matching row; `rollTableResult` still returns the row only;
   `rollable` round-trips through JSON (present and absent).
-- `test/data/test_data/facility_catalog_test.dart`: Training Area and Gaming
-  Hall tables have `rollable == true`; representative reference tables
-  (Kitchen, Workshop, Trading Hub) are `false`.
+- `test/data/test_data/facility_catalog_test.dart`: asserts no catalog facility
+  table is `rollable` (guards against accidental per-turn facility rolling);
+  `rollable` round-trips through `FacilityTable` JSON.
 - `test/features/bastions_page/presentation/widgets/bastion_turn_dialog_test.dart`:
   - event section renders reward summary and dispatch outcome when present,
     and numeric roll + row;
@@ -178,8 +189,9 @@ and table without extra lookups. The existing Discord model
 - `test/.../widgets/facility_buff_card_test.dart`: collapsed by default;
   expands on tap; shows description/table/roll only when expanded.
 - `test/features/bastions_page/presentation/bastion_page_test.dart`: a turn
-  includes all eligible facilities (including no-table ones); only rollable
-  tables are rolled; the Discord payload carries only rolled facilities.
+  includes all eligible facilities (including no-table and non-rollable ones);
+  no facility table is rolled; the Discord payload's `facilityResults` is empty
+  (captured POST body is parsed and asserted).
 
 ## Verification
 
