@@ -62,6 +62,41 @@ List<BastionEnemy> getEnemyCatalog() {
       description:
           'A titanic monster that has broken stronger walls than these.',
     ),
+    BastionEnemy(
+      id: 'enm_skeletors_crew',
+      name: "Skeletor's Crew",
+      tier: ChartTier.basic,
+      description:
+          "Skeletor's skeletons arrive to sack the bastion and are immediately persuaded to negotiate a fair wage first. They are, by every measure, excellent employers.",
+    ),
+    BastionEnemy(
+      id: 'enm_skeletors_crew_rested',
+      name: "Skeletor's Crew, Fully Rested",
+      tier: ChartTier.skilled,
+      description:
+          "The Crew returns, unionised, well-fed, and terrifyingly well-rested. Skeletor's opening demand is a shorter working week.",
+    ),
+    BastionEnemy(
+      id: 'enm_the_twinsters',
+      name: 'The Twinsters',
+      tier: ChartTier.skilled,
+      description:
+          "Two of the family's enforcers, identical in silhouette, walk the road looking for anyone foolish enough to be visible.",
+    ),
+    BastionEnemy(
+      id: 'enm_twinsters_reckoning',
+      name: "The Twinsters' Reckoning",
+      tier: ChartTier.master,
+      description:
+          'Half the family arrives to settle a debt nobody can remember incurring, and they brought the paperwork.',
+    ),
+    BastionEnemy(
+      id: 'enm_twinsters_family',
+      name: 'The Whole Family',
+      tier: ChartTier.legend,
+      description:
+          'Every Twinsters who ever was, walking in step. The road goes quiet behind them and stays quiet for a week.',
+    ),
   ];
 }
 

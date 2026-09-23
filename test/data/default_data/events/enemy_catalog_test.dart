@@ -29,4 +29,13 @@ void main() {
     final ids = getEnemyCatalog().map((e) => e.id).toList();
     expect(ids.toSet().length, ids.length);
   });
+
+  test('faction enemies are present at their tiers', () {
+    final byId = {for (final e in getEnemyCatalog()) e.id: e};
+    expect(byId['enm_skeletors_crew']?.tier, ChartTier.basic);
+    expect(byId['enm_skeletors_crew_rested']?.tier, ChartTier.skilled);
+    expect(byId['enm_the_twinsters']?.tier, ChartTier.skilled);
+    expect(byId['enm_twinsters_reckoning']?.tier, ChartTier.master);
+    expect(byId['enm_twinsters_family']?.tier, ChartTier.legend);
+  });
 }
