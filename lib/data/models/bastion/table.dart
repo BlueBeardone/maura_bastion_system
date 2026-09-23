@@ -2,33 +2,36 @@ import 'dart:math';
 
 class FacilityTable {
   final List<List<String>> table;
+  final bool rollable;
 
-  FacilityTable({required this.table});
+  FacilityTable({required this.table, this.rollable = false});
 
   factory FacilityTable.fromJson(Map<String, dynamic> json) {
-
-    return FacilityTable( 
+    return FacilityTable(
       table: (json['table'] as List? ?? [])
-        .map((tableItems) => List<String>.from(tableItems))
-        .toList(),
+          .map((tableItems) => List<String>.from(tableItems))
+          .toList(),
+      rollable: json['rollable'] as bool? ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'table': table,
+      'rollable': rollable,
     };
   }
 }
 
-/// Rolls on [table]'s data rows (row 0 is the header) and returns the
-/// matching row's cells joined with ' | ', or null if no rows are parseable.
+/// Rolls on [table]'s data rows (row 0 is the header) and returns the numeric
+/// die result plus the matching row's cells joined with ' | ', or null if no
+/// rows are parseable.
 ///
 /// First-column formats: single number ('1', '8') or inclusive range
 /// ('01 - 40', '99 - 00' — 0 as an upper bound means 100). The die size is
 /// the highest upper bound; a roll matching no range (table gaps) clamps to
 /// the first row whose upper bound is >= the roll.
-String? rollTableResult(FacilityTable table, {Random? rng}) {
+({int roll, String row})? rollTable(FacilityTable table, {Random? rng}) {
   final rows = table.table.length <= 1
       ? const <List<String>>[]
       : table.table.sublist(1);
@@ -58,5 +61,9 @@ String? rollTableResult(FacilityTable table, {Random? rng}) {
     }
   }
   hit ??= parsed.firstWhere((p) => p.max >= roll, orElse: () => parsed.last);
-  return hit.cells.join(' | ');
+  return (roll: roll, row: hit.cells.join(' | '));
 }
+
+/// Rolls on [table] and returns the matching row joined with ' | ', or null.
+String? rollTableResult(FacilityTable table, {Random? rng}) =>
+    rollTable(table, rng: rng)?.row;

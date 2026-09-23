@@ -76,6 +76,50 @@ void main() {
       expect(rollTableResult(table, rng: _FixedRandom(99)), '99 - 00 | 250 GP per rank');
     });
   });
+
+  group('rollTable', () {
+    test('returns both the numeric roll and the matching row', () {
+      final table = FacilityTable(table: [
+        ['d4', 'Guest', 'Description'],
+        ['1', 'Renowned Builder', 'Helps construction'],
+        ['2', 'Seeking Sanctuary', 'Stays a turn'],
+        ['3', 'Mercenary Guest', 'Extra defender'],
+        ['4', 'Friendly Monster', 'Repels attack'],
+      ]);
+      final result = rollTable(table, rng: _FixedRandom(1));
+      expect(result, isNotNull);
+      expect(result!.roll, 2);
+      expect(result.row, '2 | Seeking Sanctuary | Stays a turn');
+    });
+
+    test('returns null for empty or header-only table', () {
+      expect(rollTable(FacilityTable(table: [])), isNull);
+      expect(rollTable(FacilityTable(table: [['d6', 'Event']])), isNull);
+    });
+  });
+
+  group('FacilityTable JSON', () {
+    test('rollable defaults to false and round-trips', () {
+      final plain = FacilityTable.fromJson({
+        'table': [
+          ['d6', 'X'],
+          ['1', 'a'],
+        ],
+      });
+      expect(plain.rollable, isFalse);
+
+      final rollable = FacilityTable(
+        table: [
+          ['d6', 'X'],
+          ['1', 'a'],
+        ],
+        rollable: true,
+      );
+      final back = FacilityTable.fromJson(rollable.toJson());
+      expect(back.rollable, isTrue);
+      expect(back.table, rollable.table);
+    });
+  });
 }
 
 /// Random stub whose nextInt always returns the fixed value.
