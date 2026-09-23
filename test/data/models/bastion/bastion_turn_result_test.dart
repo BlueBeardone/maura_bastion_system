@@ -73,6 +73,24 @@ void main() {
       expect(absent.toJson()['rewardSummary'], isNull);
       expect(BastionTurnEventResult.fromJson(absent.toJson()).rewardSummary, isNull);
     });
+
+    test('event result serializes closedFacilityName', () {
+      const event = BastionTurnEventResult(
+        name: 'Cellar Rats',
+        description: 'Rats.',
+        closedFacilityName: 'Kitchen',
+      );
+      final json = event.toJson();
+      expect(json['closedFacilityName'], 'Kitchen');
+      expect(BastionTurnEventResult.fromJson(json).closedFacilityName,
+          'Kitchen');
+      const absent = BastionTurnEventResult(name: 'A', description: 'B');
+      expect(absent.toJson()['closedFacilityName'], isNull);
+      expect(
+        BastionTurnEventResult.fromJson(absent.toJson()).closedFacilityName,
+        isNull,
+      );
+    });
   });
 
   group('facilityResults', () {

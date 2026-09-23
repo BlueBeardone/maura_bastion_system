@@ -174,6 +174,10 @@ class BastionTurnEventResult {
   final String description;
   final String? rolledRow;
   final String? rewardSummary;
+
+  /// Name of a facility knocked offline for one construction turn by a failed
+  /// dispatch, if any.
+  final String? closedFacilityName;
   final BastionTurnDispatchResult? dispatch;
 
   const BastionTurnEventResult({
@@ -181,6 +185,7 @@ class BastionTurnEventResult {
     required this.description,
     this.rolledRow,
     this.rewardSummary,
+    this.closedFacilityName,
     this.dispatch,
   });
 
@@ -190,6 +195,7 @@ class BastionTurnEventResult {
       description: json['description'] as String,
       rolledRow: json['rolledRow'] as String?,
       rewardSummary: json['rewardSummary'] as String?,
+      closedFacilityName: json['closedFacilityName'] as String?,
       dispatch: json['dispatch'] == null
           ? null
           : BastionTurnDispatchResult.fromJson(
@@ -203,6 +209,7 @@ class BastionTurnEventResult {
       'description': description,
       'rolledRow': rolledRow,
       'rewardSummary': rewardSummary,
+      'closedFacilityName': closedFacilityName,
       'dispatch': dispatch?.toJson(),
     };
   }
