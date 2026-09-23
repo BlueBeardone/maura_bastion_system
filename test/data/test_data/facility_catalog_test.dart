@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
+import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
 
 void main() {
@@ -33,6 +34,20 @@ void main() {
       expect(facilityUpgradeCost(Rank.B), 4500);
       expect(facilityUpgradeCost(Rank.A), 11000);
       expect(facilityUpgradeCost(Rank.S), 0);
+    });
+  });
+
+  group('rollable facility tables', () {
+    test('only genuinely random tables are rollable', () {
+      final catalog = getFacilityCatalog();
+      Facility byName(String name) => catalog.firstWhere((f) => f.name == name);
+
+      expect(byName('Training Area').table!.rollable, isTrue);
+      expect(byName('Gaming Hall').table!.rollable, isTrue);
+
+      expect(byName('Kitchen').table!.rollable, isFalse);
+      expect(byName('Workshop').table!.rollable, isFalse);
+      expect(byName('Trading Hub').table!.rollable, isFalse);
     });
   });
 }
