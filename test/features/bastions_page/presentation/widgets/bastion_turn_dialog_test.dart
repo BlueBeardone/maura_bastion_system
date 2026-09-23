@@ -230,7 +230,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Out of action'), findsOneWidget);
-    expect(find.textContaining('Kitchen is offline'), findsOneWidget);
+    expect(
+      find.text('Kitchen is offline \u2014 1 construction turn to repair.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('no closed facility means no out-of-action callout',

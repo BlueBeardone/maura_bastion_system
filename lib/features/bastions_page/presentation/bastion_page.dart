@@ -292,7 +292,8 @@ class BastionPage extends StatelessWidget {
       },
     );
     if (!context.mounted) return;
-    if (loggedResult == null || (advanced == null && hadTarget)) {
+    if (loggedResult == null ||
+        (advanced == null && (hadTarget || closedFacility != null))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Turn could not be advanced')),
       );
@@ -300,7 +301,7 @@ class BastionPage extends StatelessWidget {
     }
     await BastionTurnDialog.show(
       context,
-      advancedFacility: advanced,
+      advancedFacility: hadTarget ? advanced : null,
       event: roll.event,
       result: loggedResult,
       eventRollNumber: eventRoll?.roll,

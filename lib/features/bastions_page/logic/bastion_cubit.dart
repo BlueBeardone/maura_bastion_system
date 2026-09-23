@@ -156,6 +156,16 @@ class BastionCubit extends Cubit<BastionState> {
     }
   }
 
+  /// Advances one construction turn on the first facility still under
+  /// construction, lapses per-turn branch upgrades, and, when
+  /// [closeFacilityId] identifies an operational facility, knocks it offline
+  /// for repair. The [gate] runs after the advance is staged but before any
+  /// facility is persisted, receiving the genuinely advanced facility (or null
+  /// when none advanced); a thrown gate aborts the turn and persists nothing.
+  ///
+  /// Returns the facility touched this turn — the advanced construction target,
+  /// or the closed facility when no construction advanced — or null on
+  /// failure or when there is no work to do.
   Future<Facility?> advanceBastionTurn(
     String bastionId, {
     String? closeFacilityId,
@@ -234,7 +244,7 @@ class BastionCubit extends Cubit<BastionState> {
         await _facilityApi.update(facility.id, facility, bastionId: bastion.id);
       }
       await refreshUserBastion();
-      return advanced;
+      return advanced ?? closeTarget;
     } catch (e) {
       return null;
     } finally {

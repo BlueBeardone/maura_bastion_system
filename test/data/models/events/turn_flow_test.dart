@@ -172,5 +172,13 @@ void main() {
       expect(closed.constructedTurns, 1);
       expect(closed.constructionTurns, 2);
     });
+
+    test('normalizes an over-built record to constructionTurns - 1', () {
+      final closed = facilityKnockedOffline(
+          bastionWith(kitchen(constructed: 3, total: 2)), 'cat_kitchen');
+      expect(closed, isNotNull);
+      expect(closed!.constructedTurns, 1);
+      expect(closed.constructionTurns, 2);
+    });
   });
 }
