@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/defender_api.dart';
 import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
@@ -10,6 +13,7 @@ import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
 import 'package:maura_bastion_system/core/juice/juice.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/core/utils/safe_network_image.dart';
+import 'package:maura_bastion_system/data/default_data/events/enemy_catalog.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/enums/defender_type.dart';
 import 'package:maura_bastion_system/data/models/bastion/bastion.dart';
@@ -19,15 +23,20 @@ import 'package:maura_bastion_system/data/models/bastion/facility.dart';
 import 'package:maura_bastion_system/data/models/bastion/table.dart';
 import 'package:maura_bastion_system/data/models/npcs/hireling.dart';
 import 'package:maura_bastion_system/data/models/bastion/facility_catalog.dart';
+import 'package:maura_bastion_system/data/models/events/bastion_attack.dart';
+import 'package:maura_bastion_system/data/models/events/chart_event.dart';
+import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
 import 'package:maura_bastion_system/data/models/events/turn_engine.dart';
 import 'package:maura_bastion_system/data/models/events/turn_flow.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/bastion_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
+import 'package:maura_bastion_system/features/bastions_page/logic/defenders_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/chart_web_panel.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/defenders_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/facility_selection_page.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_attack_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_turn_flow_dialog.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/quest_input_dialog.dart';
@@ -39,11 +48,13 @@ class BastionPage extends StatelessWidget {
 
   final String bastionId;
   final bool isUserBastion;
+  final double attackChance;
 
   const BastionPage({
     super.key,
     required this.bastionId,
     this.isUserBastion = false,
+    this.attackChance = defaultAttackChance,
   });
 
   @override
@@ -205,6 +216,15 @@ class BastionPage extends StatelessWidget {
     final eventRoll =
         roll.event.table == null ? null : rollTable(roll.event.table!);
     final rolledRow = eventRoll?.row;
+    final random = Random();
+    if (shouldRollBastionAttack(
+      bastion,
+      rng: random,
+      chance: attackChance,
+    )) {
+      await _takeAttackTurn(context, bastion, cubit, quest, roll, random);
+      return;
+    }
     // The turn resolves BEFORE the advance — the reward summary the player
     // confirms in the dialog rides the Discord payload.
     final turnResult = await BastionTurnFlowDialog.show(
@@ -305,6 +325,155 @@ class BastionPage extends StatelessWidget {
       event: roll.event,
       result: loggedResult,
       eventRollNumber: eventRoll?.roll,
+      facilityBuffs: facilityBuffs,
+    );
+  }
+
+  Future<void> _takeAttackTurn(
+    BuildContext context,
+    Bastion bastion,
+    BastionCubit cubit,
+    String quest,
+    ChartTurnRoll roll,
+    Random random,
+  ) async {
+    final config = bastionDefenseConfig(bastion);
+    final enemy = randomEnemyForTier(roll.tier, rng: random);
+    final enemyCount = rollEnemyCount(roll.tier, random);
+    final result = resolveBastionCombat(
+      defenders: bastion.defenders,
+      enemy: enemy,
+      enemyCount: enemyCount,
+      config: config,
+      rng: random,
+    );
+    final loot = result.won ? rollCombatLoot(enemy, rng: random) : null;
+    final destroyedFacility = !result.won && bastion.facilities.isNotEmpty
+        ? bastion.facilities[random.nextInt(bastion.facilities.length)]
+        : null;
+
+    if (!context.mounted) return;
+    await BastionAttackDialog.show(
+      context,
+      enemy: enemy,
+      enemyCount: enemyCount,
+      result: result,
+      loot: loot,
+      destroyedFacilityName: destroyedFacility?.name,
+    );
+    if (!context.mounted) return;
+
+    var removalFailed = false;
+    if (result.dead.isNotEmpty) {
+      final defendersCubit = DefendersCubit(
+        bastionId: bastion.id,
+        defenderApi: GetIt.I<DefenderApi>(),
+        discordAnnouncer: GetIt.I.isRegistered<DiscordAnnouncer>()
+            ? GetIt.I<DiscordAnnouncer>()
+            : null,
+        bastionName: bastion.name,
+      );
+      await defendersCubit.loadDefenders();
+      for (final defender in result.dead) {
+        final removed = await defendersCubit.removeDefender(defender.id);
+        if (!removed) removalFailed = true;
+      }
+      await defendersCubit.close();
+    }
+
+    if (destroyedFacility != null) {
+      final removed = await cubit.removeFacility(bastion.id, destroyedFacility);
+      if (!removed) removalFailed = true;
+    }
+
+    if (removalFailed && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Some changes could not be saved')),
+      );
+    }
+
+    final effectiveBastion = destroyedFacility == null
+        ? bastion
+        : bastion.copyWith(
+            facilities: bastion.facilities
+                .where((f) => f.id != destroyedFacility.id)
+                .toList(),
+          );
+    final facilityBuffs = effectiveBastion.eligibleFacilities.map((f) {
+      final shouldRoll = f.table != null && f.table!.rollable;
+      final facilityRoll = shouldRoll ? rollTable(f.table!) : null;
+      return BastionTurnFacilityBuff(
+        facility: f,
+        hirelingCount: effectiveBastion.facilityHirelingCount(f.id),
+        rolledNumber: facilityRoll?.roll,
+        rolledRow: facilityRoll?.row,
+      );
+    }).toList();
+    final facilityResults = facilityBuffs
+        .where((b) => b.rolledRow != null)
+        .map((b) => BastionTurnFacilityResult(
+              name: b.facility.name,
+              rolledRow: b.rolledRow,
+            ))
+        .toList();
+
+    final rewardSummary = result.won
+        ? (loot == null ? 'The attack is repelled.' : rewardSummaryText(loot))
+        : destroyedFacility == null
+            ? 'The bastion is overrun.'
+            : 'The ${destroyedFacility.name} is destroyed.';
+    final eventResult = BastionTurnEventResult(
+      name: enemy.name,
+      description: '${enemy.description}\n\n'
+          '$enemyCount attackers against ${bastion.defenders.length} defenders.',
+      rewardSummary: rewardSummary,
+    );
+
+    final hadTarget = effectiveBastion.facilities.any(
+      (f) => f.constructedTurns < f.constructionTurns,
+    );
+    BastionTurnResult? loggedResult;
+    final advanced = await cubit.advanceBastionTurn(
+      bastion.id,
+      gate: (advancedFacility) async {
+        final log = BastionTurnResult(
+          bastionId: bastion.id,
+          bastionName: bastion.name,
+          quest: quest,
+          advancedFacility: advancedFacility == null
+              ? null
+              : BastionTurnAdvancedFacility(
+                  name: advancedFacility.name,
+                  rankTitle: advancedFacility.rank.title,
+                  constructedTurns: advancedFacility.constructedTurns,
+                  constructionTurns: advancedFacility.constructionTurns,
+                ),
+          event: eventResult,
+          facilityResults: facilityResults,
+        );
+        await GetIt.I<DiscordApi>().sendIndividualBastionTurn(log);
+        loggedResult = log;
+      },
+    );
+    if (!context.mounted) return;
+    if (loggedResult == null || (advanced == null && hadTarget)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Turn could not be advanced')),
+      );
+      return;
+    }
+    await BastionTurnDialog.show(
+      context,
+      advancedFacility: hadTarget ? advanced : null,
+      event: ChartEvent(
+        id: enemy.id,
+        name: enemy.name,
+        chart: null,
+        tier: roll.tier,
+        description: enemy.description,
+        reward: const RewardSpec(),
+      ),
+      result: loggedResult,
       facilityBuffs: facilityBuffs,
     );
   }

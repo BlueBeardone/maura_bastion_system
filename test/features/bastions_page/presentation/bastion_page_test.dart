@@ -9,11 +9,13 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/bastion_api.dart';
+import 'package:maura_bastion_system/api/defender_api.dart';
 import 'package:maura_bastion_system/api/discord_api.dart';
 import 'package:maura_bastion_system/api/facility_api.dart';
 import 'package:maura_bastion_system/api/hireling_api.dart';
 import 'package:maura_bastion_system/api/identity_api.dart';
 import 'package:maura_bastion_system/core/discord/discord_announcer.dart';
+import 'package:maura_bastion_system/data/models/events/bastion_attack.dart';
 import 'package:maura_bastion_system/data/models/events/event_chart.dart';
 import 'package:maura_bastion_system/features/bastions_page/logic/chart_points_cubit.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/bastion_edit_page.dart';
@@ -228,11 +230,14 @@ void main() {
   }
 
   Future<void> pumpBastionPage(WidgetTester tester,
-      {required bool isUserBastion, required MockClient mockClient}) async {
+      {required bool isUserBastion,
+      required MockClient mockClient,
+      double? attackChance}) async {
     final apiClient = ApiClient(baseUrl: 'http://example.test', client: mockClient);
     GetIt.I.registerSingleton<BastionApi>(BastionApi(client: apiClient));
     GetIt.I.registerSingleton<FacilityApi>(FacilityApi(client: apiClient));
     GetIt.I.registerSingleton<HirelingApi>(HirelingApi(client: apiClient));
+    GetIt.I.registerSingleton<DefenderApi>(DefenderApi(client: apiClient));
     GetIt.I.registerSingleton<DiscordApi>(DiscordApi(client: apiClient));
     GetIt.I.registerSingleton<DiscordAnnouncer>(
       DiscordAnnouncer(discordApi: DiscordApi(client: apiClient)),
@@ -249,7 +254,11 @@ void main() {
       BlocProvider<AuthCubit>(
         create: (_) => authCubit,
         child: MaterialApp(
-          home: BastionPage(bastionId: 'bastion_1', isUserBastion: isUserBastion),
+          home: BastionPage(
+            bastionId: 'bastion_1',
+            isUserBastion: isUserBastion,
+            attackChance: attackChance ?? defaultAttackChance,
+          ),
         ),
       ),
     );
@@ -758,5 +767,190 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Edit Bastion'), findsNothing);
+  });
+
+  testWidgets(
+      'an eligible attack turn opens the attack dialog and destroys a facility on an auto-loss',
+      (tester) async {
+    final deletes = <http.Request>[];
+    final facilities = List.generate(
+      6,
+      (i) => turnFacilityJson(id: 'f$i', name: 'Facility $i'),
+    );
+    final mockClient = _withEmptyBrowsePage((request) async {
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/bastions') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_1',
+                'userId': 'user_1',
+                'name': 'Test Bastion',
+                'description': 'A test stronghold.',
+                'facilities': facilities,
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'DELETE' &&
+          request.url.path.startsWith('/maura/v1/facilities/')) {
+        deletes.add(request);
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'POST' &&
+          request.url.path.startsWith('/maura/v1/discord/')) {
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: mockClient,
+      attackChance: 1.0,
+    );
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'quest');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Attacked'), findsOneWidget);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(deletes, hasLength(1));
+  });
+
+  testWidgets(
+      'a won attack shows the facility buff summary and destroys nothing',
+      (tester) async {
+    final deletes = <http.Request>[];
+    final posts = <http.Request>[];
+    final defenders = List.generate(
+      16,
+      (i) => {
+        'id': 'd$i',
+        'name': 'Defender $i',
+        'type': 'bastion_defender',
+        'bastionId': 'bastion_1',
+      },
+    );
+    final facilities = [
+      turnFacilityJson(id: 'cat_armory', name: 'Armory', rank: 'a'),
+      turnFacilityJson(id: 'cat_battlements', name: 'Battlements', rank: 's'),
+      turnFacilityJson(
+        id: 'cat_library',
+        name: 'Library',
+        table: {
+          'table': [
+            ['d4', 'Effect'],
+            ['1', 'Bonus flavor'],
+          ],
+          'rollable': true,
+        },
+      ),
+      turnFacilityJson(id: 'f1', name: 'Facility 1'),
+      turnFacilityJson(id: 'f2', name: 'Facility 2'),
+      turnFacilityJson(id: 'f3', name: 'Facility 3'),
+    ];
+    final mockClient = _withEmptyBrowsePage((request) async {
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/bastions') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_1',
+                'userId': 'user_1',
+                'name': 'Test Bastion',
+                'description': 'A test stronghold.',
+                'facilities': facilities,
+                'defenders': defenders,
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'DELETE' &&
+          request.url.path.startsWith('/maura/v1/facilities/')) {
+        deletes.add(request);
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'POST' &&
+          request.url.path.startsWith('/maura/v1/discord/')) {
+        posts.add(request);
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: mockClient,
+      attackChance: 1.0,
+    );
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'quest');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Attacked'), findsOneWidget);
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Turn'), findsOneWidget);
+    expect(find.text('Facilities granting benefits'), findsOneWidget);
+    expect(find.byType(FacilityBuffCard), findsWidgets);
+    expect(deletes, isEmpty);
+
+    final body = jsonDecode(posts.single.body) as Map<String, dynamic>;
+    expect(body['facilityResults'] as List, isNotEmpty);
   });
 }

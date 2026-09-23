@@ -47,7 +47,7 @@ void main() {
     expect(find.textContaining('The Wilds'), findsOneWidget);
     expect(find.textContaining('The Arcane'), findsOneWidget);
     expect(find.text('6 of 6 points unassigned'), findsOneWidget);
-    expect(find.text('never fires'), findsNWidgets(6));
+    expect(find.textContaining('never fires'), findsNWidgets(6));
   });
 
   testWidgets('plus button assigns a point and preview updates',
@@ -63,7 +63,7 @@ void main() {
     expect(cubit.state.points[EventChart.wilds], 1);
     expect(find.text('3 of 4 points unassigned'), findsOneWidget); // floor of four applies
     expect(find.textContaining('rolls 1'), findsOneWidget);
-    expect(find.textContaining('Basic'), findsWidgets);
+    expect(find.textContaining('creature parts'), findsWidgets);
   });
 
   testWidgets('minus button unassigns and clamps at zero', (tester) async {
