@@ -13,14 +13,10 @@ import 'package:maura_bastion_system/features/bastions_page/presentation/widgets
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
 /// How long the dice tumble before settling.
-const Duration kBastionCombatTumble = Duration(milliseconds: 650);
+const Duration kBastionCombatTumble = Duration(milliseconds: 1400);
 
 /// How long to pause after a round settles before the next one begins.
-const Duration kBastionCombatPause = Duration(milliseconds: 700);
-
-bool _reducedMotion(BuildContext context) =>
-    context.getInheritedWidgetOfExactType<MediaQuery>()?.data.disableAnimations ??
-    false;
+const Duration kBastionCombatPause = Duration(milliseconds: 1200);
 
 class BastionAttackDialog extends StatefulWidget {
   final BastionEnemy enemy;
@@ -68,23 +64,24 @@ class BastionAttackDialog extends StatefulWidget {
 class _BastionAttackDialogState extends State<BastionAttackDialog> {
   int _revealedRound = -1;
   bool _rolling = false;
+  bool _started = false;
   bool _finished = false;
   Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    if (_reducedMotion(context) || widget.result.rounds.isEmpty) {
-      _finish();
-    } else {
-      _timer = Timer(kBastionCombatPause, _advance);
-    }
-  }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _start() {
+    if (_started) return;
+    setState(() => _started = true);
+    if (widget.result.rounds.isEmpty) {
+      setState(_finish);
+      return;
+    }
+    _timer = Timer(kBastionCombatPause, _advance);
   }
 
   void _advance() {
@@ -199,6 +196,14 @@ class _BastionAttackDialogState extends State<BastionAttackDialog> {
   }
 
   Widget _buildFooter() {
+    if (!_started) {
+      return Center(
+        child: ElevatedButton(
+          onPressed: _start,
+          child: const Text('Fight'),
+        ),
+      );
+    }
     if (!_finished) {
       return Center(
         child: TextButton(

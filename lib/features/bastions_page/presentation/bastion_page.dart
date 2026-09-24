@@ -384,6 +384,8 @@ class BastionPage extends StatelessWidget {
     if (destroyedFacility != null) {
       final removed = await cubit.removeFacility(bastion.id, destroyedFacility);
       if (!removed) removalFailed = true;
+    } else {
+      await cubit.refreshUserBastion();
     }
 
     if (removalFailed && context.mounted) {

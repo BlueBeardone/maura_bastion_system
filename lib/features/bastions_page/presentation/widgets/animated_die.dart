@@ -27,7 +27,7 @@ class _AnimatedDieState extends State<AnimatedDie>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 500),
+    duration: const Duration(milliseconds: 900),
   );
 
   @override
@@ -68,7 +68,7 @@ class _AnimatedDieState extends State<AnimatedDie>
       builder: (context, _) {
         final int face;
         if (widget.rolling) {
-          final ticks = (_controller.value * 12).floor();
+          final ticks = (_controller.value * 6).floor();
           face = ticks % widget.faces + 1;
         } else {
           face = widget.value ?? 1;

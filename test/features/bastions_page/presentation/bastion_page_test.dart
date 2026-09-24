@@ -839,6 +839,8 @@ void main() {
 
     expect(find.text('Bastion Attacked'), findsOneWidget);
 
+    await tester.tap(find.text('Fight'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
@@ -940,6 +942,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bastion Attacked'), findsOneWidget);
+    await tester.tap(find.text('Fight'));
+    await tester.pump();
     await tester.tap(find.text('Skip to result'));
     await tester.pumpAndSettle();
     expect(find.text('ATTACK REPELLED'), findsOneWidget);
@@ -954,5 +958,114 @@ void main() {
 
     final body = jsonDecode(posts.single.body) as Map<String, dynamic>;
     expect(body['facilityResults'] as List, isNotEmpty);
+  });
+
+  testWidgets(
+      'a completed attack refreshes the bastion so defender losses appear without a manual reload',
+      (tester) async {
+    var bastionGets = 0;
+    final facilities = [
+      turnFacilityJson(id: 'cat_armory', name: 'Armory', rank: 'a'),
+      turnFacilityJson(id: 'cat_battlements', name: 'Battlements', rank: 's'),
+      turnFacilityJson(id: 'f1', name: 'Facility 1'),
+      turnFacilityJson(id: 'f2', name: 'Facility 2'),
+      turnFacilityJson(id: 'f3', name: 'Facility 3'),
+      turnFacilityJson(id: 'f4', name: 'Facility 4'),
+    ];
+    // Sixteen bastion defenders at death threshold 1 always survive and always
+    // clear the attackers in a single round — a deterministic win that leaves
+    // no destroyed facility, exercising the refresh path the old code skipped.
+    final defenders = List.generate(
+      16,
+      (i) => {
+        'id': 'd$i',
+        'name': 'Defender $i',
+        'type': 'bastion_defender',
+        'bastionId': 'bastion_1',
+      },
+    );
+    final mockClient = _withEmptyBrowsePage((request) async {
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/bastions') {
+        bastionGets++;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'ok',
+            'data': [
+              {
+                'id': 'bastion_1',
+                'userId': 'user_1',
+                'name': 'Test Bastion',
+                'description': 'A test stronghold.',
+                'facilities': facilities,
+                'defenders': bastionGets == 1 ? defenders : <Object>[],
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'GET' &&
+          request.url.path == '/maura/v1/defenders') {
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': <Object>[]}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'DELETE' &&
+          (request.url.path.startsWith('/maura/v1/defenders/') ||
+              request.url.path.startsWith('/maura/v1/facilities/'))) {
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      if (request.method == 'POST' &&
+          request.url.path.startsWith('/maura/v1/discord/')) {
+        return http.Response(
+          jsonEncode({'success': true, 'message': 'ok', 'data': {}}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({'success': false, 'message': 'not found'}),
+        404,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    await pumpBastionPage(
+      tester,
+      isUserBastion: true,
+      mockClient: mockClient,
+      attackChance: 1.0,
+    );
+
+    expect(find.text('Bastion Defenders: 16'), findsOneWidget);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'quest');
+    await tester.pump();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Attacked'), findsOneWidget);
+    await tester.tap(find.text('Fight'));
+    await tester.pump();
+    await tester.tap(find.text('Skip to result'));
+    await tester.pumpAndSettle();
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(bastionGets, greaterThan(1));
+    expect(find.text('No defenders stationed at this bastion'), findsOneWidget);
   });
 }

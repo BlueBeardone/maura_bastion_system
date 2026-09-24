@@ -8,6 +8,7 @@ import 'package:maura_bastion_system/data/models/events/bastion_attack.dart';
 import 'package:maura_bastion_system/data/models/events/chart_tier.dart';
 import 'package:maura_bastion_system/data/models/events/dispatch.dart';
 import 'package:maura_bastion_system/data/models/npcs/defender.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/animated_die.dart';
 import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/bastion_attack_dialog.dart';
 
 const _enemy = BastionEnemy(
@@ -51,26 +52,21 @@ BastionCombatResult _lossResult() => resolveBastionCombat(
 Widget _harness(
   BastionCombatResult result, {
   String? destroyed,
-  bool reducedMotion = false,
 }) {
   return MaterialApp(
-    home: Builder(
-      builder: (context) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(disableAnimations: reducedMotion),
-        child: Scaffold(
-          body: BastionAttackDialog(
-            enemy: _enemy,
-            enemyCount: result.startingEnemies,
-            result: result,
-            destroyedFacilityName: destroyed,
-          ),
-        ),
+    home: Scaffold(
+      body: BastionAttackDialog(
+        enemy: _enemy,
+        enemyCount: result.startingEnemies,
+        result: result,
+        destroyedFacilityName: destroyed,
       ),
     ),
   );
 }
 
 Future<void> _playToEnd(WidgetTester tester) async {
+  await tester.tap(find.text('Fight'));
   await tester.pump();
   var iterations = 0;
   while (find.text('Skip to result').evaluate().isNotEmpty &&
@@ -82,9 +78,24 @@ Future<void> _playToEnd(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('auto-plays to the repelled verdict with no taps',
+  testWidgets('shows the roster and waits for Fight before rolling',
       (tester) async {
     await tester.pumpWidget(_harness(_winResult()));
+    await tester.pump();
+
+    expect(find.text('Bastion Attacked'), findsOneWidget);
+    expect(find.text('Aldric'), findsOneWidget);
+    expect(find.text('Fight'), findsOneWidget);
+    expect(find.byType(AnimatedDie), findsNothing);
+    expect(find.text('ATTACK REPELLED'), findsNothing);
+  });
+
+  testWidgets('tapping Fight plays to the repelled verdict',
+      (tester) async {
+    await tester.pumpWidget(_harness(_winResult()));
+    await tester.pump();
+    expect(find.text('ATTACK REPELLED'), findsNothing);
+
     await _playToEnd(tester);
     await tester.pumpAndSettle();
 
@@ -92,10 +103,13 @@ void main() {
     expect(find.textContaining('Bandit Cutthroats'), findsOneWidget);
     expect(find.text('Aldric'), findsOneWidget);
     expect(find.text('ATTACK REPELLED'), findsOneWidget);
+    expect(find.text('Fight'), findsNothing);
   });
 
   testWidgets('skip reveals the verdict immediately', (tester) async {
     await tester.pumpWidget(_harness(_winResult()));
+    await tester.pump();
+    await tester.tap(find.text('Fight'));
     await tester.pump();
     await tester.tap(find.text('Skip to result'));
     await tester.pumpAndSettle();
@@ -107,18 +121,13 @@ void main() {
   testWidgets('a loss shows the destroyed facility', (tester) async {
     await tester.pumpWidget(_harness(_lossResult(), destroyed: 'Kitchen'));
     await tester.pump();
+    expect(find.text('BASTION FALLEN'), findsNothing);
+
+    await tester.tap(find.text('Fight'));
     await tester.pumpAndSettle();
 
     expect(find.text('BASTION FALLEN'), findsOneWidget);
     expect(find.textContaining('Kitchen'), findsOneWidget);
-  });
-
-  testWidgets('reduced motion shows the verdict immediately', (tester) async {
-    await tester.pumpWidget(_harness(_winResult(), reducedMotion: true));
-    await tester.pump();
-
-    expect(find.text('ATTACK REPELLED'), findsOneWidget);
-    expect(find.text('Skip to result'), findsNothing);
   });
 
   testWidgets('a pyrrhic win shows the verdict and the slain defender',
@@ -163,8 +172,12 @@ void main() {
       ],
     );
 
-    await tester.pumpWidget(_harness(result, reducedMotion: true));
+    await tester.pumpWidget(_harness(result));
     await tester.pump();
+    await tester.tap(find.text('Fight'));
+    await tester.pump();
+    await tester.tap(find.text('Skip to result'));
+    await tester.pumpAndSettle();
 
     expect(find.text('ATTACK REPELLED'), findsOneWidget);
     expect(find.text('slain'), findsOneWidget);
@@ -193,6 +206,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Bastion Attacked'), findsOneWidget);
 
+    await tester.tap(find.text('Fight'));
+    await tester.pump();
     await tester.tap(find.text('Skip to result'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
