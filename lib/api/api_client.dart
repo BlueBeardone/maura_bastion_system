@@ -1,13 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 
 import 'api_exception.dart';
 import 'api_response.dart';
 
-final String _baseUrl = String.fromEnvironment('KAFKA', defaultValue: 'http://localhost:8080');
+const String _configuredBaseUrl = String.fromEnvironment('KAFKA');
+
+String _resolveBaseUrl() {
+  if (_configuredBaseUrl.isEmpty) {
+    if (kReleaseMode) {
+      throw StateError('KAFKA base URL must be provided via --dart-define=KAFKA=...');
+    }
+    return 'http://localhost:8080';
+  }
+  if (kReleaseMode && !_configuredBaseUrl.startsWith('https://')) {
+    throw StateError('KAFKA base URL must use https in release builds');
+  }
+  return _configuredBaseUrl;
+}
 
 class ApiClient {
   final String baseUrl;
@@ -21,7 +35,7 @@ class ApiClient {
     http.Client? client,
     AuthSessionStore? sessionStore,
     this.requestTimeout = const Duration(seconds: 30),
-  })  : baseUrl = baseUrl ?? _baseUrl,
+  })  : baseUrl = baseUrl ?? _resolveBaseUrl(),
         _client = client ?? http.Client(),
         _sessionStore = sessionStore;
 

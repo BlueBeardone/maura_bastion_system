@@ -1,20 +1,36 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+abstract class TokenStorage {
+  Future<void> write(String token);
+  Future<String?> read();
+  Future<void> delete();
+}
+
+class SecureTokenStorage implements TokenStorage {
+  static const _key = 'auth_token';
+  final FlutterSecureStorage _storage;
+
+  SecureTokenStorage({FlutterSecureStorage? storage})
+      : _storage = storage ?? const FlutterSecureStorage();
+
+  @override
+  Future<void> write(String token) => _storage.write(key: _key, value: token);
+
+  @override
+  Future<String?> read() => _storage.read(key: _key);
+
+  @override
+  Future<void> delete() => _storage.delete(key: _key);
+}
 
 class AuthSessionStore {
-  static const _key = 'auth_token';
+  final TokenStorage _storage;
 
-  Future<void> save(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, token);
-  }
+  AuthSessionStore({TokenStorage? storage}) : _storage = storage ?? SecureTokenStorage();
 
-  Future<String?> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_key);
-  }
+  Future<void> save(String token) => _storage.write(token);
 
-  Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
-  }
+  Future<String?> load() => _storage.read();
+
+  Future<void> clear() => _storage.delete();
 }

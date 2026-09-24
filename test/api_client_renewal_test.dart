@@ -6,14 +6,22 @@ import 'package:http/testing.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/api_exception.dart';
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+class InMemoryTokenStorage implements TokenStorage {
+  String? _value;
+
+  @override
+  Future<void> write(String token) async => _value = token;
+
+  @override
+  Future<String?> read() async => _value;
+
+  @override
+  Future<void> delete() async => _value = null;
+}
 
 void main() {
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-  });
-
-  AuthSessionStore freshStore() => AuthSessionStore();
+  AuthSessionStore freshStore() => AuthSessionStore(storage: InMemoryTokenStorage());
 
   test('successful response with renewedToken updates token and persists it', () async {
     final store = freshStore();
@@ -72,7 +80,6 @@ void main() {
   });
 
   test('subsequent request uses the renewed token in the Authorization header', () async {
-    SharedPreferences.setMockInitialValues({});
     final store = freshStore();
     String? seenAuthHeader;
     final client = ApiClient(

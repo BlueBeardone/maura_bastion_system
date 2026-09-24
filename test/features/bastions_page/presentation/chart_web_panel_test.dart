@@ -47,7 +47,7 @@ void main() {
     expect(find.textContaining('The Wilds'), findsOneWidget);
     expect(find.textContaining('The Arcane'), findsOneWidget);
     expect(find.text('6 of 6 points unassigned'), findsOneWidget);
-    expect(find.textContaining('never fires'), findsNWidgets(6));
+    expect(find.textContaining('· never fires'), findsNWidgets(6));
   });
 
   testWidgets('plus button assigns a point and preview updates',

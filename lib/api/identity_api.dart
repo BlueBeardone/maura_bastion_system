@@ -43,35 +43,11 @@ class IdentityApi {
     return User.fromJson(data);
   }
 
-  Future<List<User>> getAllUsers() async {
-    final data = await _client.get<List<dynamic>>(
-      '/maura/v1/identity/users',
-      parser: (json) => json as List<dynamic>,
-    );
-    return data.map((u) => User.fromJson(u as Map<String, dynamic>)).toList();
-  }
-
   Future<User> getUser(String id) async {
     final data = await _client.get<Map<String, dynamic>>(
       '/maura/v1/identity/users/$id',
       parser: (json) => json as Map<String, dynamic>,
     );
     return User.fromJson(data);
-  }
-
-  Future<User> updateUser(String id, User user) async {
-    final data = await _client.put<Map<String, dynamic>>(
-      '/maura/v1/identity/users/$id',
-      user.toJson(),
-      parser: (json) => json as Map<String, dynamic>,
-    );
-    return User.fromJson(data);
-  }
-
-  Future<void> deleteUser(String id) async {
-    await _client.delete<void>(
-      '/maura/v1/identity/users/$id',
-      parser: (_) {},
-    );
   }
 }
