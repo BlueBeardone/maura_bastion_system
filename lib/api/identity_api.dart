@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'api_client.dart';
 import 'dto/login_request.dart';
 import 'dto/register_request.dart';
@@ -21,9 +23,20 @@ class IdentityApi {
     if (data['token'] != null) {
       final token = data['token'] as String;
       _client.setAuthToken(token);
-      await _sessionStore.save(token);
+      await _persistToken(token);
     }
     return User.fromJson(data['user'] as Map<String, dynamic>);
+  }
+
+  /// Persisting the token is best-effort: the in-memory session is already
+  /// authenticated, so a storage failure (e.g. flutter_secure_storage on the
+  /// web outside a secure context) must never block a successful login.
+  Future<void> _persistToken(String token) async {
+    try {
+      await _sessionStore.save(token);
+    } catch (error) {
+      debugPrint('Could not persist auth token: $error');
+    }
   }
 
   Future<User> register(RegisterRequest request) async {

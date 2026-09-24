@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode, debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:maura_bastion_system/features/login/data/auth_session_store.dart';
 
@@ -126,7 +126,11 @@ class ApiClient {
       final renewedToken = json['renewedToken'];
       if (renewedToken is String && renewedToken.isNotEmpty && renewedToken != _authToken) {
         setAuthToken(renewedToken);
-        await _sessionStore?.save(renewedToken);
+        try {
+          await _sessionStore?.save(renewedToken);
+        } catch (error) {
+          debugPrint('Could not persist renewed auth token: $error');
+        }
       }
 
       return apiResponse.data as T;

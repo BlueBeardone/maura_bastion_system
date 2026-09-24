@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:maura_bastion_system/api/api_client.dart';
 import 'package:maura_bastion_system/api/api_exception.dart';
 import 'package:maura_bastion_system/api/dto/login_request.dart';
@@ -25,26 +26,33 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       token = await _sessionStore.load();
     } catch (error) {
+      debugPrint('restoreSession: storage read failed: $error');
       emit(const AuthUnauthenticatedState());
       return;
     }
     if (token == null) {
+      debugPrint('restoreSession: no stored token');
       emit(const AuthUnauthenticatedState());
       return;
     }
 
+    debugPrint('restoreSession: stored token found, verifying');
     _apiClient.setAuthToken(token);
     try {
       final user = await _identityApi.getMe();
+      debugPrint('restoreSession: authenticated as ${user.id}');
       emit(AuthAuthenticatedState(user: user));
     } on ApiException catch (error) {
+      debugPrint(
+          'restoreSession: getMe rejected ${error.statusCode}: ${error.message}');
       final rejected = error.statusCode == 401 || error.statusCode == 403;
       if (rejected) {
         await _sessionStore.clear();
         _apiClient.setAuthToken(null);
       }
       emit(const AuthUnauthenticatedState());
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint('restoreSession error: $error\n$stackTrace');
       emit(const AuthUnauthenticatedState());
     }
   }
@@ -67,7 +75,8 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       emit(AuthAuthenticatedState(user: user));
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint('Login failed: $error\n$stackTrace');
       emit(AuthErrorState(message: 'Login failed. Please try again.'));
       emit(const AuthUnauthenticatedState());
     }
