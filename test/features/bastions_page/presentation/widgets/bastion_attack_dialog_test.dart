@@ -36,32 +36,7 @@ BastionCombatResult _winResult() => resolveBastionCombat(
       rng: Random(1),
     );
 
-Widget _harness(BastionCombatResult result, {String? destroyed}) => MaterialApp(
-      home: Scaffold(
-        body: BastionAttackDialog(
-          enemy: _enemy,
-          enemyCount: 1,
-          result: result,
-          destroyedFacilityName: destroyed,
-        ),
-      ),
-    );
-
-void main() {
-  testWidgets('shows the enemy, roster rolls and the repelled verdict',
-      (tester) async {
-    await tester.pumpWidget(_harness(_winResult()));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Bastion Attacked'), findsOneWidget);
-    expect(find.textContaining('Bandit Cutthroats'), findsOneWidget);
-    expect(find.textContaining('Aldric'), findsWidgets);
-    expect(find.text('Aldric: d12'), findsOneWidget);
-    expect(find.text('ATTACK REPELLED'), findsOneWidget);
-  });
-
-  testWidgets('a loss shows the destroyed facility', (tester) async {
-    final result = resolveBastionCombat(
+BastionCombatResult _lossResult() => resolveBastionCombat(
       defenders: const [],
       enemy: _enemy,
       enemyCount: 2,
@@ -72,11 +47,127 @@ void main() {
       ),
       rng: Random(1),
     );
-    await tester.pumpWidget(_harness(result, destroyed: 'Kitchen'));
+
+Widget _harness(
+  BastionCombatResult result, {
+  String? destroyed,
+  bool reducedMotion = false,
+}) {
+  return MaterialApp(
+    home: Builder(
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reducedMotion),
+        child: Scaffold(
+          body: BastionAttackDialog(
+            enemy: _enemy,
+            enemyCount: result.startingEnemies,
+            result: result,
+            destroyedFacilityName: destroyed,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> _playToEnd(WidgetTester tester) async {
+  await tester.pump();
+  var iterations = 0;
+  while (find.text('Skip to result').evaluate().isNotEmpty &&
+      iterations < 20) {
+    await tester.pump(kBastionCombatTumble);
+    await tester.pump(kBastionCombatPause);
+    iterations++;
+  }
+}
+
+void main() {
+  testWidgets('auto-plays to the repelled verdict with no taps',
+      (tester) async {
+    await tester.pumpWidget(_harness(_winResult()));
+    await _playToEnd(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bastion Attacked'), findsOneWidget);
+    expect(find.textContaining('Bandit Cutthroats'), findsOneWidget);
+    expect(find.text('Aldric'), findsOneWidget);
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+  });
+
+  testWidgets('skip reveals the verdict immediately', (tester) async {
+    await tester.pumpWidget(_harness(_winResult()));
+    await tester.pump();
+    await tester.tap(find.text('Skip to result'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+    expect(find.text('Skip to result'), findsNothing);
+  });
+
+  testWidgets('a loss shows the destroyed facility', (tester) async {
+    await tester.pumpWidget(_harness(_lossResult(), destroyed: 'Kitchen'));
+    await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text('BASTION FALLEN'), findsOneWidget);
     expect(find.textContaining('Kitchen'), findsOneWidget);
+  });
+
+  testWidgets('reduced motion shows the verdict immediately', (tester) async {
+    await tester.pumpWidget(_harness(_winResult(), reducedMotion: true));
+    await tester.pump();
+
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+    expect(find.text('Skip to result'), findsNothing);
+  });
+
+  testWidgets('a pyrrhic win shows the verdict and the slain defender',
+      (tester) async {
+    final defender = Defender(
+      id: 'd1',
+      name: 'Aldric',
+      type: DefenderType.knight,
+      bastionId: 'b1',
+    );
+    final result = BastionCombatResult(
+      enemy: _enemy,
+      tier: ChartTier.basic,
+      startingEnemies: 1,
+      rounds: const [
+        CombatRound(
+          enemiesAtStart: 1,
+          rolls: [
+            DefenderRoll(
+              defenderId: 'd1',
+              defenderName: 'Aldric',
+              rolls: [1],
+              died: true,
+            ),
+          ],
+          enemiesKilled: 1,
+          defendersLost: 1,
+        ),
+      ],
+      survivors: const [],
+      dead: [defender],
+      won: true,
+      deathThreshold: 4,
+      advantage: false,
+      roster: const [
+        (
+          id: 'd1',
+          name: 'Aldric',
+          type: DefenderType.knight,
+          dice: UnitDice(1, 12),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(_harness(result, reducedMotion: true));
+    await tester.pump();
+
+    expect(find.text('ATTACK REPELLED'), findsOneWidget);
+    expect(find.text('slain'), findsOneWidget);
   });
 
   testWidgets('Done pops the dialog', (tester) async {
@@ -98,9 +189,12 @@ void main() {
       ),
     ));
     await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Bastion Attacked'), findsOneWidget);
 
+    await tester.tap(find.text('Skip to result'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.text('Bastion Attacked'), findsNothing);

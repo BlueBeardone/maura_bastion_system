@@ -372,4 +372,35 @@ void main() {
       expect(loot.materials.single.units, greaterThan(0));
     });
   });
+
+  test('roster carries defender id and type', () {
+    final result = resolveBastionCombat(
+      defenders: [
+        Defender(
+          id: 'd1',
+          name: 'Aldric',
+          type: DefenderType.knight,
+          bastionId: 'b1',
+        ),
+      ],
+      enemy: const BastionEnemy(
+        id: 'e',
+        name: 'Bandits',
+        description: '',
+        tier: ChartTier.basic,
+      ),
+      enemyCount: 1,
+      config: const BastionDefenseConfig(
+        deathThreshold: 1,
+        advantage: false,
+        bastionDefenderDice: UnitDice(1, 6),
+      ),
+      rng: Random(1),
+    );
+
+    expect(result.roster.single.id, 'd1');
+    expect(result.roster.single.type, DefenderType.knight);
+    expect(result.roster.single.name, 'Aldric');
+    expect(result.roster.single.dice.faces, 12);
+  });
 }

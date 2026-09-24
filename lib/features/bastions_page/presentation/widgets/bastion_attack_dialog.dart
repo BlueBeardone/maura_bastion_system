@@ -1,14 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maura_bastion_system/core/juice/juice.dart';
 import 'package:maura_bastion_system/core/juice/juice_sfx.dart';
 import 'package:maura_bastion_system/core/juice/reveal_widgets.dart';
 import 'package:maura_bastion_system/core/themes/theme_colors.dart';
 import 'package:maura_bastion_system/data/enums/rank.dart';
 import 'package:maura_bastion_system/data/models/events/bastion_attack.dart';
 import 'package:maura_bastion_system/data/models/events/reward_spec.dart';
+import 'package:maura_bastion_system/features/bastions_page/presentation/widgets/combat_arena.dart';
 import 'package:maura_bastion_system/features/news_paper/presentation/widgets/parchment_border.dart';
 
-class BastionAttackDialog extends StatelessWidget {
+/// How long the dice tumble before settling.
+const Duration kBastionCombatTumble = Duration(milliseconds: 650);
+
+/// How long to pause after a round settles before the next one begins.
+const Duration kBastionCombatPause = Duration(milliseconds: 700);
+
+bool _reducedMotion(BuildContext context) =>
+    context.getInheritedWidgetOfExactType<MediaQuery>()?.data.disableAnimations ??
+    false;
+
+class BastionAttackDialog extends StatefulWidget {
   final BastionEnemy enemy;
   final int enemyCount;
   final BastionCombatResult result;
@@ -46,6 +60,61 @@ class BastionAttackDialog extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  State<BastionAttackDialog> createState() => _BastionAttackDialogState();
+}
+
+class _BastionAttackDialogState extends State<BastionAttackDialog> {
+  int _revealedRound = -1;
+  bool _rolling = false;
+  bool _finished = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_reducedMotion(context) || widget.result.rounds.isEmpty) {
+      _finish();
+    } else {
+      _timer = Timer(kBastionCombatPause, _advance);
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _advance() {
+    if (!mounted) return;
+    final next = _revealedRound + 1;
+    if (next >= widget.result.rounds.length) {
+      setState(_finish);
+      return;
+    }
+    setState(() {
+      _revealedRound = next;
+      _rolling = true;
+    });
+    Juice.sfx(SfxClip.dice);
+    _timer = Timer(kBastionCombatTumble, () {
+      if (!mounted) return;
+      setState(() => _rolling = false);
+      _timer = Timer(kBastionCombatPause, _advance);
+    });
+  }
+
+  void _finish() {
+    _timer?.cancel();
+    _revealedRound =
+        widget.result.rounds.isEmpty ? -1 : widget.result.rounds.length - 1;
+    _rolling = false;
+    _finished = true;
+  }
+
+  void _skip() => setState(_finish);
 
   @override
   Widget build(BuildContext context) {
@@ -90,10 +159,7 @@ class BastionAttackDialog extends StatelessWidget {
               const SizedBox(height: 8),
               Flexible(child: SingleChildScrollView(child: _buildBody())),
               const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Done'),
-              ),
+              _buildFooter(),
             ],
           ),
         ),
@@ -106,7 +172,7 @@ class BastionAttackDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '$enemyCount \u00d7 ${enemy.name}',
+          '${widget.enemyCount} \u00d7 ${widget.enemy.name}',
           style: GoogleFonts.cinzel(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -115,49 +181,40 @@ class BastionAttackDialog extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          enemy.description,
+          widget.enemy.description,
           style: GoogleFonts.imFellEnglish(
             fontSize: 15,
             height: 1.4,
             color: MedievalColors.sepiaInk,
           ),
         ),
-        const SizedBox(height: 8),
-        if (result.roster.isNotEmpty) ...[
-          Text(
-            'Defenders',
-            style: GoogleFonts.imFellEnglish(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: MedievalColors.sepiaSecondary,
-            ),
-          ),
-          for (final defender in result.roster)
-            _line('${defender.name}: d${defender.dice.faces}'),
-          const SizedBox(height: 8),
-        ],
+        const SizedBox(height: 12),
+        CombatArena(
+          result: widget.result,
+          revealedRound: _revealedRound,
+          rolling: _rolling,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    if (!_finished) {
+      return Center(
+        child: TextButton(
+          onPressed: _skip,
+          child: const Text('Skip to result'),
+        ),
+      );
+    }
+    final result = widget.result;
+    final loot = widget.loot;
+    final destroyed = widget.destroyedFacilityName;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         if (result.rounds.isEmpty)
-          _line('No defenders stand ready. The gates are thrown open.')
-        else
-          for (var i = 0; i < result.rounds.length; i++) ...[
-            FadeSlide(
-              delay: Duration(milliseconds: 200 * i),
-              child: Text(
-                'Round ${i + 1}',
-                style: GoogleFonts.imFellEnglish(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: MedievalColors.sepiaSecondary,
-                ),
-              ),
-            ),
-            for (final roll in result.rounds[i].rolls)
-              _line(
-                '${roll.defenderName}: ${roll.rolls.join(', ')}'
-                '${roll.died ? ' \u2014 slain' : ''}',
-              ),
-            const SizedBox(height: 4),
-          ],
+          _line('No defenders stand ready. The gates are thrown open.'),
         Center(
           child: StampIn(
             sfx: SfxClip.stamp,
@@ -167,20 +224,25 @@ class BastionAttackDialog extends StatelessWidget {
         ),
         if (result.won && loot != null) ...[
           const SizedBox(height: 8),
-          for (final grant in loot!.materials)
+          for (final grant in loot.materials)
             _line(
               '${grant.units} \u00d7 ${grant.reward.name} '
               '(Rank ${grant.effectiveRank.title})',
             ),
-          if (loot!.note != null) _line(loot!.note!),
+          if (loot.note != null) _line(loot.note!),
         ],
-        if (!result.won && destroyedFacilityName != null) ...[
+        if (!result.won && destroyed != null) ...[
           const SizedBox(height: 8),
           _line(
-            'The $destroyedFacilityName is destroyed. '
+            'The $destroyed is destroyed. '
             'Rebuild it to restore its benefits.',
           ),
         ],
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Done'),
+        ),
       ],
     );
   }

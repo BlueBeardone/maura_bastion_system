@@ -126,7 +126,8 @@ UnitDice defenderDiceFor(DefenderType type, BastionDefenseConfig config) {
   }
 }
 
-typedef DefenderLoadout = ({String name, UnitDice dice});
+typedef DefenderLoadout =
+    ({String id, String name, DefenderType type, UnitDice dice});
 
 class DefenderRoll {
   final String defenderId;
@@ -197,7 +198,9 @@ BastionCombatResult resolveBastionCombat({
   final roster = [
     for (final defender in defenders)
       (
+        id: defender.id,
         name: defender.name ?? 'Defender',
+        type: defender.type,
         dice: defenderDiceFor(defender.type, config),
       ),
   ];

@@ -940,6 +940,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bastion Attacked'), findsOneWidget);
+    await tester.tap(find.text('Skip to result'));
+    await tester.pumpAndSettle();
     expect(find.text('ATTACK REPELLED'), findsOneWidget);
 
     await tester.tap(find.text('Done'));
